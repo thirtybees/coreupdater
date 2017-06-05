@@ -80,6 +80,26 @@ class CoreUpdater extends Module
      */
     public function getContent()
     {
-        return '<p>Hello, world!</p>';
+        $enabledModules = [];
+        $warn = false;
+        foreach ([
+            //'tbupdater', // Needed by core code so far.
+            'autoupgrade',
+            'psonefivemigrator',
+            'psonesixmigrator',
+            'psonesevenmigrator',
+        ] as $moduleName) {
+            if (Module::isEnabled($moduleName)) {
+                $enabledModules[] = $moduleName;
+                $warn = true;
+            }
+        }
+
+        $this->context->smarty->assign([
+            'enabledModules'  => $enabledModules,
+            'warn'            => $warn,
+        ]);
+
+        return $this->display(__FILE__, 'views/templates/admin/competition.tpl');
     }
 }
