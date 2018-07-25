@@ -26,6 +26,8 @@ if (!defined('_TB_VERSION_')) {
  */
 class CoreUpdater extends Module
 {
+    const MAIN_CONTROLLER = 'AdminCoreUpdater';
+
     /**
      * CoreUpdater constructor.
      *
@@ -56,7 +58,28 @@ class CoreUpdater extends Module
      */
     public function install()
     {
-        return parent::install();
+        $success = parent::install();
+
+        if ($success) {
+            try {
+                $tab = new Tab();
+
+                $tab->module      = $this->name;
+                $tab->class_name  = static::MAIN_CONTROLLER;
+                $tab->id_parent   = Tab::getIdFromClassName('AdminPreferences');
+
+                $langs = Language::getLanguages();
+                foreach ($langs as $lang) {
+                    $tab->name[$lang['id_lang']] = $this->l('Core Updater');
+                }
+
+                $success = $tab->save();
+            } catch (Exception $e) {
+                $success = false;
+            }
+        }
+
+        return $success;
     }
 
     /**
@@ -68,7 +91,14 @@ class CoreUpdater extends Module
      */
     public function uninstall()
     {
-        return parent::uninstall();
+        $success = true;
+
+        $tabs = Tab::getCollectionFromModule($this->name);
+        foreach ($tabs as $tab) {
+            $success = $success && $tab->delete();
+        }
+
+        return $success && parent::uninstall();
     }
 
     /**
