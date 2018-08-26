@@ -35,6 +35,17 @@ class AdminCoreUpdaterController extends ModuleAdminController
     {
         $this->bootstrap = true;
 
+        $this->fields_options = [
+            'updatepanel' => [
+                'title'       => $this->l('Update'),
+                'description' => '<p>'
+                                 .$this->l('Here you can easily update your thirty bees installation and/or switch between thirty bees versions.')
+                                 .'</p>',
+                'info'        => $this->l('Current thirty bees version:')
+                                 .' <b>'._TB_VERSION_.'</b>',
+            ],
+        ];
+
         parent::__construct();
     }
 
