@@ -70,6 +70,17 @@ class AdminCoreUpdaterController extends ModuleAdminController
                         'identifier'  => 'channel',
                         'list'        => $displayChannelList,
                     ],
+                    'CORE_UPDATER_VERSION' => [
+                        'type'        => 'select',
+                        'title'       => $this->l('Version to compare to:'),
+                        'identifier'  => 'version',
+                        'list'        => [
+                            [
+                                'version' => '',
+                                'name'    => '',
+                            ],
+                        ],
+                    ],
                 ],
             ],
         ];
