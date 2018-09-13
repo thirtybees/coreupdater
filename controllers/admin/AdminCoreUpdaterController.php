@@ -101,4 +101,17 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
         parent::initContent();
     }
+
+    /**
+     * Set media.
+     *
+     * @since 1.0.0
+     */
+    public function setMedia()
+    {
+        parent::setMedia();
+
+        $this->addJquery();
+        $this->addJS(_PS_MODULE_DIR_.'coreupdater/views/js/controller.js');
+    }
 }
