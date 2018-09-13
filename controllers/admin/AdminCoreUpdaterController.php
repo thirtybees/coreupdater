@@ -26,6 +26,17 @@ if (!defined('_TB_VERSION_')) {
  */
 class AdminCoreUpdaterController extends ModuleAdminController
 {
+    const API_URL   = 'https://api.thirtybees.com/installationmaster.php';
+    const CHANNELS  = [
+        'Stable'                      => 'tags',
+        'Bleeding Edge'               => 'branches',
+        //'Developer (enter Git hash)'  => 'gitHash', // implementation postponed
+    ];
+    // For the translations parser:
+    // $this->l('Stable');
+    // $this->l('Bleeding Edge');
+    // $this->l('Developer (enter Git hash)');
+
     /**
      * AdminCoreUpdaterController constructor.
      *
@@ -35,6 +46,14 @@ class AdminCoreUpdaterController extends ModuleAdminController
     {
         $this->bootstrap = true;
 
+        $displayChannelList = [];
+        foreach (static::CHANNELS as $channel => $path) {
+            $displayChannelList[] = [
+                'channel' => $path,
+                'name'    => $this->l($channel),
+            ];
+        }
+
         $this->fields_options = [
             'updatepanel' => [
                 'title'       => $this->l('Update'),
@@ -43,6 +62,15 @@ class AdminCoreUpdaterController extends ModuleAdminController
                                  .'</p>',
                 'info'        => $this->l('Current thirty bees version:')
                                  .' <b>'._TB_VERSION_.'</b>',
+                'fields' => [
+                    'CORE_UPDATER_CHANNEL' => [
+                        'type'        => 'select',
+                        'title'       => $this->l('Channel:'),
+                        'desc'        => $this->l('This is the Git channel to update from. "Stable" lists releases, "Bleeding Edge" lists development branches.'),
+                        'identifier'  => 'channel',
+                        'list'        => $displayChannelList,
+                    ],
+                ],
             ],
         ];
 
