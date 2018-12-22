@@ -19,7 +19,11 @@
 /*
  * Upgrade panel.
  */
+var coreUpdaterParameters;
+
 $(document).ready(function () {
+  coreUpdaterParameters = JSON.parse($('input[name=CORE_UPDATER_PARAMETERS]').val());
+
   channelChange();
   $('#CORE_UPDATER_CHANNEL').on('change', channelChange);
 });

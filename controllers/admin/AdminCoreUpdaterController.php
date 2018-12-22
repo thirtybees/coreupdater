@@ -63,6 +63,13 @@ class AdminCoreUpdaterController extends ModuleAdminController
                 'info'        => $this->l('Current thirty bees version:')
                                  .' <b>'._TB_VERSION_.'</b>',
                 'fields' => [
+                    'CORE_UPDATER_PARAMETERS' => [
+                        'type'        => 'hidden',
+                        'value'       => htmlentities(json_encode([
+                            'apiUrl'    => static::API_URL,
+                        ])),
+                        'auto_value' => false,
+                    ],
                     'CORE_UPDATER_CHANNEL' => [
                         'type'        => 'select',
                         'title'       => $this->l('Channel:'),
