@@ -37,13 +37,20 @@ function channelChange() {
   }
 
   versionSelect.empty();
-  if (channel === 'tags') {
-    versionSelect.append('<option>' + 'tag 1' + '</option>');
-    versionSelect.append('<option>' + 'tag 2' + '</option>');
-    versionSelect.append('<option>' + 'tag 3' + '</option>');
-  } else if (channel === 'branches') {
-    versionSelect.append('<option>' + 'branch 1' + '</option>');
-    versionSelect.append('<option>' + 'branch 2' + '</option>');
-    versionSelect.append('<option>' + 'branch 3' + '</option>');
-  }
+  $.ajax({
+    url: coreUpdaterParameters.apiUrl,
+    type: 'POST',
+    data: {'list': channel},
+    dataType: 'json',
+    success: function(data, status, xhr) {
+      data.forEach(function(version) {
+          versionSelect.append('<option>'+version+'</option>');
+      });
+    },
+    error: function(xhr, status, error) {
+      console.log('api.thirtybees.com request failed with status \'' + status
+        + '\' and \'' + xhr.state() + '\'.'
+      );
+    },
+  });
 }
