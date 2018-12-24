@@ -66,7 +66,8 @@ class AdminCoreUpdaterController extends ModuleAdminController
                     'CORE_UPDATER_PARAMETERS' => [
                         'type'        => 'hidden',
                         'value'       => htmlentities(json_encode([
-                            'apiUrl'    => static::API_URL,
+                            'apiUrl'          => static::API_URL,
+                            'errorRetrieval'  => $this->l('Request failed, see JavaScript console.'),
                         ])),
                         'auto_value' => false,
                     ],
@@ -80,6 +81,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
                     'CORE_UPDATER_VERSION' => [
                         'type'        => 'select',
                         'title'       => $this->l('Version to compare to:'),
+                        'desc'        => $this->l('Retrieving versions for this channel ...'),
                         'identifier'  => 'version',
                         'list'        => [
                             [

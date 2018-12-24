@@ -46,11 +46,17 @@ function channelChange() {
       data.forEach(function(version) {
           versionSelect.append('<option>'+version+'</option>');
       });
+      $('#conf_id_CORE_UPDATER_VERSION')
+        .find('.help-block')
+        .parent()
+        .slideUp(200);
     },
     error: function(xhr, status, error) {
-      console.log('api.thirtybees.com request failed with status \'' + status
-        + '\' and \'' + xhr.state() + '\'.'
-      );
+      let helpText = $('#conf_id_CORE_UPDATER_VERSION').find('.help-block');
+      helpText.html(coreUpdaterParameters.errorRetrieval);
+      helpText.css('color', 'red');
+      console.log('Request to '+coreUpdaterParameters.apiUrl
+                  +' failed with status \''+xhr.state()+'\'.');
     },
   });
 }
