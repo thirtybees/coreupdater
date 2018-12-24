@@ -54,6 +54,11 @@ class AdminCoreUpdaterController extends ModuleAdminController
             ];
         }
 
+        $selectedVersion = Tools::getValue('CORE_UPDATER_VERSION');
+        if ( ! $selectedVersion) {
+            $selectedVersion = _TB_VERSION_;
+        }
+
         $this->fields_options = [
             'updatepanel' => [
                 'title'       => $this->l('Update'),
@@ -67,6 +72,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
                         'type'        => 'hidden',
                         'value'       => htmlentities(json_encode([
                             'apiUrl'          => static::API_URL,
+                            'selectedVersion' => $selectedVersion,
                             'errorRetrieval'  => $this->l('Request failed, see JavaScript console.'),
                         ])),
                         'auto_value' => false,

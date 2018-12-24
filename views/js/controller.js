@@ -45,6 +45,9 @@ function channelChange() {
     success: function(data, status, xhr) {
       data.forEach(function(version) {
           versionSelect.append('<option>'+version+'</option>');
+          if (version === coreUpdaterParameters.selectedVersion) {
+            versionSelect.val(coreUpdaterParameters.selectedVersion);
+          }
       });
       $('#conf_id_CORE_UPDATER_VERSION')
         .find('.help-block')
