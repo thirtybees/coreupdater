@@ -67,6 +67,11 @@ class AdminCoreUpdaterController extends ModuleAdminController
                                  .'</p>',
                 'info'        => $this->l('Current thirty bees version:')
                                  .' <b>'._TB_VERSION_.'</b>',
+                'submit'      => [
+                    'title'     => $this->l('Compare'),
+                    'imgclass'  => 'refresh',
+                    'name'      => 'coreUpdaterCompare',
+                ],
                 'fields' => [
                     'CORE_UPDATER_PARAMETERS' => [
                         'type'        => 'hidden',
