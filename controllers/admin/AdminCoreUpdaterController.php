@@ -105,6 +105,47 @@ class AdminCoreUpdaterController extends ModuleAdminController
             ],
         ];
 
+        if (Tools::isSubmit('coreUpdaterCompare')) {
+            /*
+             * Show an empty file compare panel. Existence of this panel
+             * causes JavaScript to trigger requests for doing all the steps
+             * necessary for preparing an update, which also fills the lists.
+             */
+            $this->fields_options['comparepanel'] = [
+                'title'       => $this->l('Update Comparison'),
+                'description' => '<p>'
+                                 .$this->l('This panel compares all files of this shop installation with a clean installation of the version given above. To update this shop to that version, update all files to the clean installation.')
+                                 .'</p>',
+                'submit'      => [
+                    'title'     => $this->l('Update'),
+                    'imgclass'  => 'update',
+                    'name'      => 'coreUpdaterUpdate',
+                ],
+                'fields' => [
+                    'CORE_UPDATER_UPDATE' => [
+                        'type'        => 'none',
+                        'title'       => $this->l('Files to get changed:'),
+                        'desc'        => $this->l('These files get updated for the version change.'),
+                    ],
+                    'CORE_UPDATER_ADD' => [
+                        'type'        => 'none',
+                        'title'       => $this->l('Files to get created:'),
+                        'desc'        => $this->l('These files get created for the version change.'),
+                    ],
+                    'CORE_UPDATER_REMOVE' => [
+                        'type'        => 'none',
+                        'title'       => $this->l('Files to get removed:'),
+                        'desc'        => $this->l('These files get removed for the version change.'),
+                    ],
+                    'CORE_UPDATER_REMOVE_OBSOLETE' => [
+                        'type'        => 'none',
+                        'title'       => $this->l('Obsolete files:'),
+                        'desc'        => $this->l('These files exist locally, but are not needed for the selected version. Mark the checkbox(es) to remove them.'),
+                    ],
+                ],
+            ];
+        }
+
         parent::__construct();
     }
 
