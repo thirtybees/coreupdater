@@ -26,6 +26,8 @@ $(document).ready(function () {
 
   channelChange();
   $('#CORE_UPDATER_CHANNEL').on('change', channelChange);
+
+  $('#CORE_UPDATER_VERSION').on('change', versionChange);
 });
 
 function channelChange() {
@@ -62,4 +64,12 @@ function channelChange() {
                   +' failed with status \''+xhr.state()+'\'.');
     },
   });
+}
+
+function versionChange() {
+  if ($(this).val() === coreUpdaterParameters.selectedVersion) {
+    $('#configuration_fieldset_comparepanel').slideDown(1000);
+  } else {
+    $('#configuration_fieldset_comparepanel').slideUp(1000);
+  }
 }
