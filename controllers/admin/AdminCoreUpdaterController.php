@@ -21,6 +21,8 @@ if (!defined('_TB_VERSION_')) {
     exit;
 }
 
+require_once _PS_MODULE_DIR_.'/coreupdater/classes/GitUpdate.php';
+
 /**
  * Class AdminCoreUpdaterController.
  */
@@ -216,15 +218,10 @@ class AdminCoreUpdaterController extends ModuleAdminController
             die('Parameter \'compareVersion\' is empty.');
         }
 
-        // Demo data. Remove later.
-        $rand = rand(0, 10);
-        sleep(1);
-        $messages['informations'][] = 'step '.$rand;
-        if ($rand === 10) {
-            $messages['done'] = true;
-        } else {
-            $messages['done'] = false;
-        }
+        $start = time();
+        do {
+            GitUpdate::compareStep($messages, $version);
+        } while ($messages['done'] !== true && time() - $start < 3);
 
         die(json_encode($messages));
     }
