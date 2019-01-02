@@ -46,6 +46,17 @@ class AdminCoreUpdaterController extends ModuleAdminController
     {
         $this->bootstrap = true;
 
+        // Take a shortcut for Ajax requests.
+        if (Tools::getValue('ajax')) {
+            $method = 'ajax'.ucfirst(Tools::getValue('action'));
+            if (method_exists($this, $method)) {
+                $this->{$method}();
+            }
+
+            // Should be unreached.
+            die('Invalid request for Ajax action \''.$method.'()\'.');
+        }
+
         $displayChannelList = [];
         foreach (static::CHANNELS as $channel => $path) {
             $displayChannelList[] = [
@@ -122,6 +133,14 @@ class AdminCoreUpdaterController extends ModuleAdminController
                     'name'      => 'coreUpdaterUpdate',
                 ],
                 'fields' => [
+                    'CORE_UPDATER_PROCESSING' => [
+                        'type'        => 'textarea',
+                        'title'       => $this->l('Processing log:'),
+                        'cols'        => 2000,
+                        'rows'        => 3,
+                        'value'       => $this->l('Starting...'),
+                        'auto_value'  => false,
+                    ],
                     'CORE_UPDATER_UPDATE' => [
                         'type'        => 'none',
                         'title'       => $this->l('Files to get changed:'),
@@ -174,5 +193,39 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
         $this->addJquery();
         $this->addJS(_PS_MODULE_DIR_.'coreupdater/views/js/controller.js');
+    }
+
+    /**
+     * Process one step of a version comparison. The calling panel repeats this
+     * request as long as 'done' returns false. Each call should not exceed
+     * 3 seconds for a good user experience and a safe margin against the 30
+     * seconds guaranteed maximum processing time.
+     *
+     * This function is expected to not return.
+     *
+     * @since 1.0.0
+     */
+    public function ajaxProcessCompare() {
+        $messages = [
+            'informations'  => [],
+            'done'          => true,
+        ];
+
+        $version = Tools::getValue('compareVersion');
+        if ( ! $version) {
+            die('Parameter \'compareVersion\' is empty.');
+        }
+
+        // Demo data. Remove later.
+        $rand = rand(0, 10);
+        sleep(1);
+        $messages['informations'][] = 'step '.$rand;
+        if ($rand === 10) {
+            $messages['done'] = true;
+        } else {
+            $messages['done'] = false;
+        }
+
+        die(json_encode($messages));
     }
 }

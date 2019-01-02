@@ -28,6 +28,10 @@ $(document).ready(function () {
   $('#CORE_UPDATER_CHANNEL').on('change', channelChange);
 
   $('#CORE_UPDATER_VERSION').on('change', versionChange);
+
+  if (document.getElementById('configuration_fieldset_comparepanel')) {
+    processCompare();
+  }
 });
 
 function channelChange() {
@@ -72,4 +76,33 @@ function versionChange() {
   } else {
     $('#configuration_fieldset_comparepanel').slideUp(1000);
   }
+}
+
+function processCompare() {
+  let url = document.URL+'&action=processCompare&ajax=1';
+
+  $.ajax({
+    url: url,
+    type: 'POST',
+    data: {'compareVersion': coreUpdaterParameters.selectedVersion},
+    dataType: 'json',
+    success: function(data, status, xhr) {
+      logField = $('textarea[name=CORE_UPDATER_PROCESSING]')[0];
+      for (i = 0; i < data['informations'].length; i++) {
+        logField.value += "\n"+data['informations'][i];
+      }
+      logField.scrollTop = logField.scrollHeight;
+
+      if (data['done'] === false) {
+        processCompare();
+      }
+    },
+    error: function(xhr, status, error) {
+      $('#configuration_fieldset_comparepanel')
+        .children('.form-wrapper')
+        .html(coreUpdaterParameters.errorRetrieval)
+        .css('color', 'red');
+      console.log('Request to '+url+' failed with status \''+xhr.state()+'\'.');
+    }
+  });
 }
