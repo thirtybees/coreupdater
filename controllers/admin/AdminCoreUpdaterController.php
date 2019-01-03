@@ -220,7 +220,12 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
         $start = time();
         do {
+            $stepStart = microtime(true);
+
             GitUpdate::compareStep($messages, $version);
+
+            $messages['informations'][count($messages['informations']) - 1]
+                .= sprintf(' (%.1f s)', microtime(true) - $stepStart);
         } while ($messages['done'] !== true && time() - $start < 3);
 
         die(json_encode($messages));
