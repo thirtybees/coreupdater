@@ -111,6 +111,17 @@ class GitUpdate
     {
         $me = static::getInstance();
 
+        // Reset an invalid storage set.
+        if ( ! array_key_exists('versionOrigin', $me->storage)
+            || $me->storage['versionOrigin'] !== _TB_VERSION_
+            || ! array_key_exists('versionTarget', $me->storage)
+            || $me->storage['versionTarget'] !== $version) {
+            $me->storage = [
+                'versionOrigin' => _TB_VERSION_,
+                'versionTarget' => $version,
+            ];
+        }
+
         // Demo processing. Replace with something meaningful.
         if ( ! array_key_exists('stepOne', $me->storage)) {
             sleep(5);
