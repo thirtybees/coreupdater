@@ -122,22 +122,13 @@ class GitUpdate
             ];
         }
 
-        // Demo processing. Replace with something meaningful.
-        if ( ! array_key_exists('stepOne', $me->storage)) {
-            sleep(5);
-            $me->storage['stepOne'] = true;
+        // Do one compare step.
+        if ( ! array_key_exists('fileList-'.$version, $me->storage)) {
+            $me->downloadFileList($version);
 
-            $messages['informations'][] = $me->l('first step done.');
-            $messages['done'] = false;
-        } elseif ( ! array_key_exists('stepTwo', $me->storage)) {
-            sleep(5);
-            $me->storage['stepTwo'] = true;
-
-            $messages['informations'][] = $me->l('second step done.');
+            $messages['informations'][] = sprintf($me->l('File list for version %s downloaded.'), $version);
             $messages['done'] = false;
         } else {
-            sleep(5);
-
             $messages['informations'][] = $me->l('...completed.');
             $messages['done'] = true;
         }
@@ -173,5 +164,60 @@ class GitUpdate
     {
         return Translate::getModuleTranslation('coreupdater', $string,
                                                'coreupdater');
+    }
+
+    /**
+     * Download a list of files for a given version from api.thirtybees.com and
+     * store it in $this->storage['fileList-'.$version] as a proper PHP array.
+     *
+     * For efficiency (a response can easily contain 10,000 lines), the
+     * returned array contains just one key-value pair for each entry, path
+     * and Git (SHA1) hash: ['<path>' => '<hash>']. Permissions get ignored,
+     * because all files should have 644 permissions.
+     *
+     * @param string $version List for this version.
+     *
+     * @return bool True on success, false on failure.
+     *
+     * @since 1.0.0
+     */
+    protected function downloadFileList($version)
+    {
+        $response = false;
+        $guzzle = new \GuzzleHttp\Client([
+            'base_uri'    => AdminCoreUpdaterController::API_URL,
+            'verify'      => _PS_TOOL_DIR_.'cacert.pem',
+            'timeout'     => 20,
+        ]);
+        try {
+            $response = $guzzle->post('installationmaster.php', [
+                'form_params' => [
+                    'listrev' => $version,
+                ],
+            ])->getBody();
+        } catch (Exception $e) {
+            return false;
+        }
+
+        $fileList = false;
+        if ($response) {
+            $fileList = [];
+            foreach (json_decode($response) as $line) {
+                // An incoming line is like '<permissions> blob <sha1>\t<path>'.
+                // Use explode limits, to allow spaces in the last field.
+                $fields = explode(' ', $line, 3);
+                $line = $fields[2];
+                $fields = explode("\t", $line, 2);
+
+                $fileList[$fields[1]] = $fields[0];
+            }
+        }
+        if ($fileList === false) {
+            return false;
+        }
+
+        $this->storage['fileList-'.$version] = $fileList;
+
+        return true;
     }
 }
