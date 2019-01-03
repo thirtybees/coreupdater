@@ -92,6 +92,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
                             'apiUrl'          => static::API_URL,
                             'selectedVersion' => $selectedVersion,
                             'errorRetrieval'  => $this->l('Request failed, see JavaScript console.'),
+                            'errorProcessing' => $this->l('Processing failed.'),
                         ])),
                         'auto_value' => false,
                     ],
@@ -209,7 +210,11 @@ class AdminCoreUpdaterController extends ModuleAdminController
      */
     public function ajaxProcessCompare() {
         $messages = [
+            // List of message texts of any kind.
             'informations'  => [],
+            // Whether an error occured. Implies 'done' = true.
+            'error'         => false,
+            // Whether the sequence of of steps is completed.
             'done'          => true,
         ];
 
@@ -223,6 +228,9 @@ class AdminCoreUpdaterController extends ModuleAdminController
             $stepStart = microtime(true);
 
             GitUpdate::compareStep($messages, $version);
+            if ($messages['error']) {
+                $messages['done'] = true;
+            }
 
             $messages['informations'][count($messages['informations']) - 1]
                 .= sprintf(' (%.1f s)', microtime(true) - $stepStart);

@@ -124,10 +124,14 @@ class GitUpdate
 
         // Do one compare step.
         if ( ! array_key_exists('fileList-'.$version, $me->storage)) {
-            $me->downloadFileList($version);
-
-            $messages['informations'][] = sprintf($me->l('File list for version %s downloaded.'), $version);
-            $messages['done'] = false;
+            $downloadSuccess = $me->downloadFileList($version);
+            if ($downloadSuccess === true) {
+                $messages['informations'][] = sprintf($me->l('File list for version %s downloaded.'), $version);
+                $messages['done'] = false;
+            } else {
+                $messages['informations'][] = sprintf($me->l('Failed to download file list for version %s with error: %s'), $version, $downloadSuccess);
+                $messages['error'] = true;
+            }
         } else {
             $messages['informations'][] = $me->l('...completed.');
             $messages['done'] = true;
@@ -177,7 +181,7 @@ class GitUpdate
      *
      * @param string $version List for this version.
      *
-     * @return bool True on success, false on failure.
+     * @return bool|string True on success, or error message on failure.
      *
      * @since 1.0.0
      */
@@ -196,7 +200,7 @@ class GitUpdate
                 ],
             ])->getBody();
         } catch (Exception $e) {
-            return false;
+            return trim($e->getMessage());
         }
 
         $fileList = false;
@@ -213,7 +217,7 @@ class GitUpdate
             }
         }
         if ($fileList === false) {
-            return false;
+            return $this->l('Downloaded file list did not contain any file.');
         }
 
         $this->storage['fileList-'.$version] = $fileList;

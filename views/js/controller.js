@@ -88,9 +88,21 @@ function processCompare() {
     dataType: 'json',
     success: function(data, status, xhr) {
       logField = $('textarea[name=CORE_UPDATER_PROCESSING]')[0];
-      for (i = 0; i < data['informations'].length; i++) {
-        logField.value += "\n"+data['informations'][i];
+      infoList = data['informations'];
+      infoListLength = infoList.length;
+
+      for (i = 0; i < infoListLength; i++) {
+        logField.value += "\n";
+        if (data['error'] && i === infoListLength - 1) {
+          logField.value += "ERROR: ";
+          $('#conf_id_CORE_UPDATER_PROCESSING')
+            .children('label')
+            .html(coreUpdaterParameters.errorProcessing)
+            .css('color', 'red');
+        }
+        logField.value += data['informations'][i];
       }
+
       logField.scrollTop = logField.scrollHeight;
 
       if (data['done'] === false) {
