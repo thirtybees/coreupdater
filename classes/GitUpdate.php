@@ -127,18 +127,18 @@ class GitUpdate
             sleep(5);
             $me->storage['stepOne'] = true;
 
-            $messages['informations'][] = 'first step done.';
+            $messages['informations'][] = $me->l('first step done.');
             $messages['done'] = false;
         } elseif ( ! array_key_exists('stepTwo', $me->storage)) {
             sleep(5);
             $me->storage['stepTwo'] = true;
 
-            $messages['informations'][] = 'second step done.';
+            $messages['informations'][] = $me->l('second step done.');
             $messages['done'] = false;
         } else {
             sleep(5);
 
-            $messages['informations'][] = '...completed.';
+            $messages['informations'][] = $me->l('...completed.');
             $messages['done'] = true;
         }
 
@@ -158,5 +158,20 @@ class GitUpdate
         $me = static::getInstance();
 
         $me->storage = [];
+    }
+
+    /**
+     * Get translation for a given text.
+     *
+     * @param string $string String to translate.
+     *
+     * @return string Translation.
+     *
+     * @since 1.0.0
+     */
+    protected function l($string)
+    {
+        return Translate::getModuleTranslation('coreupdater', $string,
+                                               'coreupdater');
     }
 }
