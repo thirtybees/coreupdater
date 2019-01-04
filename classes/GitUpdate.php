@@ -38,6 +38,17 @@ class GitUpdate
     const STORAGE_PATH = _PS_CACHE_DIR_.'/GitUpdateStorage.php';
 
     /**
+     * Set of regular expressions for removing file paths from the list of
+     * files of a full release package. Matching paths get ignored by
+     * comparions and by updates.
+     */
+    const RELEASE_FILTER = [
+        '#^install/#',
+        '#^modules/#',
+        '#^img/#',
+    ];
+
+    /**
      * @var GitUpdate
      */
     private static $instance = null;
@@ -126,7 +137,9 @@ class GitUpdate
         if ( ! array_key_exists('fileList-'.$version, $me->storage)) {
             $downloadSuccess = $me->downloadFileList($version);
             if ($downloadSuccess === true) {
-                $messages['informations'][] = sprintf($me->l('File list for version %s downloaded.'), $version);
+                $messages['informations'][] =
+                    sprintf($me->l('File list for version %s downloaded.'), $version)
+                    .' '.sprintf($me->l('Found %d paths to consider.'), count($me->storage['fileList-'.$version]));
                 $messages['done'] = false;
             } else {
                 $messages['informations'][] = sprintf($me->l('Failed to download file list for version %s with error: %s'), $version, $downloadSuccess);
@@ -212,8 +225,20 @@ class GitUpdate
                 $fields = explode(' ', $line, 3);
                 $line = $fields[2];
                 $fields = explode("\t", $line, 2);
+                $path = $fields[1];
+                $hash = $fields[0];
 
-                $fileList[$fields[1]] = $fields[0];
+                $keep = true;
+                foreach (static::RELEASE_FILTER as $filter) {
+                    if (preg_match($filter, $path)) {
+                        $keep = false;
+                        break;
+                    }
+                }
+
+                if ($keep) {
+                    $fileList[$path] = $hash;
+                }
             }
         }
         if ($fileList === false) {
