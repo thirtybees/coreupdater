@@ -47,6 +47,13 @@ class GitUpdate
         '#^modules/#',
         '#^img/#',
     ];
+    /**
+     * Set of regular expressions for removing file paths from the list of
+     * local files.
+     */
+    const INSTALLATION_FILTER = [
+        '#^cache/#',
+    ];
 
     /**
      * @var GitUpdate
@@ -352,10 +359,20 @@ class GitUpdate
                 // Strip leading './'.
                 $path = preg_replace('#(^./)#', '', $path);
 
-                $content = file_get_contents($path);
-                $hash = sha1('blob '.strlen($content)."\0".$content);
+                $keep = true;
+                foreach (static::INSTALLATION_FILTER as $filter) {
+                    if (preg_match($filter, $path)) {
+                        $keep = false;
+                        break;
+                    }
+                }
 
-                $this->storage['installationList'][$path] = $hash;
+                if ($keep) {
+                    $content = file_get_contents($path);
+                    $hash = sha1('blob '.strlen($content)."\0".$content);
+
+                    $this->storage['installationList'][$path] = $hash;
+                }
             }
         }
 
