@@ -147,8 +147,15 @@ class GitUpdate
             }
         } elseif ( ! array_key_exists('topLevel-'.$version, $me->storage)) {
             $me->extractTopLevelDirs($version);
+            $me->storage['installationList'] = [];
 
             $messages['informations'][] = $me->l('Extracted top level directories.');
+            $messages['done'] = false;
+        } elseif (count($me->storage['topLevel-'.$version])) {
+            $dir = array_pop($me->storage['topLevel-'.$version]);
+            $me->searchInstallation($dir);
+
+            $messages['informations'][] = sprintf($me->l('Searched installed files in %s/'), $dir);
             $messages['done'] = false;
         } else {
             $messages['informations'][] = $me->l('...completed.');
@@ -307,5 +314,51 @@ class GitUpdate
         }
 
         $this->storage['topLevel-'.$version] = $topLevelDirs;
+    }
+
+    /**
+     * Search installed files in a directory recursively and add them to
+     * $this->storage['installationList'] together with their Git hashes.
+     *
+     * Directories '.' and 'vendor' get searched not recursively. Note that
+     * subdirectories of 'vendor' get searched as well, recursively.
+     *
+     * No failure expected, a not existing directory doesn't add anything.
+     *
+     * @param string $dir Directory to search.
+     *
+     * @since 1.0.0
+     */
+    protected function searchInstallation($dir)
+    {
+        $oldCwd = getcwd();
+        chdir(_PS_ROOT_DIR_);
+
+        if (is_dir($dir)) {
+            if (in_array($dir, ['.', 'vendor'])) {
+                $iterator = new DirectoryIterator($dir);
+            } else {
+                $iterator = new RecursiveIteratorIterator(
+                                new RecursiveDirectoryIterator($dir)
+                            );
+            }
+
+            foreach ($iterator as $fileInfo) {
+                $path = $fileInfo->getPathname();
+                if (in_array(basename($path), ['.', '..'])
+                    || is_dir($path)) {
+                    continue;
+                }
+                // Strip leading './'.
+                $path = preg_replace('#(^./)#', '', $path);
+
+                $content = file_get_contents($path);
+                $hash = sha1('blob '.strlen($content)."\0".$content);
+
+                $this->storage['installationList'][$path] = $hash;
+            }
+        }
+
+        chdir($oldCwd);
     }
 }
