@@ -219,6 +219,13 @@ class GitUpdate
         $fileList = false;
         if ($response) {
             $fileList = [];
+
+            $adminDir = false;
+            if (defined('_PS_ADMIN_DIR_')) {
+                $adminDir = str_replace(_PS_ROOT_DIR_, '', _PS_ADMIN_DIR_);
+                $adminDir = trim($adminDir, '/').'/';
+            }
+
             foreach (json_decode($response) as $line) {
                 // An incoming line is like '<permissions> blob <sha1>\t<path>'.
                 // Use explode limits, to allow spaces in the last field.
@@ -237,6 +244,10 @@ class GitUpdate
                 }
 
                 if ($keep) {
+                    if ($adminDir) {
+                        $path = preg_replace('#^admin/#', $adminDir, $path);
+                    }
+
                     $fileList[$path] = $hash;
                 }
             }
