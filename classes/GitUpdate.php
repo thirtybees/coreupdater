@@ -145,6 +145,11 @@ class GitUpdate
                 $messages['informations'][] = sprintf($me->l('Failed to download file list for version %s with error: %s'), $version, $downloadSuccess);
                 $messages['error'] = true;
             }
+        } elseif ( ! array_key_exists('topLevel-'.$version, $me->storage)) {
+            $me->extractTopLevelDirs($version);
+
+            $messages['informations'][] = $me->l('Extracted top level directories.');
+            $messages['done'] = false;
         } else {
             $messages['informations'][] = $me->l('...completed.');
             $messages['done'] = true;
@@ -259,5 +264,48 @@ class GitUpdate
         $this->storage['fileList-'.$version] = $fileList;
 
         return true;
+    }
+
+    /**
+     * Extract top level directories from one of the file path lists. Purpose
+     * is to allow splitting searches through the entire installation into
+     * smaller chunks. Always present is the root directory, '.'.
+     *
+     * On return, $this->storage['topLevel-'.$version] is set to the list of
+     * paths. No failure expected.
+     *
+     * @param array $version Version of the file path list.
+     *
+     * @since 1.0.0
+     */
+    protected function extractTopLevelDirs($version)
+    {
+        $fileList = $this->storage['fileList-'.$version];
+
+        $topLevelDirs = ['.'];
+        foreach ($fileList as $path => $hash) {
+            $slashPos = strpos($path, '/');
+
+            // Ignore files at root level.
+            if ($slashPos === false) {
+                continue;
+            }
+
+            $topLevelDir = substr($path, 0, $slashPos);
+
+            // vendor/ is huge, so take a second level.
+            if ($topLevelDir === 'vendor') {
+                $slashPos = strpos($path, '/', $slashPos + 1);
+                if ($slashPos) {
+                    $topLevelDir = substr($path, 0, $slashPos);
+                }
+            }
+
+            if ( ! in_array($topLevelDir, $topLevelDirs)) {
+                $topLevelDirs[] = $topLevelDir;
+            }
+        }
+
+        $this->storage['topLevel-'.$version] = $topLevelDirs;
     }
 }
