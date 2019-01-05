@@ -105,6 +105,22 @@ function processCompare() {
 
       logField.scrollTop = logField.scrollHeight;
 
+      if (data['changeset']) {
+        changesets = data['changeset'];
+        if (changesets['change']) {
+          appendChangeset(changesets['change'], 'CORE_UPDATER_UPDATE');
+        }
+        if (changesets['add']) {
+          appendChangeset(changesets['add'], 'CORE_UPDATER_ADD');
+        }
+        if (changesets['remove']) {
+          appendChangeset(changesets['remove'], 'CORE_UPDATER_REMOVE');
+        }
+        if (changesets['obsolete']) {
+          appendChangeset(changesets['obsolete'], 'CORE_UPDATER_REMOVE_OBSOLETE');
+        }
+      }
+
       if (data['done'] === false) {
         processCompare();
       }
@@ -117,4 +133,34 @@ function processCompare() {
       console.log('Request to '+url+' failed with status \''+xhr.state()+'\'.');
     }
   });
+}
+
+function appendChangeset(changeset, field) {
+  let node = $('#conf_id_'+field);
+
+  let html = '<table class="table"><tbody>';
+
+  let empty = true;
+  for (line in changeset) {
+    empty = false;
+    html += '<tr>'
+    if (field !== 'CORE_UPDATER_REMOVE_OBSOLETE') {
+      if (changeset[line]) {
+        html += '<td>M</td>';
+      } else {
+        html += '<td>&nbsp;</td>';
+      }
+    } else {
+      html += '<td><input type="checkbox"></td>'
+    }
+    html += '<td>'+line+'</td>';
+    html += '</tr>'
+  }
+  if (empty) {
+    html += '<tr><td>-- none --</td></tr>';
+  }
+
+  html += '</tbody></table>';
+
+  node.append(html);
 }

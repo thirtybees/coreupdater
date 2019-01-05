@@ -147,7 +147,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
                     'CORE_UPDATER_UPDATE' => [
                         'type'        => 'none',
                         'title'       => $this->l('Files to get changed:'),
-                        'desc'        => $this->l('These files get updated for the version change.'),
+                        'desc'        => $this->l('These files get updated for the version change. "M" means, doing so overwrites manual local edits of this file.'),
                     ],
                     'CORE_UPDATER_ADD' => [
                         'type'        => 'none',
@@ -157,7 +157,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
                     'CORE_UPDATER_REMOVE' => [
                         'type'        => 'none',
                         'title'       => $this->l('Files to get removed:'),
-                        'desc'        => $this->l('These files get removed for the version change.'),
+                        'desc'        => $this->l('These files get removed for the version change. "M" means, doing so also removes manual local edits of this file.'),
                     ],
                     'CORE_UPDATER_REMOVE_OBSOLETE' => [
                         'type'        => 'none',
