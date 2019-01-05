@@ -152,6 +152,16 @@ class GitUpdate
                 $messages['informations'][] = sprintf($me->l('Failed to download file list for version %s with error: %s'), $version, $downloadSuccess);
                 $messages['error'] = true;
             }
+        } elseif ( ! array_key_exists('fileList-'._TB_VERSION_, $me->storage)) {
+            $downloadSuccess = $me->downloadFileList(_TB_VERSION_);
+            if ($downloadSuccess === true) {
+                $messages['informations'][] =
+                    sprintf($me->l('File list for version %s downloaded.'), _TB_VERSION_);
+                $messages['done'] = false;
+            } else {
+                $messages['informations'][] = sprintf($me->l('Failed to download file list for version %s with error: %s'), _TB_VERSION_, $downloadSuccess);
+                $messages['error'] = true;
+            }
         } elseif ( ! array_key_exists('topLevel-'.$version, $me->storage)) {
             $me->extractTopLevelDirs($version);
             $me->storage['installationList'] = [];
