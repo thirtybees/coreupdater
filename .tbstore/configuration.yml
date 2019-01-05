@@ -5,6 +5,7 @@ category: back office
 tags:
   - update
   - upgrade
+  - coreupdater
 description_short: This module brings the tools for keeping your shop installation up to date.
 description: description.md
 images:
