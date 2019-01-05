@@ -175,7 +175,10 @@ class GitUpdate
             $messages['informations'][] = sprintf($me->l('Searched installed files in %s/'), $dir);
             $messages['done'] = false;
         } else {
-            $messages['informations'][] = $me->l('...completed.');
+            $me->calculateChanges();
+            $messages['changeset'] = $me->storage['changeset'];
+
+            $messages['informations'][] = $me->l('Changeset calculated. Done.');
             $messages['done'] = true;
         }
 
@@ -387,5 +390,93 @@ class GitUpdate
         }
 
         chdir($oldCwd);
+    }
+
+    /**
+     * Calculate all the changes between the selected version and the current
+     * installation.
+     *
+     * On return, $this->storage['changeset'] exists and contains an array of
+     * the following format:
+     *
+     *               [
+     *                   'change' => [
+     *                       '<path>' => <manual>,
+     *                       [...],
+     *                   ],
+     *                   'add' => [
+     *                       '<path>' => <manual>,
+     *                       [...],
+     *                   ],
+     *                   'remove' => [
+     *                       '<path>' => <manual>,
+     *                       [...],
+     *                   ],
+     *                   'obsolete' => [
+     *                       '<path>' => <manual>,
+     *                       [...],
+     *                   ],
+     *               ]
+     *
+     *               Where <path> is the path of the file and <manual> is a
+     *               boolean indicating whether a change/add/remove overwrites
+     *               manual edits.
+     *
+     * @since 1.0.0
+     */
+    protected function calculateChanges()
+    {
+        $targetList = $this->storage['fileList-'.$this->storage['versionTarget']];
+        $installedList = $this->storage['installationList'];
+        $originList = $this->storage['fileList-'.$this->storage['versionOrigin']];
+
+        $changeList   = [];
+        $addList      = [];
+        $removeList   = [];
+        $obsoleteList = [];
+
+        foreach ($targetList as $path => $hash) {
+            if (array_key_exists($path, $installedList)) {
+                // Files to change are all files in the target version not
+                // matching the installed file.
+                if ($installedList[$path] !== $hash) {
+                    $manual = false;
+                    if (array_key_exists($path, $originList)
+                        && $installedList[$path] !== $originList[$path]) {
+                        $manual = true;
+                    }
+                    $changeList[$path] = $manual;
+                } // else the file matches already.
+            } else {
+                // Files to add are all files in the target version not
+                // existing locally.
+                $addList[$path] = false;
+            }
+        }
+
+        foreach ($installedList as $path => $hash) {
+            if ( ! array_key_exists($path, $targetList)) {
+                if (array_key_exists($path, $originList)) {
+                    // Files to remove are all files not in the target version,
+                    // but in the original version.
+                    $manual = false;
+                    if ($originList[$path] !== $hash) {
+                        $manual = true;
+                    }
+                    $removeList[$path] = $manual;
+                } else {
+                    // Obsolete files are all files existing locally, but
+                    // neither in the target nor in the original version.
+                    $obsoleteList[$path] = true;
+                }
+            } // else handled above already.
+        }
+
+        $this->storage['changeset'] = [
+            'change'    => $changeList,
+            'add'       => $addList,
+            'remove'    => $removeList,
+            'obsolete'  => $obsoleteList,
+        ];
     }
 }
