@@ -29,6 +29,26 @@ $(document).ready(function () {
 
   $('#CORE_UPDATER_VERSION').on('change', versionChange);
 
+  // Add Bootstrap collapser to the processing log.
+  let logChildren = $('#conf_id_CORE_UPDATER_PROCESSING').children();
+  if (logChildren.length) {
+    logChildren[0].innerHTML = '<a data-toggle="collapse" \
+                                   data-target="#processingLog" \
+                                   style="color: inherit;">'
+                               +'<i class="icon-collapse-alt"></i>'
+                               +' '
+                               +logChildren[0].innerHTML.trim()
+                               +'</a>';
+    logChildren[1].id = 'processingLog';
+    logChildren[1].className += ' collapse in';
+    logChildren.siblings('#processingLog').on("hide.bs.collapse", function(){
+      $(this).siblings('label').find('i').attr('class', 'icon-expand-alt');
+    });
+    logChildren.siblings('#processingLog').on("show.bs.collapse", function(){
+      $(this).siblings('label').find('i').attr('class', 'icon-collapse-alt');
+    });
+  }
+
   if (document.getElementById('configuration_fieldset_comparepanel')) {
     processCompare();
   }
@@ -96,9 +116,14 @@ function processCompare() {
         if (data['error'] && i === infoListLength - 1) {
           logField.value += "ERROR: ";
           $('#conf_id_CORE_UPDATER_PROCESSING')
-            .children('label')
-            .html(coreUpdaterParameters.errorProcessing)
-            .css('color', 'red');
+            .find('label')
+            .css('color', 'red')
+            .find('*')
+            .contents()
+            .filter(function() {
+              return this.nodeType === 3 && this.nodeValue.trim !== '';
+            })
+            [0].data = ' '+coreUpdaterParameters.errorProcessing;
         }
         logField.value += data['informations'][i];
       }
@@ -123,6 +148,8 @@ function processCompare() {
 
       if (data['done'] === false) {
         processCompare();
+      } else if ( ! data['error']) {
+        $('#processingLog').collapse();
       }
     },
     error: function(xhr, status, error) {
