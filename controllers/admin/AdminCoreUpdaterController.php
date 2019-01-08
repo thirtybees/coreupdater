@@ -91,6 +91,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
                         'value'       => htmlentities(json_encode([
                             'apiUrl'          => static::API_URL,
                             'selectedVersion' => $selectedVersion,
+                            'completedLog'    => $this->l('completed'),
                             'errorRetrieval'  => $this->l('Request failed, see JavaScript console.'),
                             'errorProcessing' => $this->l('Processing failed.'),
                         ])),

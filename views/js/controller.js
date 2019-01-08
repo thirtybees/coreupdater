@@ -136,6 +136,8 @@ function processCompare() {
         processCompare();
       } else if ( ! data['error']) {
         $('#collapsible_CORE_UPDATER_PROCESSING').collapse('hide');
+        addCompletedText('CORE_UPDATER_PROCESSING',
+                         coreUpdaterParameters.completedLog);
       }
     },
     error: function(xhr, status, error) {
@@ -176,6 +178,25 @@ function appendChangeset(changeset, field) {
   html += '</tbody></table>';
 
   node.append(html);
+}
+
+function addCompletedText(field, text) {
+  let element = $('#conf_id_'+field).children('label');
+  if (element.children('a').length) {
+    element = element.children('a');
+  }
+
+  let string = element[0].innerHTML.trim();
+  let colon = string.slice(-1);
+  if (colon === ':') {
+    string = string.slice(0, -1);
+  }
+  string += ' ('+text+')';
+  if (colon === ':') {
+    string += ':';
+  }
+
+  element[0].innerHTML = string;
 }
 
 function addBootstrapCollapser(field, initiallyCollapsed) {
