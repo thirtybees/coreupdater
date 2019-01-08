@@ -29,25 +29,7 @@ $(document).ready(function () {
 
   $('#CORE_UPDATER_VERSION').on('change', versionChange);
 
-  // Add Bootstrap collapser to the processing log.
-  let logChildren = $('#conf_id_CORE_UPDATER_PROCESSING').children();
-  if (logChildren.length) {
-    logChildren[0].innerHTML = '<a data-toggle="collapse" \
-                                   data-target="#processingLog" \
-                                   style="color: inherit;">'
-                               +'<i class="icon-collapse-alt"></i>'
-                               +' '
-                               +logChildren[0].innerHTML.trim()
-                               +'</a>';
-    logChildren[1].id = 'processingLog';
-    logChildren[1].className += ' collapse in';
-    logChildren.siblings('#processingLog').on("hide.bs.collapse", function(){
-      $(this).siblings('label').find('i').attr('class', 'icon-expand-alt');
-    });
-    logChildren.siblings('#processingLog').on("show.bs.collapse", function(){
-      $(this).siblings('label').find('i').attr('class', 'icon-collapse-alt');
-    });
-  }
+  addBootstrapCollapser('CORE_UPDATER_PROCESSING', false);
 
   if (document.getElementById('configuration_fieldset_comparepanel')) {
     processCompare();
@@ -149,7 +131,7 @@ function processCompare() {
       if (data['done'] === false) {
         processCompare();
       } else if ( ! data['error']) {
-        $('#processingLog').collapse();
+        $('#collapsible_CORE_UPDATER_PROCESSING').collapse('hide');
       }
     },
     error: function(xhr, status, error) {
@@ -190,4 +172,40 @@ function appendChangeset(changeset, field) {
   html += '</tbody></table>';
 
   node.append(html);
+}
+
+function addBootstrapCollapser(field, initiallyCollapsed) {
+  let trigger = $('#conf_id_'+field).children('label');
+  if ( ! trigger.length) {
+    return;
+  }
+
+  let collapsible = $('#conf_id_'+field).children(':last');
+  let collapsibleName = 'collapsible_'+field;
+
+  let iconClass = 'icon-collapse-alt';
+  if (initiallyCollapsed) {
+    iconClass = 'icon-expand-alt';
+  }
+  trigger.html('<a data-toggle="collapse"'
+               +'  data-target="#'+collapsibleName+'"'
+               +'  style="color: inherit; text-decoration: inherit;">'
+               +'<i class="'+iconClass+'"></i>'
+               +' '
+               +trigger.html().trim()
+               +'</a>'
+  );
+
+  collapsible.attr('id', collapsibleName)
+             .addClass('collapse');
+  if ( ! initiallyCollapsed) {
+    collapsible.addClass('in');
+  }
+
+  collapsible.on("hide.bs.collapse", function(){
+    $(this).siblings('label').find('i').attr('class', 'icon-expand-alt');
+  });
+  collapsible.on("show.bs.collapse", function(){
+    $(this).siblings('label').find('i').attr('class', 'icon-collapse-alt');
+  });
 }
