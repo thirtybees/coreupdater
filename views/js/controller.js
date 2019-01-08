@@ -155,9 +155,9 @@ function appendChangeset(changeset, field) {
 
   let html = '<table class="table"><tbody>';
 
-  let empty = true;
+  let count = 0;
   for (line in changeset) {
-    empty = false;
+    count++;
     html += '<tr>'
     if (field !== 'CORE_UPDATER_REMOVE_OBSOLETE') {
       if (changeset[line]) {
@@ -171,19 +171,25 @@ function appendChangeset(changeset, field) {
     html += '<td>'+line+'</td>';
     html += '</tr>'
   }
-  if (empty) {
+  if ( ! count) {
     html += '<tr><td>-- none --</td></tr>';
   }
 
   html += '</tbody></table>';
 
   node.append(html);
+
+  addCompletedText(field, coreUpdaterParameters.completedList, count);
 }
 
-function addCompletedText(field, text) {
+function addCompletedText(field, text, number) {
   let element = $('#conf_id_'+field).children('label');
   if (element.children('a').length) {
     element = element.children('a');
+  }
+
+  if (number !== undefined) {
+    text = text.replace('%d', number);
   }
 
   let string = element[0].innerHTML.trim();

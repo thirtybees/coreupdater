@@ -92,6 +92,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
                             'apiUrl'          => static::API_URL,
                             'selectedVersion' => $selectedVersion,
                             'completedLog'    => $this->l('completed'),
+                            'completedList'   => $this->l('%d files'),
                             'errorRetrieval'  => $this->l('Request failed, see JavaScript console.'),
                             'errorProcessing' => $this->l('Processing failed.'),
                         ])),
