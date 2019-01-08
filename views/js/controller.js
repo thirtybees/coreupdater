@@ -116,15 +116,19 @@ function processCompare() {
         changesets = data['changeset'];
         if (changesets['change']) {
           appendChangeset(changesets['change'], 'CORE_UPDATER_UPDATE');
+          addBootstrapCollapser('CORE_UPDATER_UPDATE', true);
         }
         if (changesets['add']) {
           appendChangeset(changesets['add'], 'CORE_UPDATER_ADD');
+          addBootstrapCollapser('CORE_UPDATER_ADD', true);
         }
         if (changesets['remove']) {
           appendChangeset(changesets['remove'], 'CORE_UPDATER_REMOVE');
+          addBootstrapCollapser('CORE_UPDATER_REMOVE', true);
         }
         if (changesets['obsolete']) {
           appendChangeset(changesets['obsolete'], 'CORE_UPDATER_REMOVE_OBSOLETE');
+          addBootstrapCollapser('CORE_UPDATER_REMOVE_OBSOLETE', true);
         }
       }
 
