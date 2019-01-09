@@ -45,15 +45,30 @@ class GitUpdate
     const RELEASE_FILTER = [
         '#^install/#',
         '#^modules/#',
-        '#^img/#',
+        '#^mails/en/.*\.txt$#',
+        '#^mails/en/.*\.tpl$#',
+        '#^mails/en/.*\.html$#',
     ];
     /**
      * Set of regular expressions for removing file paths from the list of
-     * local files. Ignored for files in either the original or the target
-     * release.
+     * local files. Files in either the original or the target release and not
+     * filtered by RELEASE_FILTER get always onto the list.
      */
     const INSTALLATION_FILTER = [
         '#^cache/#',
+        '#^config/#',
+        '#^img/#',
+        '#^upload/#',
+        '#^download/#',
+        '#^translations/#',
+        '#^mails/#',
+        '#^override/#',
+        '#^themes/(?!community-theme-default/)#',
+        '#^themes/community-theme-default/cache/#',
+        '#^themes/community-theme-default/lang/#',
+        '#^themes/community-theme-default/mails/#',
+        '#^.htaccess$#',
+        '#^robots.txt$#',
     ];
 
     /**
