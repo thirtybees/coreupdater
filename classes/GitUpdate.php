@@ -49,7 +49,8 @@ class GitUpdate
     ];
     /**
      * Set of regular expressions for removing file paths from the list of
-     * local files.
+     * local files. Ignored for files in either the original or the target
+     * release.
      */
     const INSTALLATION_FILTER = [
         '#^cache/#',
@@ -351,6 +352,9 @@ class GitUpdate
      */
     protected function searchInstallation($dir)
     {
+        $targetList = $this->storage['fileList-'.$this->storage['versionTarget']];
+        $originList = $this->storage['fileList-'.$this->storage['versionOrigin']];
+
         $oldCwd = getcwd();
         chdir(_PS_ROOT_DIR_);
 
@@ -373,10 +377,13 @@ class GitUpdate
                 $path = preg_replace('#(^./)#', '', $path);
 
                 $keep = true;
-                foreach (static::INSTALLATION_FILTER as $filter) {
-                    if (preg_match($filter, $path)) {
-                        $keep = false;
-                        break;
+                if ( ! array_key_exists($path, $targetList)
+                    && ! array_key_exists($path, $originList)) {
+                    foreach (static::INSTALLATION_FILTER as $filter) {
+                        if (preg_match($filter, $path)) {
+                            $keep = false;
+                            break;
+                        }
                     }
                 }
 
