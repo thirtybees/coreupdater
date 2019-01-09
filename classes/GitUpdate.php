@@ -130,6 +130,12 @@ class GitUpdate
     {
         $me = static::getInstance();
 
+        // Dump very old storage.
+        if (file_exists(static::STORAGE_PATH)
+            && time() - filemtime(static::STORAGE_PATH) > 86400) {
+            static::deleteStorage(true);
+        }
+
         // Reset an invalid storage set.
         if ( ! array_key_exists('versionOrigin', $me->storage)
             || $me->storage['versionOrigin'] !== _TB_VERSION_
