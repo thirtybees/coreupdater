@@ -70,6 +70,22 @@ class GitUpdate
         '#^.htaccess$#',
         '#^robots.txt$#',
     ];
+    /**
+     * These files are left untouched even if they come with one of the
+     * releases. All these files shouldn't be distributed in this location, to
+     * begin with, but copied there from install/ at installation time.
+     */
+    const KEEP_FILTER = [
+        '#^img/favicon.ico$#',
+        '#^img/favicon_[0-9]+$#',
+        '#^img/logo.jpg$#',
+        '#^img/logo_stores.png$#',
+        '#^img/logo_invoice.jpg$#',
+        '#^img/c/[0-9-]+_thumb.jpg$#',
+        '#^img/s/[0-9]+.jpg$#',
+        '#^img/t/[0-9]+.jpg$#',
+        '#^img/cms/cms-img.jpg$#',
+    ];
 
     /**
      * @var GitUpdate
@@ -296,6 +312,14 @@ class GitUpdate
                         break;
                     }
                 }
+                if ($keep) {
+                    foreach (static::KEEP_FILTER as $filter) {
+                        if (preg_match($filter, $path)) {
+                            $keep = false;
+                            break;
+                        }
+                    }
+                }
 
                 if ($keep) {
                     if ($adminDir) {
@@ -401,6 +425,14 @@ class GitUpdate
                 if ( ! array_key_exists($path, $targetList)
                     && ! array_key_exists($path, $originList)) {
                     foreach (static::INSTALLATION_FILTER as $filter) {
+                        if (preg_match($filter, $path)) {
+                            $keep = false;
+                            break;
+                        }
+                    }
+                }
+                if ($keep) {
+                    foreach (static::KEEP_FILTER as $filter) {
                         if (preg_match($filter, $path)) {
                             $keep = false;
                             break;
