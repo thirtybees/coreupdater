@@ -36,6 +36,15 @@ class GitUpdate
      * It should be a valid PHP file and gets written and included as needed.
      */
     const STORAGE_PATH = _PS_CACHE_DIR_.'/GitUpdateStorage.php';
+    /**
+     * Storage items NOT changing when choosing a different original/target
+     * version. Not deleting them speeds up comparison for merchants dialing
+     * through several versions.
+     */
+    const STORAGE_PERMANENT_ITEMS = [
+        // File lists for stable versions.
+        '#^fileList-[0-9\.]+$#',
+    ];
 
     /**
      * Set of regular expressions for removing file paths from the list of
@@ -172,10 +181,11 @@ class GitUpdate
             || $me->storage['versionOrigin'] !== _TB_VERSION_
             || ! array_key_exists('versionTarget', $me->storage)
             || $me->storage['versionTarget'] !== $version) {
-            $me->storage = [
-                'versionOrigin' => _TB_VERSION_,
-                'versionTarget' => $version,
-            ];
+
+            static::deleteStorage(false);
+
+            $me->storage['versionOrigin'] = _TB_VERSION_;
+            $me->storage['versionTarget'] = $version;
         }
 
         // Do one compare step.
@@ -231,11 +241,25 @@ class GitUpdate
      *
      * @since 1.0.0
      */
-    public static function deleteStorage()
+    public static function deleteStorage($fullDelete = true)
     {
         $me = static::getInstance();
 
-        $me->storage = [];
+        if ($fullDelete) {
+            $me->storage = [];
+        } else {
+            foreach (array_keys($me->storage) as $key) {
+                $keep = false;
+                foreach (static::STORAGE_PERMANENT_ITEMS as $filter) {
+                    if (preg_match($filter, $key)) {
+                        $keep = true;
+                    }
+                }
+                if ( ! $keep) {
+                    unset($me->storage[$key]);
+                }
+            }
+        }
     }
 
     /**
