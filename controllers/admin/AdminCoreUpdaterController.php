@@ -168,6 +168,9 @@ class AdminCoreUpdaterController extends ModuleAdminController
                     ],
                 ],
             ];
+        } else {
+            // New session.
+            GitUpdate::deleteStorage(false);
         }
 
         parent::__construct();

@@ -229,11 +229,6 @@ class GitUpdate
             $messages['informations'][] = $me->l('Changeset calculated. Done.');
             $messages['done'] = true;
         }
-
-        // @TODO: remove this when using storage for actual updates.
-        if ($messages['done']) {
-            static::deleteStorage();
-        }
     }
 
     /**
