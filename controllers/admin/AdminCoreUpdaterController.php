@@ -168,6 +168,29 @@ class AdminCoreUpdaterController extends ModuleAdminController
                     ],
                 ],
             ];
+        } elseif (Tools::isSubmit('coreUpdaterUpdate')) {
+            /*
+             * Show an empty file processing panel. Existence of this panel
+             * causes JavaScript to trigger requests for doing all the steps
+             * necessary processing the update.
+             */
+            $this->fields_options['processpanel'] = [
+                'title'       => $this->l('Update Processing'),
+                'info'        => sprintf($this->l('Processing update from %s to %s.'),
+                                         '<b>'._TB_VERSION_.'</b>',
+                                         '<b>'.$selectedVersion.'</b>'),
+                'fields' => [
+                    // Intentionally the same name as in the comparepanel.
+                    'CORE_UPDATER_PROCESSING' => [
+                        'type'        => 'textarea',
+                        'title'       => $this->l('Processing log:'),
+                        'cols'        => 2000,
+                        'rows'        => 10,
+                        'value'       => $this->l('Starting...'),
+                        'auto_value'  => false,
+                    ],
+                ],
+            ];
         } else {
             // New session.
             GitUpdate::deleteStorage(false);

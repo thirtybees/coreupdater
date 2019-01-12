@@ -34,6 +34,10 @@ $(document).ready(function () {
   if (document.getElementById('configuration_fieldset_comparepanel')) {
     processCompare();
   }
+  if (document.getElementById('configuration_fieldset_processpanel')) {
+    $('#configuration_fieldset_updatepanel').find('select, button')
+                                            .prop('disabled', true);
+  }
 });
 
 function channelChange() {
