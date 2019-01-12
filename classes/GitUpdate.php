@@ -161,7 +161,7 @@ class GitUpdate
      * next one accordingly.
      *
      * @param array $messages Prepared array to append messages to. Format see
-     *                        AdminCoreUpdaterController->ajaxProcessCompare().
+     *                        AdminCoreUpdaterController->ajaxProcess().
      * @param string $version Version to compare the installation on disk to.
      *
      * @since 1.0.0
@@ -557,5 +557,43 @@ class GitUpdate
             'remove'    => $removeList,
             'obsolete'  => $obsoleteList,
         ];
+    }
+
+    /**
+     * Do one update step, starting with the first step. Subsequent calls see
+     * results of the previous step and proceed with the next one accordingly.
+     *
+     * @param array $messages Prepared array to append messages to. Format see
+     *                        AdminCoreUpdaterController->ajaxProcess().
+     * @param string $version Unused, for signature compatibility with
+     *                        compareStep().
+     *
+     * @since 1.0.0
+     */
+    public static function updateStep(&$messages, $version)
+    {
+        $me = static::getInstance();
+
+        // Demo processing. Replace with something meaningful.
+        if ( ! array_key_exists('stepOne', $me->storage)) {
+            sleep(2);
+            $me->storage['stepOne'] = true;
+
+            $messages['informations'][] = 'first step done.';
+            $messages['done'] = false;
+        } elseif ( ! array_key_exists('stepTwo', $me->storage)) {
+            sleep(2);
+            $me->storage['stepTwo'] = true;
+
+            $messages['informations'][] = 'second step done.';
+            $messages['done'] = false;
+        } else {
+            sleep(2);
+            unset($me->storage['stepOne']);
+            unset($me->storage['stepTwo']);
+
+            $messages['informations'][] = '...completed.';
+            $messages['done'] = true;
+        }
     }
 }

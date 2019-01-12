@@ -50,13 +50,8 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
         // Take a shortcut for Ajax requests.
         if (Tools::getValue('ajax')) {
-            $method = 'ajax'.ucfirst(Tools::getValue('action'));
-            if (method_exists($this, $method)) {
-                $this->{$method}();
-            }
-
-            // Should be unreached.
-            die('Invalid request for Ajax action \''.$method.'()\'.');
+            // This does not return.
+            $this->ajaxProcess(Tools::getValue('action'));
         }
 
         $displayChannelList = [];
@@ -234,9 +229,13 @@ class AdminCoreUpdaterController extends ModuleAdminController
      *
      * This function is expected to not return.
      *
+     * @param string $type Process type. 'processCompare' triggers
+     *                     GitUpdate::compareStep(), 'processUpdate' triggers
+     *                     GitUpdate::updateStep(), everything else is invalid.
+     *
      * @since 1.0.0
      */
-    public function ajaxProcessCompare() {
+    public function ajaxProcess($type) {
         $messages = [
             // List of message texts of any kind.
             'informations'  => [],
@@ -245,6 +244,11 @@ class AdminCoreUpdaterController extends ModuleAdminController
             // Whether the sequence of of steps is completed.
             'done'          => true,
         ];
+
+        $method = lcfirst(preg_replace('/^process/', '', $type)).'Step';
+        if ( ! method_exists('GitUpdate', $method)) {
+            die('Invalid request for Ajax action \''.$type.'\'.');
+        }
 
         $version = Tools::getValue('compareVersion');
         if ( ! $version) {
@@ -255,7 +259,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
         do {
             $stepStart = microtime(true);
 
-            GitUpdate::compareStep($messages, $version);
+            GitUpdate::{$method}($messages, $version);
             if ($messages['error']) {
                 $messages['done'] = true;
             }

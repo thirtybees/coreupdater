@@ -32,11 +32,12 @@ $(document).ready(function () {
   addBootstrapCollapser('CORE_UPDATER_PROCESSING', false);
 
   if (document.getElementById('configuration_fieldset_comparepanel')) {
-    processCompare();
+    processAction('processCompare');
   }
   if (document.getElementById('configuration_fieldset_processpanel')) {
     $('#configuration_fieldset_updatepanel').find('select, button')
                                             .prop('disabled', true);
+    processAction('processUpdate');
   }
 });
 
@@ -84,8 +85,8 @@ function versionChange() {
   }
 }
 
-function processCompare() {
-  let url = document.URL+'&action=processCompare&ajax=1';
+function processAction(action) {
+  let url = document.URL+'&action='+action+'&ajax=1';
 
   $.ajax({
     url: url,
@@ -116,7 +117,7 @@ function processCompare() {
 
       logField.scrollTop = logField.scrollHeight;
 
-      if (data['changeset']) {
+      if (action === 'processCompare' && data['changeset']) {
         changesets = data['changeset'];
         if (changesets['change']) {
           appendChangeset(changesets['change'], 'CORE_UPDATER_UPDATE');
@@ -137,7 +138,7 @@ function processCompare() {
       }
 
       if (data['done'] === false) {
-        processCompare();
+        processAction(action);
       } else if ( ! data['error']) {
         $('#collapsible_CORE_UPDATER_PROCESSING').collapse('hide');
         addCompletedText('CORE_UPDATER_PROCESSING',
@@ -145,7 +146,8 @@ function processCompare() {
       }
     },
     error: function(xhr, status, error) {
-      $('#configuration_fieldset_comparepanel')
+      $('#configuration_fieldset_comparepanel, \
+         #configuration_fieldset_processpanel')
         .children('.form-wrapper')
         .html(coreUpdaterParameters.errorRetrieval)
         .css('color', 'red');
