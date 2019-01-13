@@ -108,6 +108,10 @@ class GitUpdate
      * @var Array
      */
     protected $storage = [];
+    /**
+     * @var GuzzleHttp
+     */
+    protected $guzzle = null;
 
     /**
      * The signature prohibits instantiating a non-singleton class.
@@ -153,6 +157,26 @@ class GitUpdate
         }
 
         return static::$instance;
+    }
+
+    /**
+     * Get Guzzle instance. Same basic parameters for all usages.
+     *
+     * @return GuzzleHttp Singleton instance of class GuzzleHttp\Client.
+     *
+     * @since 1.0.0
+     */
+    protected function getGuzzle()
+    {
+        if ( ! $this->guzzle) {
+            $this->guzzle = new \GuzzleHttp\Client([
+                'base_uri'    => AdminCoreUpdaterController::API_URL,
+                'verify'      => _PS_TOOL_DIR_.'cacert.pem',
+                'timeout'     => 20,
+            ]);
+        }
+
+        return $this->guzzle;
     }
 
     /**
@@ -289,12 +313,8 @@ class GitUpdate
      */
     protected function downloadFileList($version)
     {
+        $guzzle = $this->getGuzzle();
         $response = false;
-        $guzzle = new \GuzzleHttp\Client([
-            'base_uri'    => AdminCoreUpdaterController::API_URL,
-            'verify'      => _PS_TOOL_DIR_.'cacert.pem',
-            'timeout'     => 20,
-        ]);
         try {
             $response = $guzzle->post('installationmaster.php', [
                 'form_params' => [
