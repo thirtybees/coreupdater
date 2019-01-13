@@ -582,9 +582,14 @@ class GitUpdate
             || ! array_key_exists('obsolete', $me->storage['changeset'])) {
             $messages['informations'][] = $me->l('Crucial storage set missing, please report this on Github.');
             $messages['error'] = true;
-        } else {
-            sleep(2);
+        } elseif ( ! array_key_exists('downloads', $me->storage)) {
+            $me->storage['downloads']
+                = array_merge($me->storage['changeset']['change'],
+                              $me->storage['changeset']['add']);
 
+            $messages['informations'][] = sprintf($me->l('Downloads calculated, %d files to download.'), count($me->storage['downloads']));
+            $messages['done'] = false;
+        } else {
             $messages['informations'][] = '...completed.';
             $messages['done'] = true;
         }
