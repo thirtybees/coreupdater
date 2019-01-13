@@ -40,7 +40,7 @@ class GitUpdate
     /**
      * @var GitUpdate
      */
-    public static $instance = null;
+    private static $instance = null;
 
     /**
      * Here all the collected data about an update gets stored. It gets saved
@@ -80,6 +80,23 @@ class GitUpdate
     }
 
     /**
+     * Returns object instance. A singleton instance is maintained to allow
+     * re-use of network connections and similar stuff.
+     *
+     * @return GitUpdate Singleton instance of class GitUpdate.
+     *
+     * @since 1.0.0
+     */
+    public static function getInstance()
+    {
+        if ( ! static::$instance) {
+            static::$instance = new static();
+        }
+
+        return static::$instance;
+    }
+
+    /**
      * Do one step to build a comparison, starting with the first step.
      * Subsequent calls see results of the previous step and proceed with the
      * next one accordingly.
@@ -92,12 +109,7 @@ class GitUpdate
      */
     public static function compareStep(&$messages, $version)
     {
-        // Maintain a singleton instance to allow re-use of network
-        // connections and similar stuff.
-        if ( ! static::$instance) {
-            static::$instance = new static();
-        }
-        $me = static::$instance;
+        $me = static::getInstance();
 
         // Demo processing. Replace with something meaningful.
         if ( ! array_key_exists('stepOne', $me->storage)) {
@@ -132,10 +144,7 @@ class GitUpdate
      */
     public static function deleteStorage()
     {
-        if ( ! static::$instance) {
-            static::$instance = new static();
-        }
-        $me = static::$instance;
+        $me = static::getInstance();
 
         $me->storage = [];
     }
