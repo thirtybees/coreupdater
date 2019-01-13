@@ -574,23 +574,16 @@ class GitUpdate
     {
         $me = static::getInstance();
 
-        // Demo processing. Replace with something meaningful.
-        if ( ! array_key_exists('stepOne', $me->storage)) {
-            sleep(2);
-            $me->storage['stepOne'] = true;
-
-            $messages['informations'][] = 'first step done.';
-            $messages['done'] = false;
-        } elseif ( ! array_key_exists('stepTwo', $me->storage)) {
-            sleep(2);
-            $me->storage['stepTwo'] = true;
-
-            $messages['informations'][] = 'second step done.';
-            $messages['done'] = false;
+        if ( ! array_key_exists('versionTarget', $me->storage)
+            || ! array_key_exists('changeset', $me->storage)
+            || ! array_key_exists('change', $me->storage['changeset'])
+            || ! array_key_exists('add', $me->storage['changeset'])
+            || ! array_key_exists('remove', $me->storage['changeset'])
+            || ! array_key_exists('obsolete', $me->storage['changeset'])) {
+            $messages['informations'][] = $me->l('Crucial storage set missing, please report this on Github.');
+            $messages['error'] = true;
         } else {
             sleep(2);
-            unset($me->storage['stepOne']);
-            unset($me->storage['stepTwo']);
 
             $messages['informations'][] = '...completed.';
             $messages['done'] = true;
