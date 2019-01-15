@@ -480,10 +480,8 @@ class GitUpdate
                 }
 
                 if ($keep) {
-                    $content = file_get_contents($path);
-                    $hash = sha1('blob '.strlen($content)."\0".$content);
-
-                    $this->storage['installationList'][$path] = $hash;
+                    $this->storage['installationList'][$path]
+                        = static::getGitHash($path);
                 }
             }
         }
@@ -711,5 +709,21 @@ class GitUpdate
         unlink($archiveFile);
 
         return $success;
+    }
+
+    /**
+     * Calculate Git hash of a file on disk.
+     *
+     * @param string $path Path of the file.
+     *
+     * @return string Hash.
+     *
+     * @since 1.0.0
+     */
+    public static function getGitHash($path)
+    {
+        $content = file_get_contents($path);
+
+        return sha1('blob '.strlen($content)."\0".$content);
     }
 }
