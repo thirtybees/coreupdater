@@ -609,9 +609,107 @@ class GitUpdate
 
             $messages['informations'][] = sprintf($me->l('Downloads calculated, %d files to download.'), count($me->storage['downloads']));
             $messages['done'] = false;
+        } elseif (count($me->storage['downloads'])) {
+            $downloadSuccess = $me->downloadFiles();
+            if ($downloadSuccess === true) {
+                $messages['informations'][] = sprintf($me->l('Downloaded a couple of files, %d files remaining.'), count($me->storage['downloads']));
+                $messages['done'] = false;
+            } else {
+                $messages['informations'][] = sprintf($me->l('Failed to download files with error: %s'), $downloadSuccess);
+                $messages['error'] = true;
+            }
         } else {
             $messages['informations'][] = '...completed.';
             $messages['done'] = true;
         }
+    }
+
+    /**
+     * Download a couple of files from the Git repository on the thirty bees
+     * server and save them in the cache directory.
+     *
+     * $this->storage['versionTarget'] and $this->storage['downloads'] are
+     * expected to be valid.
+     *
+     * On return, successfully downloaded files are removed from
+     * $this->storage['downloads'].
+     *
+     * @return bool|string Boolean true on success, error message on failure.
+     *
+     * @since 1.0.0
+     */
+    protected function downloadFiles()
+    {
+        $adminDir = false;
+        if (defined('_PS_ADMIN_DIR_')) {
+            $adminDir = str_replace(_PS_ROOT_DIR_, '', _PS_ADMIN_DIR_);
+            $adminDir = trim($adminDir, '/').'/';
+        }
+
+        $pathList = array_slice(array_keys($this->storage['downloads']), 0, 100);
+        foreach ($pathList as &$path) {
+            if ($adminDir) {
+                $path = preg_replace('#^'.$adminDir.'#', 'admin/', $path);
+            }
+        }
+
+        $downloadCountBefore = count($this->storage['downloads']);
+        $archiveFile = tempnam(_PS_CACHE_DIR_, 'GitUpdate');
+        if ( ! $archiveFile) {
+            return $this->l('Could not create temporary file for download.');
+        }
+
+        $guzzle = $this->getGuzzle();
+        try {
+            $guzzle->post('installationmaster.php', [
+                'form_params' => [
+                    'revision'  => $this->storage['versionTarget'],
+                    'archive'   => $pathList,
+                ],
+                'sink'        => $archiveFile,
+            ]);
+        } catch (Exception $e) {
+            unlink($archiveFile);
+
+            return trim($e->getMessage());
+        }
+        $magicNumber = file_get_contents($archiveFile, false, null, 0, 2);
+        if (filesize($archiveFile) < 100 || strcmp($magicNumber, "\x1f\x8b")) {
+            // It's an error message response.
+            $message = file_get_contents($archiveFile);
+            unlink($archiveFile);
+
+            return $message;
+        }
+
+        $archive = new Archive_Tar($archiveFile, 'gz');
+        $archivePaths = $archive->listContent();
+        if ($archive->error_object) {
+            unlink($archiveFile);
+
+            return 'Archive_Tar: '.$archive->error_object->message;
+        }
+
+        // Demo processing: just remove received paths from the list.
+        foreach ($archivePaths as $key => &$path) {
+            if ($path['typeflag'] == 0) {
+                $path = $path['filename'];
+
+                if ($adminDir) {
+                    $path = preg_replace('#^admin/#', $adminDir, $path);
+                }
+
+                unset($this->storage['downloads'][$path]);
+            }
+        }
+
+        $success = true;
+        if ($downloadCountBefore === count($this->storage['downloads'])) {
+            $success = $this->l('Downloaded files successfully, but found no valid files in there.');
+        }
+
+        unlink($archiveFile);
+
+        return $success;
     }
 }
