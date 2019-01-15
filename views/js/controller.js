@@ -94,6 +94,12 @@ function processAction(action) {
     data: {'compareVersion': coreUpdaterParameters.selectedVersion},
     dataType: 'json',
     success: function(data, status, xhr) {
+      if ( ! data) {
+        ajaxError('Request to '+url+' succeeded, but returned an empty response.');
+
+        return;
+      }
+
       logField = $('textarea[name=CORE_UPDATER_PROCESSING]')[0];
       infoList = data['informations'];
       infoListLength = infoList.length;
@@ -146,14 +152,18 @@ function processAction(action) {
       }
     },
     error: function(xhr, status, error) {
-      $('#configuration_fieldset_comparepanel, \
-         #configuration_fieldset_processpanel')
-        .children('.form-wrapper')
-        .html(coreUpdaterParameters.errorRetrieval)
-        .css('color', 'red');
-      console.log('Request to '+url+' failed with status \''+xhr.state()+'\'.');
+      ajaxError('Request to '+url+' failed with status \''+xhr.state()+'\'.');
     }
   });
+
+  function ajaxError(message) {
+    $('#configuration_fieldset_comparepanel, \
+       #configuration_fieldset_processpanel')
+      .children('.form-wrapper')
+      .html(coreUpdaterParameters.errorRetrieval)
+      .css('color', 'red');
+    console.log(message);
+  }
 }
 
 function appendChangeset(changeset, field) {
