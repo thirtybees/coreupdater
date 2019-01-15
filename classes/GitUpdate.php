@@ -45,6 +45,11 @@ class GitUpdate
         // File lists for stable versions.
         '#^fileList-[0-9\.]+$#',
     ];
+    /**
+     * Directory where update files get downloaded to, with their full
+     * directory hierarchy.
+     */
+    const DOWNLOADS_PATH = _PS_CACHE_DIR_.'/GitUpdateDownloads';
 
     /**
      * Set of regular expressions for removing file paths from the list of
@@ -604,6 +609,8 @@ class GitUpdate
             $me->storage['downloads']
                 = array_merge($me->storage['changeset']['change'],
                               $me->storage['changeset']['add']);
+            Tools::deleteDirectory(static::DOWNLOADS_PATH);
+            mkdir(static::DOWNLOADS_PATH, 0777, true);
 
             $messages['informations'][] = sprintf($me->l('Downloads calculated, %d files to download.'), count($me->storage['downloads']));
             $messages['done'] = false;
@@ -688,21 +695,50 @@ class GitUpdate
             return 'Archive_Tar: '.$archive->error_object->message;
         }
 
-        // Demo processing: just remove received paths from the list.
-        foreach ($archivePaths as $key => &$path) {
+        $archive->extract(static::DOWNLOADS_PATH);
+        if ($archive->error_object) {
+            unlink($archiveFile);
+
+            return 'Archive_Tar: '.$archive->error_object->message;
+        }
+
+        // Verify whether each downloaded file matches the expected Git hash
+        // and if so, remove if from the list of files to download. Delete
+        // files on disk not matching (there should be none).
+        $fileListName = 'fileList-'.$this->storage['versionTarget'];
+        foreach ($archivePaths as $path) {
             if ($path['typeflag'] == 0) {
                 $path = $path['filename'];
 
+                $finalPath = $path;
                 if ($adminDir) {
-                    $path = preg_replace('#^admin/#', $adminDir, $path);
+                    $finalPath = preg_replace('#^admin/#', $adminDir, $path);
                 }
 
-                unset($this->storage['downloads'][$path]);
+                if (static::getGitHash(static::DOWNLOADS_PATH.'/'.$path)
+                    === $this->storage[$fileListName][$finalPath]) {
+                    unset($this->storage['downloads'][$finalPath]);
+                } else {
+                    unlink(static::DOWNLOADS_PATH.'/'.$path);
+                }
             }
         }
 
+        // With all files downloaded, also rename admin/ on disk.
         $success = true;
-        if ($downloadCountBefore === count($this->storage['downloads'])) {
+        $from = static::DOWNLOADS_PATH.'/admin';
+        if ( ! count($this->storage['downloads'])
+            && $adminDir && is_dir($from)) {
+            $to = static::DOWNLOADS_PATH.'/'.trim($adminDir, '/');
+
+            $success = rename($from, $to);
+            if ( ! $success) {
+                $success = sprintf($this->l('Could not rename %s to %s.'), $from, $to);
+            }
+        }
+
+        if ($success === true
+            && $downloadCountBefore === count($this->storage['downloads'])) {
             $success = $this->l('Downloaded files successfully, but found no valid files in there.');
         }
 
