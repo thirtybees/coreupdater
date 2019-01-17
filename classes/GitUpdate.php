@@ -630,10 +630,27 @@ class GitUpdate
         } elseif ( ! array_key_exists('updateScript', $me->storage)) {
             $scriptSuccess = $me->createUpdateScript();
             if ($scriptSuccess === true) {
+                // Indicate we have an update script, so JavaScript can run it.
+                $messages['updateScript'] = $me->storage['updateScript'];
+
                 $messages['informations'][] = $me->l('Created update script.');
                 $messages['done'] = false;
             } else {
                 $messages['informations'][] = sprintf($me->l('Could not create update script, error: %s'), $scriptSuccess);
+                $messages['error'] = true;
+            }
+        } elseif ( ! array_key_exists('updateScriptDone', $me->storage)) {
+            // From here on we run in the updated shop installation!
+
+            // Actually we have no indication how successful the update script
+            // executed. But the next version comparison will show the results.
+            if ( ! file_exists(static::SCRIPT_PATH)) {
+                $me->storage['updateScriptDone'] = true;
+
+                $messages['informations'][] = sprintf($me->l('Update script was executed. Welcome to thirty bees %s!'), $me->storage['versionTarget']);
+                $messages['done'] = false;
+            } else {
+                $messages['informations'][] = $me->l('Update script did not execute.');
                 $messages['error'] = true;
             }
         } else {
@@ -815,6 +832,8 @@ class GitUpdate
         $script .= 'if (function_exists(\'opcache_reset\')) {'."\n";
         $script .= '    opcache_reset();'."\n";
         $script .= '}'."\n";
+        // Let the script file remove its self to indicate the execution.
+        $script .= sprintf($removeFormat, static::SCRIPT_PATH);
 
         $success = (bool) file_put_contents(static::SCRIPT_PATH, $script);
         if (function_exists('opcache_invalidate')) {
