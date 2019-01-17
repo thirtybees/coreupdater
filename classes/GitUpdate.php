@@ -50,6 +50,10 @@ class GitUpdate
      * directory hierarchy.
      */
     const DOWNLOADS_PATH = _PS_CACHE_DIR_.'/GitUpdateDownloads';
+    /**
+     * Path of the update script.
+     */
+    const SCRIPT_PATH = _PS_CACHE_DIR_.'/GitUpdateScript.php';
 
     /**
      * Set of regular expressions for removing file paths from the list of
@@ -623,6 +627,15 @@ class GitUpdate
                 $messages['informations'][] = sprintf($me->l('Failed to download files with error: %s'), $downloadSuccess);
                 $messages['error'] = true;
             }
+        } elseif ( ! array_key_exists('updateScript', $me->storage)) {
+            $scriptSuccess = $me->createUpdateScript();
+            if ($scriptSuccess === true) {
+                $messages['informations'][] = $me->l('Created update script.');
+                $messages['done'] = false;
+            } else {
+                $messages['informations'][] = sprintf($me->l('Could not create update script, error: %s'), $scriptSuccess);
+                $messages['error'] = true;
+            }
         } else {
             $messages['informations'][] = '...completed.';
             $messages['done'] = true;
@@ -743,6 +756,72 @@ class GitUpdate
         }
 
         unlink($archiveFile);
+
+        return $success;
+    }
+
+    /**
+     * Create an update script which updates the shop installation
+     * independently. During runtime of this script, the shop installation
+     * has to be assumed to be broken, so it may call only bare PHP functions.
+     * After creation, this script will be called from JavaScript directly.
+     *
+     * $this->storage['versionTarget'] and $this->storage['changeset'] are
+     * expected to be valid.
+     *
+     * On return, $this->storage['updateScript'] is set to the path of the
+     * script, relative to the shop root.
+     *
+     * @return bool|string Boolean true on success, error message on failure.
+     *
+     * @since 1.0.0
+     */
+    protected function createUpdateScript()
+    {
+        $success = true;
+
+        $script = "<?php\n\n";
+        $renameFormat = '@rename(\'%s\', \'%s\');'."\n";
+        $removeFormat = '@unlink(\'%s\');'."\n";
+        $createDirFormat = '@mkdir(\'%s\', 0777, true);'."\n";
+        $removeDirFormat = '@rmdir(\'%s\');'."\n";
+
+        $movePaths = array_merge($this->storage['changeset']['change'],
+                                 $this->storage['changeset']['add']);
+        foreach ($movePaths as $path => $manual) {
+            $script .= sprintf($createDirFormat,
+                               dirname(_PS_ROOT_DIR_.'/'.$path));
+            $script .= sprintf($renameFormat,
+                               static::DOWNLOADS_PATH.'/'.$path,
+                               _PS_ROOT_DIR_.'/'.$path);
+        }
+
+        $removePaths = $this->storage['changeset']['remove'];
+        foreach ($removePaths as $path => $manual) {
+            $script .= sprintf($removeFormat, _PS_ROOT_DIR_.'/'.$path);
+
+            // Remove containing folder. Fails silently if not empty.
+            foreach ([1, 2, 3, 4, 5] as $dummy) {
+                $path = dirname($path);
+                if ($path === '.') {
+                    break;
+                }
+
+                $script .= sprintf($removeDirFormat, _PS_ROOT_DIR_.'/'.$path);
+            }
+        }
+
+        $script .= sprintf($removeFormat, _PS_CACHE_DIR_.'/class_index.php');
+        $script .= 'if (function_exists(\'opcache_reset\')) {'."\n";
+        $script .= '    opcache_reset();'."\n";
+        $script .= '}'."\n";
+
+        $success = (bool) file_put_contents(static::SCRIPT_PATH, $script);
+        if (function_exists('opcache_invalidate')) {
+            opcache_invalidate(static::SCRIPT_PATH);
+        }
+        $this->storage['updateScript']
+            = preg_replace('#^'._PS_ROOT_DIR_.'#', '', static::SCRIPT_PATH);
 
         return $success;
     }
