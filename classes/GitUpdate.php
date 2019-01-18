@@ -613,6 +613,7 @@ class GitUpdate
             $me->storage['downloads']
                 = array_merge($me->storage['changeset']['change'],
                               $me->storage['changeset']['add']);
+            $me->storage['downloads']['install/install_version.php'] = true;
             Tools::deleteDirectory(static::DOWNLOADS_PATH);
             mkdir(static::DOWNLOADS_PATH, 0777, true);
 
@@ -651,6 +652,21 @@ class GitUpdate
                 $messages['done'] = false;
             } else {
                 $messages['informations'][] = $me->l('Update script did not execute.');
+                $messages['error'] = true;
+            }
+        } elseif ( ! array_key_exists('aftermathDone', $me->storage)) {
+            $aftermathSuccess = $me->doAftermath();
+            if ($aftermathSuccess === true) {
+                $me->storage['aftermathDone'] = true;
+
+                $messages['informations'][] = $me->l('Aftermath done.');
+                $messages['done'] = false;
+            } else {
+                $errorLines = $me->l('Aftermath failed, please fix this manually:');
+                foreach ($aftermathSuccess as $message) {
+                    $errorLines .= "\n - ".$message;
+                }
+                $messages['informations'][] = $errorLines;
                 $messages['error'] = true;
             }
         } else {
@@ -745,8 +761,9 @@ class GitUpdate
                     $finalPath = preg_replace('#^admin/#', $adminDir, $path);
                 }
 
-                if (static::getGitHash(static::DOWNLOADS_PATH.'/'.$path)
-                    === $this->storage[$fileListName][$finalPath]) {
+                if ($path === 'install/install_version.php'
+                    || static::getGitHash(static::DOWNLOADS_PATH.'/'.$path)
+                       === $this->storage[$fileListName][$finalPath]) {
                     unset($this->storage['downloads'][$finalPath]);
                 } else {
                     unlink(static::DOWNLOADS_PATH.'/'.$path);
@@ -843,6 +860,58 @@ class GitUpdate
             = preg_replace('#^'._PS_ROOT_DIR_.'#', '', static::SCRIPT_PATH);
 
         return $success;
+    }
+
+    /**
+     * Do things needed to be done after all files were updated.
+     *
+     * $this->storage['versionTarget'] is expected to be valid.
+     *
+     * @return bool|array Boolean true on success, array with error messages
+     *                    on failure. Array, because aftermath continues to
+     *                    operate after partial failures, so multiple error
+     *                    messages can appear.
+     *
+     * @since 1.0.0
+     */
+    protected function doAftermath()
+    {
+        $errors = [];
+
+        /**
+         * Update shop installation version.
+         *
+         * For updates to branches or Git hashes, join install version and
+         * target version, e.g. '1.0.8-1.0.x' or '1.0.8-testbranch'. This
+         * should be right for code comparing the version, e.g.
+         * version_compare(_TB_VERSION_, '1.0.8', '>=');
+         */
+        $versionPath = static::DOWNLOADS_PATH.'/install/install_version.php';
+        if (is_readable($versionPath)) {
+            include $versionPath;
+        }
+        if ( ! defined('_TB_INSTALL_VERSION_')) {
+            $errors[] = $this->l('No definition for _TB_INSTALL_VERSION_ found.');
+        }
+        $newVersion = _TB_INSTALL_VERSION_;
+        if ($this->storage['versionTarget'] !== _TB_INSTALL_VERSION_) {
+            $newVersion = _TB_INSTALL_VERSION_
+                          .'-'.$this->storage['versionTarget'];
+        }
+
+        // Should exist, else the shop wouldn't run.
+        $settingsPath = _PS_CONFIG_DIR_.'/settings.inc.php';
+        $settings = file_get_contents($settingsPath);
+        $settings = preg_replace('/define\s*\(\s*\'_TB_VERSION_\'\s*,\s*\'[\w.-]+\'\s*\)/',
+                                 'define(\'_TB_VERSION_\', \''.$newVersion.'\')',
+                                 $settings);
+        copy($settingsPath, _PS_ROOT_DIR_.'/config/settings.old.php');
+        $result = file_put_contents($settingsPath, $settings);
+        if ( ! $result) {
+            $errors[] = sprintf($this->l('Could not write new version "%s" into %s.'), $newVersion, $settingsPath);
+        }
+
+        return count($errors) ? $errors : true;
     }
 
     /**
