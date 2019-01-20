@@ -47,6 +47,7 @@ class Retrocompatibility
         $errors = array_merge($errors, $me->doSqlUpgrades());
         $errors = array_merge($errors, $me->handleSingleLangConfigs());
         $errors = array_merge($errors, $me->handleMultiLangConfigs());
+        $errors = array_merge($errors, $me->deleteObsoleteTabs());
 
         return $errors;
     }
@@ -180,6 +181,33 @@ class Retrocompatibility
                 $result = \Configuration::updateValue($key, $values);
                 if ( ! $result) {
                     $errors[] = sprintf($this->l('Could not set default value for configuration "%s".', $key));
+                }
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Delete obsolete back office menu items (tabs), which were forgotten to
+     * get removed by earlier migration module versions. This was formerly
+     * part of the 1.0.8 update, but applies to all versions.
+     *
+     * @return array Empty array on success, array with error messages on
+     *               failure.
+     *
+     * @since 1.0.0
+     */
+    protected function deleteObsoleteTabs() {
+        $errors = [];
+
+        foreach ([
+            'AdminMarketing',
+        ] as $tabClassName) {
+            while ($idTab = \Tab::getIdFromClassName($tabClassName)) {
+                $result = (new \Tab($idTab))->delete();
+                if ( ! $result) {
+                    $errors[] = sprintf($this->l('Could delete back office menu item for controller "%s".', $tabClassName));
                 }
             }
         }
