@@ -44,7 +44,41 @@ class Retrocompatibility
         $errors = [];
         $me = new Retrocompatibility;
 
-        // $errors = array_merge($errors, $me->doSomeStep());
+        $errors = array_merge($errors, $me->doSqlUpgrades());
+
+        return $errors;
+    }
+
+    /**
+     * Apply database upgrade scripts.
+     *
+     * @return array Empty array on success, array with error messages on
+     *               failure.
+     *
+     * @since 1.0.0
+     */
+    protected function doSqlUpgrades() {
+        $errors = [];
+
+        $upgrades = file_get_contents(__DIR__.'/retroUpgrades.sql');
+        // Strip comments.
+        $upgrades = preg_replace('#/\*.*?\*/#s', '', $upgrades);
+        $upgrades = explode(';', $upgrades);
+
+        $db = \Db::getInstance(_PS_USE_SQL_SLAVE_);
+        $engine = (defined('_MYSQL_ENGINE_') ? _MYSQL_ENGINE_ : 'InnoDB');
+        foreach ($upgrades as $upgrade) {
+            $upgrade = trim($upgrade);
+            if (strlen($upgrade)) {
+                $upgrade = str_replace(['PREFIX_', 'ENGINE_TYPE'],
+                                       [_DB_PREFIX_, $engine], $upgrade);
+
+                $result = $db->execute($upgrade);
+                if ( ! $result) {
+                    $errors[] = (trim($db->getMsgError()));
+                }
+            }
+        }
 
         return $errors;
     }
