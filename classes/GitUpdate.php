@@ -669,6 +669,12 @@ class GitUpdate
                 $messages['informations'][] = $errorLines;
                 $messages['error'] = true;
             }
+        } elseif ( ! array_key_exists('cachesCleared', $me->storage)) {
+            $me->clearCaches();
+            $me->storage['cachesCleared'] = true;
+
+            $messages['informations'][] = $me->l('All caches cleared.');
+            $messages['done'] = false;
         } else {
             $messages['informations'][] = '...completed.';
             $messages['done'] = true;
@@ -917,6 +923,24 @@ class GitUpdate
         Tools::deleteDirectory(static::DOWNLOADS_PATH);
 
         return count($errors) ? $errors : true;
+    }
+
+    /**
+     * Clear all the caches. Luckily, this doesn't delete our own storage.
+     * No failure expected.
+     *
+     * @since 1.0.0
+     */
+    protected function clearCaches()
+    {
+        Tools::clearSmartyCache();
+        Tools::clearXMLCache();
+        Media::clearCache();
+        Tools::generateIndex();
+        PageCache::flush();
+        if (function_exists('opcache_reset')) {
+            opcache_reset();
+        }
     }
 
     /**
