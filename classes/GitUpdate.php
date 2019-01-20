@@ -911,6 +911,11 @@ class GitUpdate
             $errors[] = sprintf($this->l('Could not write new version "%s" into %s.'), $newVersion, $settingsPath);
         }
 
+        /**
+         * Delete residuals. Failures don't matter much.
+         */
+        Tools::deleteDirectory(static::DOWNLOADS_PATH);
+
         return count($errors) ? $errors : true;
     }
 
