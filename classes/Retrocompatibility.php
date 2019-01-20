@@ -48,6 +48,7 @@ class Retrocompatibility
         $errors = array_merge($errors, $me->handleSingleLangConfigs());
         $errors = array_merge($errors, $me->handleMultiLangConfigs());
         $errors = array_merge($errors, $me->deleteObsoleteTabs());
+        $errors = array_merge($errors, $me->addMissingTabs());
 
         return $errors;
     }
@@ -208,6 +209,94 @@ class Retrocompatibility
                 $result = (new \Tab($idTab))->delete();
                 if ( ! $result) {
                     $errors[] = sprintf($this->l('Could delete back office menu item for controller "%s".', $tabClassName));
+                }
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Add missing back office menu items (tabs), which were forgotten to get
+     * added by earlier migration module versions. This includes adjustment of
+     * its position. This step was formerly part of the 1.0.8 update, but
+     * applies to all versions.
+     *
+     * @return array Empty array on success, array with error messages on
+     *               failure.
+     *
+     * @since 1.0.0
+     */
+    protected function addMissingTabs() {
+        $errors = [];
+
+        foreach ([
+            [
+                'tabClassName'    => 'AdminDuplicateUrls',
+                'tabName'         => 'Duplicate URLs',
+                'parentClassName' => 'AdminParentPreferences',
+                'aboveClassName'  => 'AdminMeta',
+            ],
+            [
+                'tabClassName'    => 'AdminCustomCode',
+                'tabName'         => 'Custom Code',
+                'parentClassName' => 'AdminParentPreferences',
+                'aboveClassName'  => 'AdminGeolocation',
+            ],
+            [
+                'tabClassName'    => 'AdminAddonsCatalog',
+                'tabName'         => 'Modules & Themes Catalog',
+                'parentClassName' => 'AdminParentModules',
+                'aboveClassName'  => 'AdminModules',
+            ],
+        ] as $tabSet) {
+            if (\Tab::getIdFromClassName($tabSet['tabClassName'])) {
+                continue;
+            }
+
+            try {
+                $tab = new \Tab();
+
+                $tab->class_name  = $tabSet['tabClassName'];
+                if ($tabSet['parentClassName']
+                    && $idParent = \Tab::getIdFromClassName($tabSet['parentClassName'])) {
+                    $tab->id_parent = $idParent;
+                }
+
+                if ($tabSet['tabName']) {
+                    $langs = \Language::getLanguages();
+                    foreach ($langs as $lang) {
+                        $translation = \Translate::getAdminTranslation(
+                            $tabSet['tabName'], 'AdminTab', false, false);
+                        $tab->name[$lang['id_lang']] = $translation;
+                    }
+                }
+
+                $tab->save();
+            } catch (Exception $e) {
+                $errors[] = sprintf($this->l('Could not create back office menu item for class "%s".'), $tabSet['tabClassName']);
+                continue;
+            }
+
+            // Move the new tab to just under the tab with class
+            // $tabSet['aboveClassName'].
+            if ($tabSet['aboveClassName']) {
+                $tabList = \Tab::getTabs(0, $tab->id_parent);
+
+                // Find positions of relevant tabs.
+                $posMe = false;
+                $posAbove = false;
+                foreach ($tabList as $item) {
+                    if ($item['class_name'] === $tabSet['tabClassName']) {
+                        $posMe = $item['position'];
+                    } elseif ($item['class_name'] === $tabSet['aboveClassName']) {
+                        $posAbove = $item['position'];
+                    }
+                }
+
+                // Move. Failures not worth to disturb the merchant with.
+                if ($posMe !== false && $posAbove !== false) {
+                    $tab->updatePosition($posMe < $posAbove, $posAbove + 1);
                 }
             }
         }
