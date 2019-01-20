@@ -56,9 +56,14 @@ WHERE CAST(`available_date` AS CHAR(20)) = '0000-00-00 00:00:00';
 
 DROP TABLE IF EXISTS `PREFIX_url_rewrite`;
 
-INSERT INTO `PREFIX_hook` (`name`, `title`) VALUES ('actionRegisterAutoloader', 'actionRegisterAutoloader');
-INSERT INTO `PREFIX_hook` (`name`, `title`) VALUES ('actionRegisterErrorHandlers', 'actionRegisterErrorHandlers');
-INSERT INTO `PREFIX_hook` (`name`, `title`) VALUES ('actionRetrieveCurrencyRates', 'actionRetrieveCurrencyRates');
+INSERT IGNORE INTO `PREFIX_hook` (`name`, `title`)
+VALUES ('actionRegisterAutoloader', 'actionRegisterAutoloader');
+
+INSERT IGNORE INTO `PREFIX_hook` (`name`, `title`)
+VALUES ('actionRegisterErrorHandlers', 'actionRegisterErrorHandlers');
+
+INSERT IGNORE INTO `PREFIX_hook` (`name`, `title`)
+VALUES ('actionRetrieveCurrencyRates', 'actionRetrieveCurrencyRates');
 
 /* 1.0.4 */
 ALTER TABLE `PREFIX_referrer` MODIFY `passwd` VARCHAR(60);
