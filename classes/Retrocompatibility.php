@@ -45,8 +45,24 @@ class Retrocompatibility
         $me = new Retrocompatibility;
 
         $errors = array_merge($errors, $me->doSqlUpgrades());
+        $errors = array_merge($errors, $me->handleSingleLangConfigs());
 
         return $errors;
+    }
+
+    /**
+     * Get translation for a given text.
+     *
+     * @param string $string String to translate.
+     *
+     * @return string Translation.
+     *
+     * @since 1.0.0
+     */
+    protected function l($string)
+    {
+        return \Translate::getModuleTranslation('coreupdater', $string,
+                                                'coreupdater');
     }
 
     /**
@@ -76,6 +92,35 @@ class Retrocompatibility
                 $result = $db->execute($upgrade);
                 if ( ! $result) {
                     $errors[] = (trim($db->getMsgError()));
+                }
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Handle single language configuration values, like creating them as
+     * necessary. With the old method, insertions were done by SQL directly,
+     * and were also known to be troublesome (failed insertion, double
+     * insertion, whatever).
+     *
+     * @return array Empty array on success, array with error messages on
+     *               failure.
+     *
+     * @since 1.0.0
+     */
+    protected function handleSingleLangConfigs() {
+        $errors = [];
+
+        foreach ([
+            'TB_MAIL_SUBJECT_TEMPLATE'  => '[{shop_name}] {subject}',
+        ] as $key => $value) {
+            $currentValue = \Configuration::get($key);
+            if ( ! $currentValue) {
+                $result = \Configuration::updateValue($key, $value);
+                if ( ! $result) {
+                    $errors[] = sprintf($this->l('Could not set default value for configuration "%s".', $key));
                 }
             }
         }
