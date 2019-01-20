@@ -46,6 +46,7 @@ class Retrocompatibility
 
         $errors = array_merge($errors, $me->doSqlUpgrades());
         $errors = array_merge($errors, $me->handleSingleLangConfigs());
+        $errors = array_merge($errors, $me->handleMultiLangConfigs());
 
         return $errors;
     }
@@ -119,6 +120,64 @@ class Retrocompatibility
             $currentValue = \Configuration::get($key);
             if ( ! $currentValue) {
                 $result = \Configuration::updateValue($key, $value);
+                if ( ! $result) {
+                    $errors[] = sprintf($this->l('Could not set default value for configuration "%s".', $key));
+                }
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Handle multiple language configuration values, like creating them as
+     * necessary. This never really worked with the old method. Also do single
+     * language -> multi language conversions, which were formerly done by PHP
+     * scripts.
+     *
+     * @return array Empty array on success, array with error messages on
+     *               failure.
+     *
+     * @since 1.0.0
+     */
+    protected function handleMultiLangConfigs() {
+        $errors = [];
+
+        foreach ([
+            'PS_ROUTE_product_rule'       => '{categories:/}{rewrite}',
+            'PS_ROUTE_category_rule'      => '{rewrite}',
+            'PS_ROUTE_layered_rule'       => '{categories:/}{rewrite}{/:selected_filters}',
+            'PS_ROUTE_supplier_rule'      => '{rewrite}',
+            'PS_ROUTE_manufacturer_rule'  => '{rewrite}',
+            'PS_ROUTE_cms_rule'           => 'info/{categories:/}{rewrite}',
+            'PS_ROUTE_cms_category_rule'  => 'info/{categories:/}{rewrite}',
+        ] as $key => $value) {
+            $values = [];
+            $needsWrite = false;
+
+            // If there is a single language value already, use this.
+            $currentValue = \Configuration::get($key);
+            if ($currentValue) {
+                $needsWrite = true;
+                $value = $currentValue;
+            }
+
+            foreach (\Language::getIDs(false) as $idLang) {
+                $currentValue = \Configuration::get($key, $idLang);
+                if ($currentValue) {
+                    $values[$idLang] = $currentValue;
+                } else {
+                    $needsWrite = true;
+                    $values[$idLang] = $value;
+                }
+            }
+
+            if ($needsWrite) {
+                // Delete eventual single language value.
+                \Configuration::deleteByName($key);
+
+                // Write multi language values.
+                $result = \Configuration::updateValue($key, $values);
                 if ( ! $result) {
                     $errors[] = sprintf($this->l('Could not set default value for configuration "%s".', $key));
                 }
