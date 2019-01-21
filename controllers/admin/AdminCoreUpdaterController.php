@@ -69,10 +69,17 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
         $this->fields_options = [
             'updatepanel' => [
-                'title'       => $this->l('Update'),
+                'title'       => $this->l('Version Select'),
+                'icon'        => 'icon-beaker',
                 'description' => '<p>'
-                                 .$this->l('Here you can easily update your thirty bees installation and/or switch between thirty bees versions.')
-                                 .'</p>',
+                                 .$this->l('Here you can update your thirty bees installation and/or switch between thirty bees versions easily.')
+                                 .'</p><ol><li>'
+                                 .$this->l('Select the version you want to update to. This can be a newer version or an older version, or even the current version (to investigate or fix this installation).')
+                                 .'</li><li>'
+                                 .$this->l('Click on "Compare". Doing so compares this installation with a clean installation of the selected version.')
+                                 .'</li><li>'
+                                 .$this->l('Look at the comparison result and proceed accordingly. Clicking on list titles opens them. If you\'re in a hurry or don\'t know what all these lists mean, just click "Update". Update defaults are safe.')
+                                 .'</li></ol>',
                 'info'        => $this->l('Current thirty bees version:')
                                  .' <b>'._TB_VERSION_.'</b>',
                 'submit'      => [
@@ -159,7 +166,11 @@ class AdminCoreUpdaterController extends ModuleAdminController
                     'CORE_UPDATER_REMOVE_OBSOLETE' => [
                         'type'        => 'none',
                         'title'       => $this->l('Obsolete files:'),
-                        'desc'        => $this->l('These files exist locally, but are not needed for the selected version. Mark the checkbox(es) to remove them.'),
+                        'desc'        => '<p>'
+                                         .$this->l('These files exist locally, but are not needed for the selected version of thirty bees core. Mark the checkbox(es) to remove them.')
+                                         .'</p><p>'
+                                         .$this->l('Obsolete files are generally harmless. PrestaShop and thirty bees before v1.0.8 didn\'t even have tools to detect them. Some of these files might be in use by modules, so it\'s better to keep them. That\'s why there\'s no "select all" button.')
+                                         .'</p>',
                     ],
                 ],
             ];
