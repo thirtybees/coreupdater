@@ -25,6 +25,8 @@ if (!defined('_TB_VERSION_')) {
     exit;
 }
 
+require_once __DIR__.'/Retrocompatibility.php';
+
 /**
  * Class GitUpdate.
  *
@@ -925,6 +927,12 @@ class GitUpdate
          * Delete residuals. Failures don't matter much.
          */
         \Tools::deleteDirectory(static::DOWNLOADS_PATH);
+
+        /**
+         * Apply retrocompatibility database upgrades.
+         */
+        $errors = array_merge($errors,
+                              Retrocompatibility::doAllDatabaseUpgrades());
 
         return count($errors) ? $errors : true;
     }
