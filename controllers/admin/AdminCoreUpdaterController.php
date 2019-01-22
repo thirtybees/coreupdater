@@ -188,7 +188,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
             ];
         } else {
             // New session.
-            GitUpdate::deleteStorage(false);
+            \CoreUpdater\GitUpdate::deleteStorage(false);
         }
 
         parent::__construct();
@@ -246,7 +246,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
         ];
 
         $method = lcfirst(preg_replace('/^process/', '', $type)).'Step';
-        if ( ! method_exists('GitUpdate', $method)) {
+        if ( ! method_exists('\CoreUpdater\GitUpdate', $method)) {
             die('Invalid request for Ajax action \''.$type.'\'.');
         }
 
@@ -259,7 +259,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
         do {
             $stepStart = microtime(true);
 
-            GitUpdate::{$method}($messages, $version);
+            \CoreUpdater\GitUpdate::{$method}($messages, $version);
             if ($messages['error']) {
                 $messages['done'] = true;
             }

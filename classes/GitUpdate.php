@@ -17,6 +17,10 @@
  * @license   Academic Free License (AFL 3.0)
  */
 
+namespace CoreUpdater;
+
+use \AdminCoreUpdaterController as MyController;
+
 if (!defined('_TB_VERSION_')) {
     exit;
 }
@@ -179,7 +183,7 @@ class GitUpdate
     {
         if ( ! $this->guzzle) {
             $this->guzzle = new \GuzzleHttp\Client([
-                'base_uri'    => AdminCoreUpdaterController::API_URL,
+                'base_uri'    => MyController::API_URL,
                 'verify'      => _PS_TOOL_DIR_.'cacert.pem',
                 'timeout'     => 20,
             ]);
@@ -301,8 +305,8 @@ class GitUpdate
      */
     protected function l($string)
     {
-        return Translate::getModuleTranslation('coreupdater', $string,
-                                               'coreupdater');
+        return \Translate::getModuleTranslation('coreupdater', $string,
+                                                'coreupdater');
     }
 
     /**
@@ -453,10 +457,10 @@ class GitUpdate
 
         if (is_dir($dir)) {
             if (in_array($dir, ['.', 'vendor'])) {
-                $iterator = new DirectoryIterator($dir);
+                $iterator = new \DirectoryIterator($dir);
             } else {
-                $iterator = new RecursiveIteratorIterator(
-                                new RecursiveDirectoryIterator($dir)
+                $iterator = new \RecursiveIteratorIterator(
+                                new \RecursiveDirectoryIterator($dir)
                             );
             }
 
@@ -614,7 +618,7 @@ class GitUpdate
                 = array_merge($me->storage['changeset']['change'],
                               $me->storage['changeset']['add']);
             $me->storage['downloads']['install/install_version.php'] = true;
-            Tools::deleteDirectory(static::DOWNLOADS_PATH);
+            \Tools::deleteDirectory(static::DOWNLOADS_PATH);
             mkdir(static::DOWNLOADS_PATH, 0777, true);
 
             $messages['informations'][] = sprintf($me->l('Downloads calculated, %d files to download.'), count($me->storage['downloads']));
@@ -739,7 +743,7 @@ class GitUpdate
             return $message;
         }
 
-        $archive = new Archive_Tar($archiveFile, 'gz');
+        $archive = new \Archive_Tar($archiveFile, 'gz');
         $archivePaths = $archive->listContent();
         if ($archive->error_object) {
             unlink($archiveFile);
@@ -920,7 +924,7 @@ class GitUpdate
         /**
          * Delete residuals. Failures don't matter much.
          */
-        Tools::deleteDirectory(static::DOWNLOADS_PATH);
+        \Tools::deleteDirectory(static::DOWNLOADS_PATH);
 
         return count($errors) ? $errors : true;
     }
@@ -933,11 +937,11 @@ class GitUpdate
      */
     protected function clearCaches()
     {
-        Tools::clearSmartyCache();
-        Tools::clearXMLCache();
-        Media::clearCache();
-        Tools::generateIndex();
-        PageCache::flush();
+        \Tools::clearSmartyCache();
+        \Tools::clearXMLCache();
+        \Media::clearCache();
+        \Tools::generateIndex();
+        \PageCache::flush();
         if (function_exists('opcache_reset')) {
             opcache_reset();
         }
