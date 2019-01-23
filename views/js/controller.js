@@ -24,7 +24,7 @@ var coreUpdaterParameters;
 $(document).ready(function () {
   coreUpdaterParameters = JSON.parse($('input[name=CORE_UPDATER_PARAMETERS]').val());
 
-  channelChange();
+  channelChange(true);
   $('#CORE_UPDATER_CHANNEL').on('change', channelChange);
 
   $('#CORE_UPDATER_VERSION').on('change', versionChange);
@@ -41,15 +41,22 @@ $(document).ready(function () {
   }
 });
 
-function channelChange() {
-  let channel = $('#CORE_UPDATER_CHANNEL option:selected').val();
+function channelChange(firstRun) {
+  let channelSelect = $('#CORE_UPDATER_CHANNEL');
   let versionSelect = $('#CORE_UPDATER_VERSION');
 
-  if ( ! channel || ! versionSelect.length) {
+  if ( ! channelSelect || ! versionSelect.length) {
     return;
   }
 
+  if (firstRun === true) {
+    if ( ! /^[0-9\.]*$/.exec(coreUpdaterParameters.selectedVersion)) {
+      channelSelect.val('branches');
+    }
+  }
+
   versionSelect.empty();
+  channel = channelSelect.val();
   $.ajax({
     url: coreUpdaterParameters.apiUrl,
     type: 'POST',
