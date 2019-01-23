@@ -637,29 +637,33 @@ class GitUpdate
         } elseif ( ! array_key_exists('updateScript', $me->storage)) {
             $scriptSuccess = $me->createUpdateScript();
             if ($scriptSuccess === true) {
-                // Indicate we have an update script, so JavaScript can run it.
-                $messages['updateScript'] = $me->storage['updateScript'];
+                // Indicate we have an update script, so the controller sends
+                // messages before returning.
+                $messages['updateScript'] = true;
 
-                $messages['informations'][] = $me->l('Created update script.');
+                $messages['informations'][] = $me->l('Created update script. Now running it...');
                 $messages['done'] = false;
             } else {
                 $messages['informations'][] = sprintf($me->l('Could not create update script, error: %s'), $scriptSuccess);
                 $messages['error'] = true;
             }
         } elseif ( ! array_key_exists('updateScriptDone', $me->storage)) {
-            // From here on we run in the updated shop installation!
-
-            // Actually we have no indication how successful the update script
-            // executed. But the next version comparison will show the results.
-            if ( ! file_exists(static::SCRIPT_PATH)) {
-                $me->storage['updateScriptDone'] = true;
-
-                $messages['informations'][] = sprintf($me->l('Update script was executed. Welcome to thirty bees %s!'), $me->storage['versionTarget']);
-                $messages['done'] = false;
-            } else {
-                $messages['informations'][] = $me->l('Update script did not execute.');
-                $messages['error'] = true;
+            if (file_exists(static::SCRIPT_PATH)) {
+                // Usually one tries hard to not burn the house (set of code
+                // files) a program is living in, but this is an exception.
+                // The script overwrites a lot of code files, then dies.
+                //
+                // This does not return! It also self-removes the script file.
+                require static::SCRIPT_PATH;
             }
+
+            // From here on we run in the updated shop installation! Too bad,
+            // we have no actual indication how successful the update script
+            // executed. But the next version comparison will show the results.
+            $me->storage['updateScriptDone'] = true;
+
+            $messages['informations'][] = sprintf($me->l('Update script was executed. Welcome to thirty bees %s!'), $me->storage['versionTarget']);
+            $messages['done'] = false;
         } elseif ( ! array_key_exists('aftermathDone', $me->storage)) {
             $aftermathSuccess = $me->doAftermath();
             if ($aftermathSuccess === true) {
@@ -815,8 +819,7 @@ class GitUpdate
      * $this->storage['versionTarget'] and $this->storage['changeset'] are
      * expected to be valid.
      *
-     * On return, $this->storage['updateScript'] is set to the path of the
-     * script, relative to the shop root.
+     * On return, $this->storage['updateScript'] is set to true.
      *
      * @return bool|string Boolean true on success, error message on failure.
      *
@@ -861,15 +864,17 @@ class GitUpdate
         $script .= 'if (function_exists(\'opcache_reset\')) {'."\n";
         $script .= '    opcache_reset();'."\n";
         $script .= '}'."\n";
-        // Let the script file remove its self to indicate the execution.
+        // Let the script file remove its self to indicate the execution and
+        // avoid multiple execution.
         $script .= sprintf($removeFormat, static::SCRIPT_PATH);
+        // Die with a minimum response.
+        $script .= 'die(\'{"informations":[],"error":false,"done":false}\');'."\n";
 
         $success = (bool) file_put_contents(static::SCRIPT_PATH, $script);
         if (function_exists('opcache_invalidate')) {
             opcache_invalidate(static::SCRIPT_PATH);
         }
-        $this->storage['updateScript']
-            = preg_replace('#^'._PS_ROOT_DIR_.'#', '', static::SCRIPT_PATH);
+        $this->storage['updateScript'] = true;
 
         return $success;
     }

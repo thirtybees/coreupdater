@@ -144,20 +144,7 @@ function processAction(action) {
       }
 
       if (data['done'] === false) {
-        if (data['updatescript']) {
-          $.ajax({
-            url: data['updatescript'],
-            type: 'GET',
-            success: function() {
-              processAction(action);
-            },
-            error: function(xhr, status, error) {
-              ajaxError('Request to '+data['updatescript']+' failed with status \''+xhr.state()+'\'.');
-            }
-          });
-        } else {
-          processAction(action);
-        }
+        processAction(action);
       } else if ( ! data['error']) {
         $('#collapsible_CORE_UPDATER_PROCESSING').collapse('hide');
         addCompletedText('CORE_UPDATER_PROCESSING',

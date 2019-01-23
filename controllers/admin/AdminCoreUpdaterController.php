@@ -275,12 +275,6 @@ class AdminCoreUpdaterController extends ModuleAdminController
                 $messages['done'] = true;
             }
 
-            if (array_key_exists('updateScript', $messages)) {
-                $link = new Link();
-                $messages['updateScript'] = $link->getBaseLink()
-                                            .$messages['updateScript'];
-            }
-
             $messages['informations'][count($messages['informations']) - 1]
                 .= sprintf(' (%.1f s)', microtime(true) - $stepStart);
         } while ($messages['done'] !== true
