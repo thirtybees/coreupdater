@@ -63,6 +63,9 @@ function channelChange(firstRun) {
     data: {'list': channel},
     dataType: 'json',
     success: function(data, status, xhr) {
+      if (channel === 'tags') {
+        data.reverse();
+      }
       data.forEach(function(version) {
           versionSelect.append('<option>'+version+'</option>');
           if (version === coreUpdaterParameters.selectedVersion) {
