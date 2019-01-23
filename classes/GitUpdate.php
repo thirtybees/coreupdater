@@ -208,6 +208,7 @@ class GitUpdate
     public static function compareStep(&$messages, $version)
     {
         $me = static::getInstance();
+        $installedVersion = static::getInstalledVersion();
 
         // Dump very old storage.
         if (file_exists(static::STORAGE_PATH)
@@ -217,13 +218,13 @@ class GitUpdate
 
         // Reset an invalid storage set.
         if ( ! array_key_exists('versionOrigin', $me->storage)
-            || $me->storage['versionOrigin'] !== _TB_VERSION_
+            || $me->storage['versionOrigin'] !== $installedVersion
             || ! array_key_exists('versionTarget', $me->storage)
             || $me->storage['versionTarget'] !== $version) {
 
             static::deleteStorage(false);
 
-            $me->storage['versionOrigin'] = _TB_VERSION_;
+            $me->storage['versionOrigin'] = $installedVersion;
             $me->storage['versionTarget'] = $version;
         }
 
@@ -239,14 +240,14 @@ class GitUpdate
                 $messages['informations'][] = sprintf($me->l('Failed to download file list for version %s with error: %s'), $version, $downloadSuccess);
                 $messages['error'] = true;
             }
-        } elseif ( ! array_key_exists('fileList-'._TB_VERSION_, $me->storage)) {
-            $downloadSuccess = $me->downloadFileList(_TB_VERSION_);
+        } elseif ( ! array_key_exists('fileList-'.$installedVersion, $me->storage)) {
+            $downloadSuccess = $me->downloadFileList($installedVersion);
             if ($downloadSuccess === true) {
                 $messages['informations'][] =
-                    sprintf($me->l('File list for version %s downloaded.'), _TB_VERSION_);
+                    sprintf($me->l('File list for version %s downloaded.'), $installedVersion);
                 $messages['done'] = false;
             } else {
-                $messages['informations'][] = sprintf($me->l('Failed to download file list for version %s with error: %s'), _TB_VERSION_, $downloadSuccess);
+                $messages['informations'][] = sprintf($me->l('Failed to download file list for version %s with error: %s'), $installedVersion, $downloadSuccess);
                 $messages['error'] = true;
             }
         } elseif ( ! array_key_exists('topLevel-'.$version, $me->storage)) {
@@ -958,6 +959,33 @@ class GitUpdate
         if (function_exists('opcache_reset')) {
             opcache_reset();
         }
+    }
+
+    /**
+     * Resolve currently installed version. To make functions like
+     * version_compare() work, bleeding edge versions set _TB_VERSION_ to
+     * something like 1.0.8-1.0.x, where the part before the dash is the
+     * version found in install-dev/install_version.php and the part behind
+     * the dash is the name of the Git branch (or the Git hash, when this
+     * becomes supported). See also doAftermath().
+     *
+     * @return string Version.
+     *
+     * @since 1.0.0
+     */
+    public static function getInstalledVersion()
+    {
+        $version = _TB_VERSION_;
+
+        // A dash indicates a non-stable version.
+        $dashPosition = strpos($version, '-');
+        if ($dashPosition !== false) {
+            $version = substr($version, $dashPosition + 1);
+            // A Git-hash-version has exactly 40 characters of [0-9][a-f],
+            // everything else should be a branch name.
+        }
+
+        return $version;
     }
 
     /**

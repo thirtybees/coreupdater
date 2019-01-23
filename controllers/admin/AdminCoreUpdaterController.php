@@ -62,9 +62,10 @@ class AdminCoreUpdaterController extends ModuleAdminController
             ];
         }
 
+        $installedVersion = \CoreUpdater\GitUpdate::getInstalledVersion();
         $selectedVersion = Tools::getValue('CORE_UPDATER_VERSION');
         if ( ! $selectedVersion) {
-            $selectedVersion = _TB_VERSION_;
+            $selectedVersion = $installedVersion;
         }
 
         $this->fields_options = [
@@ -81,7 +82,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
                                  .$this->l('Look at the comparison result and proceed accordingly. Clicking on list titles opens them. If you\'re in a hurry or don\'t know what all these lists mean, just click "Update". Update defaults are safe.')
                                  .'</li></ol>',
                 'info'        => $this->l('Current thirty bees version:')
-                                 .' <b>'._TB_VERSION_.'</b>',
+                                 .' <b>'.$installedVersion.'</b>',
                 'submit'      => [
                     'title'     => $this->l('Compare'),
                     'imgclass'  => 'refresh',
@@ -183,7 +184,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
             $this->fields_options['processpanel'] = [
                 'title'       => $this->l('Update Processing'),
                 'info'        => sprintf($this->l('Processing update from %s to %s.'),
-                                         '<b>'._TB_VERSION_.'</b>',
+                                         '<b>'.$installedVersion.'</b>',
                                          '<b>'.$selectedVersion.'</b>'),
                 'fields' => [
                     // Intentionally the same name as in the comparepanel.
