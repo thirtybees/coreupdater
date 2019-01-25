@@ -29,6 +29,8 @@ $(document).ready(function () {
 
   $('#CORE_UPDATER_VERSION').on('change', versionChange);
 
+  $('button[name=coreUpdaterUpdate]').on('click', collectSelectedObsolete);
+
   addBootstrapCollapser('CORE_UPDATER_PROCESSING', false);
 
   if (document.getElementById('configuration_fieldset_comparepanel')) {
@@ -206,6 +208,21 @@ function appendChangeset(changeset, field) {
   node.append(html);
 
   addCompletedText(field, coreUpdaterParameters.completedList, count);
+}
+
+function collectSelectedObsolete() {
+  let selectedObsolete = [];
+
+  // Demo data. Replace with the real thing.
+  selectedObsolete.push('log/20190123_exception.log');
+  selectedObsolete.push('log/20190120_exception.log');
+  selectedObsolete.push('log/20190121_exception.log');
+  $('input[name=CORE_UPDATER_PARAMETERS]').val(
+    JSON.stringify({selectedObsolete: selectedObsolete})
+  );
+
+  // Save bandwidth.
+  $('textarea[name=CORE_UPDATER_PROCESSING]').val('');
 }
 
 function addCompletedText(field, text, number) {

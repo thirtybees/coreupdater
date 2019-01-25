@@ -594,6 +594,27 @@ class GitUpdate
     }
 
     /**
+     * Receive a list of obsolete files which should get removed during the
+     * update. It's a subset of $me->storage['changeset']['obsolete'].
+     *
+     * @param array $list List of file paths.
+     *
+     * @since 1.0.0
+     */
+    public static function setSelectedObsolete($list)
+    {
+        $me = static::getInstance();
+
+        $changeSet = &$me->storage['changeset'];
+        $changeSet['selectedObsolete'] = [];
+        foreach ($list as $path) {
+            if (array_key_exists($path, $changeSet['obsolete'])) {
+                $changeSet['selectedObsolete'][$path] = true;
+            }
+        }
+    }
+
+    /**
      * Do one update step, starting with the first step. Subsequent calls see
      * results of the previous step and proceed with the next one accordingly.
      *

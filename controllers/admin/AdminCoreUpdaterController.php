@@ -234,6 +234,30 @@ class AdminCoreUpdaterController extends ModuleAdminController
     }
 
     /**
+     * Post processing. All custom code, no default processing used.
+     *
+     * @since 1.0.0
+     */
+    public function postProcess()
+    {
+        /**
+         * Collect parameters sent back. This uses the same hidden input field
+         * which is used to forward parameters to the browser.
+         */
+        $parameters = Tools::getValue('CORE_UPDATER_PARAMETERS');
+        if ($parameters) {
+            $parameters = json_decode($parameters, true);
+            if (array_key_exists('selectedObsolete', $parameters)) {
+                \CoreUpdater\GitUpdate::setSelectedObsolete(
+                    $parameters['selectedObsolete']
+                );
+            }
+        }
+
+        // Intentionally not calling parent, there's nothing to do.
+    }
+
+    /**
      * Process one step of a version comparison. The calling panel repeats this
      * request as long as 'done' returns false. Each call should not exceed
      * 3 seconds for a good user experience and a safe margin against the 30
