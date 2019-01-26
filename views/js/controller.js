@@ -213,10 +213,15 @@ function appendChangeset(changeset, field) {
 function collectSelectedObsolete() {
   let selectedObsolete = [];
 
-  // Demo data. Replace with the real thing.
-  selectedObsolete.push('log/20190123_exception.log');
-  selectedObsolete.push('log/20190120_exception.log');
-  selectedObsolete.push('log/20190121_exception.log');
+  $('#conf_id_CORE_UPDATER_REMOVE_OBSOLETE')
+  .find('table')
+  .find('tr')
+  .filter(function(index, element) {
+    if ($(element).find('input').prop('checked')) {
+      selectedObsolete.push($(element).find('td:last').html());
+    }
+  })
+
   $('input[name=CORE_UPDATER_PARAMETERS]').val(
     JSON.stringify({selectedObsolete: selectedObsolete})
   );
