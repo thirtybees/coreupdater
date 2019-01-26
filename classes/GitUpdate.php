@@ -868,6 +868,10 @@ class GitUpdate
         }
 
         $removePaths = $this->storage['changeset']['remove'];
+        if (array_key_exists('selectedObsolete', $this->storage['changeset'])) {
+            $removePaths = array_merge($removePaths,
+                              $this->storage['changeset']['selectedObsolete']);
+        }
         foreach ($removePaths as $path => $manual) {
             $script .= sprintf($removeFormat, _PS_ROOT_DIR_.'/'.$path);
 
