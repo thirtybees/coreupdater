@@ -25,6 +25,7 @@ if (!defined('_TB_VERSION_')) {
     exit;
 }
 
+require_once __DIR__.'/Requirements.php';
 require_once __DIR__.'/Retrocompatibility.php';
 
 /**
@@ -229,7 +230,35 @@ class GitUpdate
         }
 
         // Do one compare step.
-        if ( ! array_key_exists('fileList-'.$version, $me->storage)) {
+        if ( ! array_key_exists('requirements', $me->storage)) {
+            if (preg_match('/^[0-9\.]*$/', $version)) {
+                // It's a stable version, requirement checks possible.
+                $errors = Requirements::checkAllRequirements($version);
+                if ( ! count($errors)) {
+                    $me->storage['requirements'] = true;
+
+                    $messages['informations'][] = sprintf($me->l('Requirements for thirty bees version %s checked.'), $version);
+                    $messages['done'] = false;
+                } else {
+                    $errorLines = sprintf($me->l('Requirements for thirty bees version %s are not met:'), $version);
+                    foreach ($errors as $message) {
+                        $errorLines .= "\n - ".$message;
+                    }
+                    $messages['informations'][] = $errorLines;
+                    $messages['error'] = true;
+                }
+            } else {
+                // Not a stable version. Finding out the base version of this
+                // would require to download install_version.php of that
+                // unstable version, which is a bit too complex for the time
+                // being. Bleeding edge is typically close to the currently
+                // installed version.
+                $me->storage['requirements'] = true;
+
+                $messages['informations'][] = $me->l('Target version is not a stable version, requirement checks skipped.');
+                $messages['done'] = false;
+            }
+        } elseif ( ! array_key_exists('fileList-'.$version, $me->storage)) {
             $downloadSuccess = $me->downloadFileList($version);
             if ($downloadSuccess === true) {
                 $messages['informations'][] =
