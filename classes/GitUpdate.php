@@ -692,7 +692,11 @@ class GitUpdate
                 // messages before returning.
                 $messages['updateScript'] = true;
 
-                $messages['informations'][] = $me->l('Created update script. Now running it...');
+                $messages['informations'][] = $me->l('Created update script.');
+                if (array_key_exists('backupDir', $me->storage)) {
+                    $messages['informations'][] = sprintf($me->l('Manually modified files, if any, get backed up to %s.'), $me->storage['backupDir']);
+                }
+                $messages['informations'][] = $me->l('Now running the update script...');
                 $messages['done'] = false;
             } else {
                 $messages['informations'][] = sprintf($me->l('Could not create update script, error: %s'), $scriptSuccess);
@@ -899,6 +903,10 @@ class GitUpdate
                                    $backupDir.'/'.$path);
             }
         }
+        // Reformat for display.
+        $backupDir = preg_replace('#^'._PS_ROOT_DIR_.'#', '', $backupDir);
+        $backupDir = trim($backupDir, '/').'/';
+        $this->storage['backupDir'] = $backupDir;
 
         $movePaths = array_merge($this->storage['changeset']['change'],
                                  $this->storage['changeset']['add']);
