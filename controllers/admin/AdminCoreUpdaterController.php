@@ -40,6 +40,14 @@ class AdminCoreUpdaterController extends ModuleAdminController
     // $this->l('Developer (enter Git hash)');
 
     /**
+     * Where manually modified files get backed up before they get overwritten
+     * by the new version. A directory path, which gets appended by a date of
+     * the format BACKUP_DATE_SUFFIX (should give a unique suffix).
+     */
+    const BACKUP_PATH = _PS_ADMIN_DIR_.'/CoreUpdaterBackup';
+    const BACKUP_DATE_SUFFIX = '-Y-m-d--H-i-s';
+
+    /**
      * AdminCoreUpdaterController constructor.
      *
      * @since 1.0.0
@@ -134,6 +142,8 @@ class AdminCoreUpdaterController extends ModuleAdminController
                 'title'       => $this->l('Update Comparison'),
                 'description' => '<p>'
                                  .$this->l('This panel compares all files of this shop installation with a clean installation of the version given above. To update this shop to that version, update all files to the clean installation.')
+                                 .'</p><p>'
+                                 .$this->l('Manually edited files will get backed up before they get overwritten.')
                                  .'</p>',
                 'submit'      => [
                     'title'     => $this->l('Update'),

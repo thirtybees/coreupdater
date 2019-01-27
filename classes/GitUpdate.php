@@ -886,6 +886,20 @@ class GitUpdate
         $createDirFormat = '@mkdir(\'%s\', 0777, true);'."\n";
         $removeDirFormat = '@rmdir(\'%s\');'."\n";
 
+        $backupPaths = array_merge($this->storage['changeset']['change'],
+                                   $this->storage['changeset']['remove']);
+        $backupDir = MyController::BACKUP_PATH
+                     .date(MyController::BACKUP_DATE_SUFFIX);
+        foreach ($backupPaths as $path => $manual) {
+            if ($manual) {
+                $script .= sprintf($createDirFormat,
+                                   dirname($backupDir.'/'.$path));
+                $script .= sprintf($renameFormat,
+                                   _PS_ROOT_DIR_.'/'.$path,
+                                   $backupDir.'/'.$path);
+            }
+        }
+
         $movePaths = array_merge($this->storage['changeset']['change'],
                                  $this->storage['changeset']['add']);
         foreach ($movePaths as $path => $manual) {
