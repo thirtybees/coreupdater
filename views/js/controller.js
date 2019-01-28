@@ -158,7 +158,9 @@ function processAction(action) {
       if (data['done'] === false) {
         processAction(action);
       } else if ( ! data['error']) {
-        $('#collapsible_CORE_UPDATER_PROCESSING').collapse('hide');
+        if (action === 'processCompare') {
+          $('#collapsible_CORE_UPDATER_PROCESSING').collapse('hide');
+        }
         addCompletedText('CORE_UPDATER_PROCESSING',
                          coreUpdaterParameters.completedLog);
       }
