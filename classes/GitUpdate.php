@@ -1065,6 +1065,24 @@ class GitUpdate
     }
 
     /**
+     * Return the directory used for backing up manually edited files.
+     *
+     * @return bool|string Directory path if it's determined (yet), else false.
+     *
+     * @since 1.0.0
+     */
+    public static function getBackupDir()
+    {
+        $me = static::getInstance();
+
+        if (array_key_exists('backupDir', $me->storage)) {
+            return $me->storage['backupDir'];
+        }
+
+        return false;
+    }
+
+    /**
      * Calculate Git hash of a file on disk.
      *
      * @param string $path Path of the file.

@@ -274,7 +274,15 @@ class AdminCoreUpdaterController extends ModuleAdminController
          * is to show the initial page already.
          */
         if (Tools::isSubmit('coreUpdaterFinalize')) {
-            $this->confirmations[] = $this->l('Shop updated successfully.');
+            $message = '<p>'.$this->l('Shop updated successfully.').'</p>';
+            $backupDir = \CoreUpdater\GitUpdate::getBackupDir();
+            if ($backupDir) {
+                $message .= '<p>';
+                $message .= sprintf($this->l('Manually edited files, if any, were backed up in %s.'), $backupDir);
+                $message .= '</p>';
+            }
+
+            $this->confirmations[] = $message;
         }
 
         // Intentionally not calling parent, there's nothing to do.
