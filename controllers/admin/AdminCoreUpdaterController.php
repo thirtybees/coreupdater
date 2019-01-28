@@ -196,6 +196,11 @@ class AdminCoreUpdaterController extends ModuleAdminController
                 'info'        => sprintf($this->l('Processing update from %s to %s.'),
                                          '<b>'.$installedVersion.'</b>',
                                          '<b>'.$selectedVersion.'</b>'),
+                'submit'      => [
+                    'title'     => $this->l('Finalize'),
+                    'imgclass'  => 'ok',
+                    'name'      => 'coreUpdaterFinalize',
+                ],
                 'fields' => [
                     // Intentionally the same name as in the comparepanel.
                     'CORE_UPDATER_PROCESSING' => [
@@ -262,6 +267,14 @@ class AdminCoreUpdaterController extends ModuleAdminController
                     $parameters['selectedObsolete']
                 );
             }
+        }
+
+        /**
+         * Send a confirmation message with the finalize step. Default action
+         * is to show the initial page already.
+         */
+        if (Tools::isSubmit('coreUpdaterFinalize')) {
+            $this->confirmations[] = $this->l('Shop updated successfully.');
         }
 
         // Intentionally not calling parent, there's nothing to do.
