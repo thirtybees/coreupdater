@@ -169,11 +169,11 @@ function processAction(action) {
   });
 
   function ajaxError(message) {
-    $('#configuration_fieldset_comparepanel, \
-       #configuration_fieldset_processpanel')
-      .children('.form-wrapper')
-      .html(coreUpdaterParameters.errorRetrieval)
-      .css('color', 'red');
+    addCompletedText('CORE_UPDATER_PROCESSING',
+                     coreUpdaterParameters.errorRetrieval);
+    $('#conf_id_CORE_UPDATER_PROCESSING')
+      .find('label')
+      .css('color', 'red')
     console.log(message);
   }
 }

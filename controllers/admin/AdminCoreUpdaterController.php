@@ -104,7 +104,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
                             'selectedVersion' => $selectedVersion,
                             'completedLog'    => $this->l('completed'),
                             'completedList'   => $this->l('%d files'),
-                            'errorRetrieval'  => $this->l('Request failed, see JavaScript console.'),
+                            'errorRetrieval'  => $this->l('request failed, see JavaScript console'),
                             'errorProcessing' => $this->l('Processing failed.'),
                         ])),
                         'auto_value' => false,
