@@ -140,6 +140,10 @@ function processAction(action) {
 
       if (action === 'processCompare' && data['changeset']) {
         changesets = data['changeset'];
+        if (changesets['incompatible']) {
+          appendChangeset(changesets['incompatible'], 'CORE_UPDATER_INCOMPATIBLE');
+          addBootstrapCollapser('CORE_UPDATER_INCOMPATIBLE', true);
+        }
         if (changesets['change']) {
           appendChangeset(changesets['change'], 'CORE_UPDATER_UPDATE');
           addBootstrapCollapser('CORE_UPDATER_UPDATE', true);

@@ -103,7 +103,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
                             'apiUrl'          => static::API_URL,
                             'selectedVersion' => $selectedVersion,
                             'completedLog'    => $this->l('completed'),
-                            'completedList'   => $this->l('%d files'),
+                            'completedList'   => $this->l('%d items'),
                             'errorRetrieval'  => $this->l('request failed, see JavaScript console'),
                             'errorProcessing' => $this->l('Processing failed.'),
                         ])),
@@ -158,6 +158,11 @@ class AdminCoreUpdaterController extends ModuleAdminController
                         'rows'        => 3,
                         'value'       => $this->l('Starting...'),
                         'auto_value'  => false,
+                    ],
+                    'CORE_UPDATER_INCOMPATIBLE' => [
+                        'type'        => 'none',
+                        'title'       => $this->l('Incompatible modules to get uninstalled:'),
+                        'desc'        => $this->l('These modules are currently installed, but not compatible with the target thirty bees version. They\'ll get uninstalled and deleted when updating.'),
                     ],
                     'CORE_UPDATER_UPDATE' => [
                         'type'        => 'none',

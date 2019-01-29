@@ -301,6 +301,12 @@ class GitUpdate
             $incompatibleModules
                 = Retrocompatibility::getIncompatibleModules($version);
             $me->storage['incompatibleModules'] = $incompatibleModules;
+            $messages['changeset']['incompatible'] = [];
+            foreach ($incompatibleModules as $module) {
+                // Store it the same way path lists get stored, to allow
+                // re-use of JavaScript procedures.
+                $messages['changeset']['incompatible'][$module] = false;
+            }
 
             $messages['informations'][] = sprintf($me->l('Found %s installed modules incompatible with thirty bees %s.'), count($incompatibleModules), $version);
             $messages['done'] = false;
