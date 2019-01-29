@@ -34,11 +34,13 @@ $(document).ready(function () {
   addBootstrapCollapser('CORE_UPDATER_PROCESSING', false);
 
   if (document.getElementById('configuration_fieldset_comparepanel')) {
+    $('button[name=coreUpdaterUpdate]').prop('disabled', true);
     processAction('processCompare');
   }
   if (document.getElementById('configuration_fieldset_processpanel')) {
     $('#configuration_fieldset_updatepanel').find('select, button')
                                             .prop('disabled', true);
+    $('button[name=coreUpdaterFinalize]').prop('disabled', true);
     processAction('processUpdate');
   }
 });
@@ -160,6 +162,9 @@ function processAction(action) {
       } else if ( ! data['error']) {
         if (action === 'processCompare') {
           $('#collapsible_CORE_UPDATER_PROCESSING').collapse('hide');
+          $('button[name=coreUpdaterUpdate]').prop('disabled', false);
+        } else if (action === 'processUpdate') {
+          $('button[name=coreUpdaterFinalize]').prop('disabled', false);
         }
         addCompletedText('CORE_UPDATER_PROCESSING',
                          coreUpdaterParameters.completedLog);
