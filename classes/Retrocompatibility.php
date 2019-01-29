@@ -33,6 +33,65 @@ if (!defined('_TB_VERSION_')) {
 class Retrocompatibility
 {
     /**
+     * Modules known to be incompatible starting at a certain version. If the
+     * target version of the update is this or higher, these modules get
+     * uninstalled.
+     */
+    const MODULE_MIN_INCOMPAT = [
+        '1.0.4'   => [
+            'graphnvd3',
+            'gridhtml',
+            'pagesnotfound',
+            'sekeywords',
+            'statsbestcategories',
+            'statsbestcustomers',
+            'statsbestmanufacturers',
+            'statsbestproducts',
+            'statsbestsuppliers',
+            'statsbestvouchers',
+            'statscarrier',
+            'statscatalog',
+            'statscheckup',
+            'statsequipment',
+            'statsforecast',
+            'statslive',
+            'statsnewsletter',
+            'statsorigin',
+            'statspersonalinfos',
+            'statsproduct',
+            'statsregistrations',
+            'statssales',
+            'statssearch',
+            'statsstock',
+            'statsvisits',
+        ],
+        '1.0.5'   => [
+        ],
+        '1.0.6'   => [
+        ],
+        '1.0.7'   => [
+        ],
+        '1.0.8'   => [
+        ],
+    ];
+    /**
+     * Modules known to be incompatible up to a certain version. If the target
+     * version of the update is this or lower, these modules get uninstalled.
+     */
+    const MODULE_MAX_INCOMPAT = [
+        '1.0.4'   => [
+        ],
+        '1.0.5'   => [
+        ],
+        '1.0.6'   => [
+        ],
+        '1.0.7'   => [
+        ],
+        '1.0.8'   => [
+        ],
+    ];
+
+    /**
      * Master method to apply all database upgrades.
      *
      * @return array Empty array on success, array with error messages on
@@ -302,5 +361,44 @@ class Retrocompatibility
         }
 
         return $errors;
+    }
+
+    /**
+     * Get a list of installed modules incompatible with the target version.
+     * No failure expected.
+     *
+     * Note: these modules should get uninstalled and deleted _before_ the
+     *       update.
+     *
+     * @param string $targetVersion Target version.
+     *
+     * @return array Array with strings of module names. Empty array if there
+     *               are no incompatible ones installed.
+     *
+     * @since 1.0.0
+     */
+    public static function getIncompatibleModules($targetVersion) {
+        $incompatibles = [];
+        foreach (static::MODULE_MIN_INCOMPAT as $version => $list) {
+            if (version_compare($targetVersion, $version, '>=')) {
+                $incompatibles = array_merge($incompatibles, $list);
+            }
+        }
+        foreach (static::MODULE_MAX_INCOMPAT as $version => $list) {
+            if (version_compare($targetVersion, $version, '<=')) {
+                $incompatibles = array_merge($incompatibles, $list);
+            }
+        }
+
+        $installedIncompatibles = [];
+        $modules = \Module::getModulesInstalled();
+        foreach ($modules as $module) {
+            $name = $module['name'];
+            if (in_array($name, $incompatibles)) {
+                $installedIncompatibles[] = $name;
+            }
+        }
+
+        return $installedIncompatibles;
     }
 }

@@ -291,11 +291,21 @@ class GitUpdate
 
             $messages['informations'][] = sprintf($me->l('Searched installed files in %s/'), $dir);
             $messages['done'] = false;
-        } else {
+        } elseif ( ! array_key_exists('changeset', $me->storage)) {
             $me->calculateChanges();
             $messages['changeset'] = $me->storage['changeset'];
 
-            $messages['informations'][] = $me->l('Changeset calculated. Done.');
+            $messages['informations'][] = $me->l('Changeset calculated.');
+            $messages['done'] = false;
+        } elseif ( ! array_key_exists('incompatibleModules', $me->storage)) {
+            $incompatibleModules
+                = Retrocompatibility::getIncompatibleModules($version);
+            $me->storage['incompatibleModules'] = $incompatibleModules;
+
+            $messages['informations'][] = sprintf($me->l('Found %s installed modules incompatible with thirty bees %s.'), count($incompatibleModules), $version);
+            $messages['done'] = false;
+        } else {
+            $messages['informations'][] = $me->l('Done.');
             $messages['done'] = true;
         }
     }
