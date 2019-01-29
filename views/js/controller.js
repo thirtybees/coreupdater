@@ -80,6 +80,7 @@ function channelChange(firstRun) {
         .find('.help-block')
         .parent()
         .slideUp(200);
+      versionSelect.trigger('change');
     },
     error: function(xhr, status, error) {
       let helpText = $('#conf_id_CORE_UPDATER_VERSION').find('.help-block');
