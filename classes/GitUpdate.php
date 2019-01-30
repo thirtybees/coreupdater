@@ -675,6 +675,7 @@ class GitUpdate
         $me = static::getInstance();
 
         if ( ! array_key_exists('versionTarget', $me->storage)
+            || ! array_key_exists('incompatibleModules', $me->storage)
             || ! array_key_exists('changeset', $me->storage)
             || ! array_key_exists('change', $me->storage['changeset'])
             || ! array_key_exists('add', $me->storage['changeset'])
@@ -682,6 +683,20 @@ class GitUpdate
             || ! array_key_exists('obsolete', $me->storage['changeset'])) {
             $messages['informations'][] = $me->l('Crucial storage set missing, please report this on Github.');
             $messages['error'] = true;
+        } elseif (count($me->storage['incompatibleModules'])) {
+            $module = array_pop($me->storage['incompatibleModules']);
+            $errors = Retrocompatibility::removeModule($module);
+
+            if ( ! count($errors)) {
+                $messages['informations'][] = sprintf($me->l('Uninstalled and deleted module %s successfully.'), $module);
+            } else {
+                $errorLines = sprintf($me->l('Module removal failed, please fix this manually:'));
+                foreach ($errors as $message) {
+                    $errorLines .= "\n - ".$message;
+                }
+                $messages['informations'][] = $errorLines;
+            }
+            $messages['done'] = false;
         } elseif ( ! array_key_exists('downloads', $me->storage)) {
             $me->storage['downloads']
                 = array_merge($me->storage['changeset']['change'],

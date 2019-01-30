@@ -401,4 +401,44 @@ class Retrocompatibility
 
         return $installedIncompatibles;
     }
+
+    /**
+     * Uninstall the named module and delete its directory.
+     *
+     * @param string $moduleName Module name.
+     *
+     * @return array Empty array on success, array with error messages on
+     *               failure.
+     *
+     * @since 1.0.0
+     */
+    public static function removeModule($moduleName) {
+        $errors = [];
+        $me = new Retrocompatibility;
+
+        // Uninstall the module.
+        if (\Module::isInstalled($moduleName)) {
+            $module = \Module::getInstanceByName($moduleName);
+            if ($module) {
+                $success = $module->uninstall();
+                if ( ! $success) {
+                    $errors[] = sprintf($me->l('Could find, but not uninstall module %s.'), $moduleName);
+                }
+            } else {
+                $errors[] = sprintf($me->l('System considers module %s to be installed, but could not create an instance.'), $moduleName);
+            }
+        }
+
+        // Delete the module directory. Do this in case of failure to
+        // uninstall it as well.
+        $moduleDir = _PS_MODULE_DIR_.$moduleName;
+        if (is_dir($moduleDir)) {
+            $success = \Tools::deleteDirectory($moduleDir);
+            if ( ! $success) {
+                $errors[] = sprintf($this->l('Could not delete directory %s.'), $moduleDir);
+            }
+        }
+
+        return $errors;
+    }
 }
