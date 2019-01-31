@@ -58,8 +58,33 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
         // Take a shortcut for Ajax requests.
         if (Tools::getValue('ajax')) {
+            $action = Tools::getValue('action');
+
+            if ($action === 'UpdateIgnoreTheme') {
+                // Here it gets ugly. There is no simple default processing
+                // implemented in core.
+
+                $success = Configuration::updateValue(
+                    'CORE_UPDATER_IGNORE_THEME',
+                    Tools::getValue('value'));
+
+                $confirmations = [];
+                $error = false;
+                if ($success) {
+                    $confirmations[] = $this->l('Ignorance setting updated.');
+                } else {
+                    $error = $this->l('Could not update ignorance of the community theme.');
+                }
+
+                die(json_encode([
+                    'confirmations' => $confirmations,
+                    'error'         => $error,
+                ]));
+            }
+
+            // Else it should be a step processing request.
             // This does not return.
-            $this->ajaxProcess(Tools::getValue('action'));
+            $this->ajaxProcess($action);
         }
 
         $displayChannelList = [];

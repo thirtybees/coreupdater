@@ -29,6 +29,8 @@ $(document).ready(function () {
 
   $('#CORE_UPDATER_VERSION').on('change', versionChange);
 
+  $('input[name=CORE_UPDATER_IGNORE_THEME]').on('change', ignoranceChange);
+
   $('button[name=coreUpdaterUpdate]').on('click', collectSelectedObsolete);
 
   addBootstrapCollapser('CORE_UPDATER_PROCESSING', false);
@@ -99,6 +101,15 @@ function versionChange() {
     $('#configuration_fieldset_comparepanel').slideUp(1000);
   }
 }
+
+function ignoranceChange(event) {
+  doAdminAjax({
+    'ajax': true,
+    'tab': 'AdminCoreUpdater',
+    'action': 'UpdateIgnoreTheme',
+    'value': $(this).val()
+  });
+};
 
 function processAction(action) {
   let url = document.URL+'&action='+action+'&ajax=1';
