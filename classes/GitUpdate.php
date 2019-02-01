@@ -218,15 +218,19 @@ class GitUpdate
         }
 
         // Reset an invalid storage set.
+        $ignoreTheme = \Configuration::get('CORE_UPDATER_IGNORE_THEME');
         if ( ! array_key_exists('versionOrigin', $me->storage)
             || $me->storage['versionOrigin'] !== $installedVersion
             || ! array_key_exists('versionTarget', $me->storage)
-            || $me->storage['versionTarget'] !== $version) {
+            || $me->storage['versionTarget'] !== $version
+            || ! array_key_exists('ignoreTheme', $me->storage)
+            || $me->storage['ignoreTheme'] !== $ignoreTheme) {
 
             static::deleteStorage(false);
 
             $me->storage['versionOrigin'] = $installedVersion;
             $me->storage['versionTarget'] = $version;
+            $me->storage['ignoreTheme']   = $ignoreTheme;
         }
 
         // Do one compare step.
