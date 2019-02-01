@@ -74,6 +74,13 @@ class GitUpdate
         '#^mails/en/.*\.tpl$#',
         '#^mails/en/.*\.html$#',
     ];
+    // This gets added with option 'Ignore the community theme' OFF.
+    const RELEASE_FILTER_THEME_ON = [
+    ];
+    // This gets added with option 'Ignore the community theme' ON.
+    const RELEASE_FILTER_THEME_OFF = [
+        '#^themes/community-theme-default/#',
+    ];
     /**
      * Set of regular expressions for removing file paths from the list of
      * local files. Files in either the original or the target release and not
@@ -88,12 +95,19 @@ class GitUpdate
         '#^translations/#',
         '#^mails/#',
         '#^override/#',
+        '#^.htaccess$#',
+        '#^robots.txt$#',
+    ];
+    // This gets added with option 'Ignore the community theme' OFF.
+    const INSTALLATION_FILTER_THEME_ON = [
         '#^themes/(?!community-theme-default/)#',
         '#^themes/community-theme-default/cache/#',
         '#^themes/community-theme-default/lang/#',
         '#^themes/community-theme-default/mails/#',
-        '#^.htaccess$#',
-        '#^robots.txt$#',
+    ];
+    // This gets added with option 'Ignore the community theme' ON.
+    const INSTALLATION_FILTER_THEME_OFF = [
+        '#^themes/#',
     ];
     /**
      * These files are left untouched even if they come with one of the
@@ -390,6 +404,14 @@ class GitUpdate
             return trim($e->getMessage());
         }
 
+        if ($this->storage['ignoreTheme']) {
+            $releaseFilter = array_merge(static::RELEASE_FILTER,
+                                         static::RELEASE_FILTER_THEME_OFF);
+        } else {
+            $releaseFilter = array_merge(static::RELEASE_FILTER,
+                                         static::RELEASE_FILTER_THEME_ON);
+        }
+
         $fileList = false;
         if ($response) {
             $fileList = [];
@@ -410,7 +432,7 @@ class GitUpdate
                 $hash = $fields[0];
 
                 $keep = true;
-                foreach (static::RELEASE_FILTER as $filter) {
+                foreach ($releaseFilter as $filter) {
                     if (preg_match($filter, $path)) {
                         $keep = false;
                         break;
@@ -507,6 +529,14 @@ class GitUpdate
         $oldCwd = getcwd();
         chdir(_PS_ROOT_DIR_);
 
+        if ($this->storage['ignoreTheme']) {
+            $installFilter = array_merge(static::INSTALLATION_FILTER,
+                                         static::INSTALLATION_FILTER_THEME_OFF);
+        } else {
+            $installFilter = array_merge(static::INSTALLATION_FILTER,
+                                         static::INSTALLATION_FILTER_THEME_ON);
+        }
+
         if (is_dir($dir)) {
             if (in_array($dir, ['.', 'vendor'])) {
                 $iterator = new \DirectoryIterator($dir);
@@ -528,7 +558,7 @@ class GitUpdate
                 $keep = true;
                 if ( ! array_key_exists($path, $targetList)
                     && ! array_key_exists($path, $originList)) {
-                    foreach (static::INSTALLATION_FILTER as $filter) {
+                    foreach ($installFilter as $filter) {
                         if (preg_match($filter, $path)) {
                             $keep = false;
                             break;
