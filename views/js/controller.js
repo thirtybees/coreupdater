@@ -23,6 +23,8 @@ var coreUpdaterParameters;
 
 $(document).ready(function () {
   coreUpdaterParameters = JSON.parse($('input[name=CORE_UPDATER_PARAMETERS]').val());
+  coreUpdaterParameters.ignoreTheme
+    = $('input[name=CORE_UPDATER_IGNORE_THEME]:checked').val();
 
   channelChange(true);
   $('#CORE_UPDATER_CHANNEL').on('change', channelChange);
@@ -95,14 +97,11 @@ function channelChange(firstRun) {
 }
 
 function versionChange() {
-  if ($(this).val() === coreUpdaterParameters.selectedVersion) {
-    $('#configuration_fieldset_comparepanel').slideDown(1000);
-  } else {
-    $('#configuration_fieldset_comparepanel').slideUp(1000);
-  }
+  comparePanelSlide();
 }
 
 function ignoranceChange(event) {
+  comparePanelSlide();
   doAdminAjax({
     'ajax': true,
     'tab': 'AdminCoreUpdater',
@@ -110,6 +109,17 @@ function ignoranceChange(event) {
     'value': $(this).val()
   });
 };
+
+function comparePanelSlide() {
+  if ($('#CORE_UPDATER_VERSION').val()
+      === coreUpdaterParameters.selectedVersion
+      && $('input[name=CORE_UPDATER_IGNORE_THEME]:checked').val()
+         === coreUpdaterParameters.ignoreTheme) {
+    $('#configuration_fieldset_comparepanel').slideDown(1000);
+  } else {
+    $('#configuration_fieldset_comparepanel').slideUp(1000);
+  }
+}
 
 function processAction(action) {
   let url = document.URL+'&action='+action+'&ajax=1';
