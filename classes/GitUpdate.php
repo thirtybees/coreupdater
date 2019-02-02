@@ -240,7 +240,13 @@ class GitUpdate
             || ! array_key_exists('ignoreTheme', $me->storage)
             || $me->storage['ignoreTheme'] !== $ignoreTheme) {
 
-            static::deleteStorage(false);
+            if ( ! array_key_exists('ignoreTheme', $me->storage)
+                || $me->storage['ignoreTheme'] !== $ignoreTheme) {
+                // Changing theme ignorance invalidates file lists.
+                static::deleteStorage(true);
+            } else {
+                static::deleteStorage(false);
+            }
 
             $me->storage['versionOrigin'] = $installedVersion;
             $me->storage['versionTarget'] = $version;
