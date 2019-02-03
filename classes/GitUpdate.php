@@ -173,6 +173,20 @@ class GitUpdate
     }
 
     /**
+     * @return bool True on success, false on failure.
+     *
+     * @since 1.0.0
+     */
+    public function uninstall()
+    {
+        @unlink(static::STORAGE_PATH);
+        \Tools::deleteDirectory(static::DOWNLOADS_PATH);
+        @unlink(static::SCRIPT_PATH);
+
+        return true;
+    }
+
+    /**
      * Returns object instance. A singleton instance is maintained to allow
      * re-use of network connections and similar stuff.
      *

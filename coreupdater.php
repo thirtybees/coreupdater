@@ -21,6 +21,8 @@ if (!defined('_TB_VERSION_')) {
     exit;
 }
 
+include __DIR__.'/classes/GitUpdate.php';
+
 /**
  * Class CoreUpdater
  */
@@ -92,6 +94,8 @@ class CoreUpdater extends Module
     public function uninstall()
     {
         $success = true;
+
+        $success = $success && CoreUpdater\GitUpdate::uninstall();
 
         $tabs = Tab::getCollectionFromModule($this->name);
         foreach ($tabs as $tab) {
