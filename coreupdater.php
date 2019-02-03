@@ -60,6 +60,12 @@ class CoreUpdater extends Module
      */
     public function install()
     {
+        if (version_compare(phpversion(), '5.6', '<')) {
+            $this->_errors[] = $this->l('This module requires PHP 5.6 or later.');
+
+            return false;
+        }
+
         $success = parent::install();
 
         if ($success) {
