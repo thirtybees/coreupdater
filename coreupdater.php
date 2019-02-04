@@ -70,6 +70,7 @@ class CoreUpdater extends Module
 
         $success = parent::install();
 
+        $tabSuccess = false;
         if ($success) {
             try {
                 $tab = new Tab();
@@ -83,10 +84,15 @@ class CoreUpdater extends Module
                     $tab->name[$lang['id_lang']] = $this->l('Core Updater');
                 }
 
-                $success = $tab->save();
+                $tabSuccess = $tab->save();
             } catch (Exception $e) {
-                $success = false;
             }
+        }
+        if ( ! $tabSuccess) {
+            // Unfortunately, warnings are not supported ...
+            $this->_errors[] = sprintf($this->l('Module installation successful, but installation of the menu item failed. Please add an item for class %s manually.'), static::MAIN_CONTROLLER);
+            // ... and errors appear only when returning false.
+            $success = false;
         }
 
         return $success;
