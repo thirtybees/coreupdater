@@ -21,7 +21,9 @@ if (!defined('_TB_VERSION_')) {
     exit;
 }
 
-include __DIR__.'/classes/GitUpdate.php';
+if (version_compare(phpversion(), '5.6', '>=')) {
+    include __DIR__.'/classes/GitUpdate.php';
+}
 
 /**
  * Class CoreUpdater
