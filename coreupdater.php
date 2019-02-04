@@ -22,7 +22,7 @@ if (!defined('_TB_VERSION_')) {
 }
 
 if (version_compare(phpversion(), '5.6', '>=')) {
-    include __DIR__.'/classes/GitUpdate.php';
+    require_once __DIR__.'/classes/GitUpdate.php';
 }
 
 /**
