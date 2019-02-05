@@ -177,7 +177,7 @@ class GitUpdate
      *
      * @since 1.0.0
      */
-    public function uninstall()
+    public static function uninstall()
     {
         @unlink(static::STORAGE_PATH);
         \Tools::deleteDirectory(static::DOWNLOADS_PATH);
