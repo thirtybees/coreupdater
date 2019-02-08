@@ -1,7 +1,7 @@
 module_name: Core Updater
 compatible_versions: 1.0.5+
 author: thirty bees
-category: back office
+category: administration
 tags:
   - update
   - upgrade
