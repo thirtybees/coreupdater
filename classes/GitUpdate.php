@@ -595,8 +595,14 @@ class GitUpdate
                 }
 
                 if ($keep) {
-                    $this->storage['installationList'][$path]
-                        = static::getGitHash($path);
+                    if (array_key_exists($path, $targetList)
+                        || array_key_exists($path, $originList)) {
+                        $this->storage['installationList'][$path]
+                            = static::getGitHash($path);
+                    } else {
+                        // Pointless to calculate a hash.
+                        $this->storage['installationList'][$path] = true;
+                    }
                 }
             }
         }
