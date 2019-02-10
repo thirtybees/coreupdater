@@ -1170,14 +1170,30 @@ class GitUpdate
     /**
      * Calculate Git hash of a file on disk.
      *
+     * Works for files with a size of up to half of available memory, only.
+     * Which should be plenty for distribution files. Biggest file distributed
+     * with v1.0.8 was 1835770 bytes (1.75 MiB).
+     *
      * @param string $path Path of the file.
      *
-     * @return string Hash.
+     * @return bool|string Hash, or boolean false on expected memory exhaustion.
      *
      * @since 1.0.0
+     * @since 1.0.1 Predict memory exhaustion.
      */
     public static function getGitHash($path)
     {
+        static $memoryLimit = false;
+        if ( ! $memoryLimit) {
+            $memoryLimit = \Tools::getMemoryLimit();
+        }
+
+        // Predict memory exhaution.
+        // 2x file size + already used memory + 1 MiB was tested to be safe.
+        if (filesize($path) * 2 + memory_get_usage() + 1048576 > $memoryLimit) {
+            return false;
+        }
+
         $content = file_get_contents($path);
 
         return sha1('blob '.strlen($content)."\0".$content);
