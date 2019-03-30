@@ -1085,7 +1085,7 @@ class GitUpdate
         }
 
         // Should exist, else the shop wouldn't run.
-        $settingsPath = _PS_CONFIG_DIR_.'/settings.inc.php';
+        $settingsPath = _PS_CONFIG_DIR_.'settings.inc.php';
         $settings = file_get_contents($settingsPath);
         $settings = preg_replace('/define\s*\(\s*\'_TB_VERSION_\'\s*,\s*\'[\w.-]+\'\s*\)/',
                                  'define(\'_TB_VERSION_\', \''.$newVersion.'\')',
