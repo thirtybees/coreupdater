@@ -42,7 +42,7 @@ class GitUpdate
      * File to store collected knowledge about the update between invocations.
      * It should be a valid PHP file and gets written and included as needed.
      */
-    const STORAGE_PATH = _PS_CACHE_DIR_.'/GitUpdateStorage.php';
+    const STORAGE_PATH = _PS_CACHE_DIR_.'GitUpdateStorage.php';
     /**
      * Storage items NOT changing when choosing a different original/target
      * version. Not deleting them speeds up comparison for merchants dialing
@@ -56,11 +56,11 @@ class GitUpdate
      * Directory where update files get downloaded to, with their full
      * directory hierarchy.
      */
-    const DOWNLOADS_PATH = _PS_CACHE_DIR_.'/GitUpdateDownloads';
+    const DOWNLOADS_PATH = _PS_CACHE_DIR_.'GitUpdateDownloads';
     /**
      * Path of the update script.
      */
-    const SCRIPT_PATH = _PS_CACHE_DIR_.'/GitUpdateScript.php';
+    const SCRIPT_PATH = _PS_CACHE_DIR_.'GitUpdateScript.php';
 
     /**
      * Set of regular expressions for removing file paths from the list of
@@ -1085,7 +1085,7 @@ class GitUpdate
         }
 
         // Should exist, else the shop wouldn't run.
-        $settingsPath = _PS_CONFIG_DIR_.'/settings.inc.php';
+        $settingsPath = _PS_CONFIG_DIR_.'settings.inc.php';
         $settings = file_get_contents($settingsPath);
         $settings = preg_replace('/define\s*\(\s*\'_TB_VERSION_\'\s*,\s*\'[\w.-]+\'\s*\)/',
                                  'define(\'_TB_VERSION_\', \''.$newVersion.'\')',
