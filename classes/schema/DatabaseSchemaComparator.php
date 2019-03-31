@@ -191,6 +191,10 @@ class DatabaseSchemaComparator
             $differences[] = new DifferentAutoIncrement($table, $target, $current);
         }
 
+        if (! $current->getCharset()->equals($target->getCharset())) {
+            $differences[] = new DifferentColumnCharset($table, $target, $current);
+        }
+
         return $differences;
     }
 
