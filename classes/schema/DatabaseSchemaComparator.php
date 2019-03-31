@@ -97,17 +97,49 @@ class DatabaseSchemaComparator
     public function getTableDifferences(TableSchema $currentTable, TableSchema $targetTable)
     {
         $differences = [];
+        $haveSameColumns = true;
 
         // 1) detect missing columns
         foreach ($this->getMissingColumns($currentTable, $targetTable) as $column) {
             $differences[] = new MissingColumn($targetTable, $column);
+            $haveSameColumns = false;
         }
 
-        // 2) detect extra columns
+        // 2) find column differences
+        foreach ($targetTable->getColumns() as $targetColumn) {
+            $currentColumn = $currentTable->getColumn($targetColumn->getName());
+            if ($currentColumn) {
+                $differences = array_merge($differences, $this->getColumnDifferences($targetTable, $currentColumn, $targetColumn));
+            }
+        }
+
+        // 3) detect extra columns
         foreach ($this->getMissingColumns($targetTable, $currentTable) as $column) {
             $differences[] = new ExtraColumn($currentTable, $column);
+            $haveSameColumns = false;
         }
 
+        // test columns order only when both tables contains the same columns
+        if ($haveSameColumns) {
+            if ($targetTable->getColumnNames() !== $currentTable->getColumnNames()) {
+                $differences[] = new DifferentColumnsOrder($targetTable, $currentTable);
+            }
+        }
+
+        return $differences;
+    }
+
+    /**
+     * Compares two database columns and return list of differences
+     *
+     * @param TableSchema $table
+     * @param ColumnSchema $current
+     * @param ColumnSchema $target
+     * @return SchemaDifference[]
+     */
+    public function getColumnDifferences(TableSchema $table, ColumnSchema $current, ColumnSchema $target)
+    {
+        $differences = [];
         return $differences;
     }
 
