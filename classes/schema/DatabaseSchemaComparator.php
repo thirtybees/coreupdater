@@ -179,6 +179,10 @@ class DatabaseSchemaComparator
             $differences[] = new DifferentDataType($table, $target, $current);
         }
 
+        if (($current->hasDefaultValue() !== $target->hasDefaultValue()) || ($current->getDefaultValue() !== $target->getDefaultValue())) {
+            $differences[] = new DifferentDefaultValue($table, $target, $current);
+        }
+
         return $differences;
     }
 
