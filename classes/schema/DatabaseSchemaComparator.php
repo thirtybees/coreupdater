@@ -103,8 +103,14 @@ class DatabaseSchemaComparator
             $differences[] = new MissingColumn($targetTable, $column);
         }
 
+        // 2) detect extra columns
+        foreach ($this->getMissingColumns($targetTable, $currentTable) as $column) {
+            $differences[] = new ExtraColumn($currentTable, $column);
+        }
+
         return $differences;
     }
+
     /**
      * Returns sorted list of database tables without tables listed in $ignoreTables property
      *
