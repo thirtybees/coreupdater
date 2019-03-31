@@ -72,6 +72,9 @@ class DatabaseSchemaComparator
         foreach ($tables as $table) {
             if (!$currentSchema->hasTable($table->getName())) {
                 $differences[] = new MissingTable($table);
+            } else {
+                $currentTable = $currentSchema->getTable($table->getName());
+                $differences = array_merge($differences, $this->getTableDifferences($currentTable, $table));
             }
         }
 
@@ -84,6 +87,24 @@ class DatabaseSchemaComparator
         return $differences;
     }
 
+    /**
+     * Compares two database tables and returns differences between them
+     *
+     * @param TableSchema $currentTable current table
+     * @param TableSchema $targetTable  target table
+     * @return SchemaDifference[]
+     */
+    public function getTableDifferences(TableSchema $currentTable, TableSchema $targetTable)
+    {
+        $differences = [];
+
+        // 1) detect missing columns
+        foreach ($this->getMissingColumns($currentTable, $targetTable) as $column) {
+            $differences[] = new MissingColumn($targetTable, $column);
+        }
+
+        return $differences;
+    }
     /**
      * Returns sorted list of database tables without tables listed in $ignoreTables property
      *
@@ -102,5 +123,23 @@ class DatabaseSchemaComparator
             return strcmp($a->getName(), $b->getName());
         });
         return $tables;
+    }
+
+    /**
+     * Returns list of columns that are present int $currentTable but are missing in $targetTable
+     *
+     * @param TableSchema $currentTable
+     * @param TableSchema $targetTable
+     * @return ColumnSchema[]
+     */
+    protected function getMissingColumns(TableSchema $currentTable, TableSchema $targetTable)
+    {
+        $missingColumns = [];
+        foreach ($targetTable->getColumns() as $column) {
+            if (! $currentTable->hasColumn($column->getName())) {
+                $missingColumns[] = $column;
+            }
+        }
+        return $missingColumns;
     }
 }
