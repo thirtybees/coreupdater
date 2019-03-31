@@ -131,6 +131,20 @@ class DatabaseSchemaComparator
             $differences[] = new MissingKey($targetTable, $key);
         }
 
+        // 5) find key differences
+        foreach ($targetTable->getKeys() as $targetKey) {
+            $currentKey = $currentTable->getKey($targetKey->getName());
+            if ($currentKey) {
+                if (
+                    ($currentKey->getType() !== $targetKey->getType()) ||
+                    ($currentKey->getColumns() !== $targetKey->getColumns()) ||
+                    ($currentKey->getSubParts() !== $targetKey->getSubParts())
+                ){
+                    $differences[] = new DifferentKey($targetTable, $targetKey, $currentKey);
+                }
+            }
+        }
+
         return $differences;
     }
 
