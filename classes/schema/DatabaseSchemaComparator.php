@@ -155,6 +155,11 @@ class DatabaseSchemaComparator
             $differences[] = new DifferentTableCharset($targetTable, $currentTable);
         }
 
+        // 8) detect engine
+        if ($currentTable->getEngine() !== $targetTable->getEngine()) {
+            $differences[] = new DifferentEngine($targetTable, $currentTable->getEngine());
+        }
+
         return $differences;
     }
 
