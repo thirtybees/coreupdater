@@ -145,6 +145,11 @@ class DatabaseSchemaComparator
             }
         }
 
+        // 6) detect extra key
+        foreach ($this->getMissingKeys($targetTable, $currentTable) as $key) {
+            $differences[] = new ExtraKey($currentTable, $key);
+        }
+
         return $differences;
     }
 

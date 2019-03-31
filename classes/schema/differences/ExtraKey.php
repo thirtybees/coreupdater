@@ -25,13 +25,13 @@ if (!defined('_TB_VERSION_')) {
 }
 
 /**
- * Class MissingKey
+ * Class ExtraKey
  *
- * Missing table key / index
+ * Represents extra / unknown table key
  *
  * @since 1.1.0
  */
-class MissingKey implements SchemaDifference
+class ExtraKey implements SchemaDifference
 {
     /**
      * @var TableSchema table
@@ -52,7 +52,7 @@ class MissingKey implements SchemaDifference
     function describe()
     {
         return sprintf(
-            Translate::getModuleTranslation('coreupdater', 'Missing %1$s in table `%2$s`', 'coreupdater', 'coreupdater'),
+            Translate::getModuleTranslation('coreupdater', 'Extra %1$s in table `%2$s`', 'coreupdater'),
             $this->key->describeKey(),
             $this->table->getName()
         );
