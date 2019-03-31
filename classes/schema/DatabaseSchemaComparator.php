@@ -150,6 +150,11 @@ class DatabaseSchemaComparator
             $differences[] = new ExtraKey($currentTable, $key);
         }
 
+        // 7) detect charsets
+        if (! $currentTable->getCharset()->equals($targetTable->getCharset())) {
+            $differences[] = new DifferentTableCharset($targetTable, $currentTable);
+        }
+
         return $differences;
     }
 
