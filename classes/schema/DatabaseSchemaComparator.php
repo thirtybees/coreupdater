@@ -38,7 +38,7 @@ class DatabaseSchemaComparator
     /**
      * @var string[] array of table names that should be ignored during database comparison
      */
-    private $ignoreTables = [];
+    protected $ignoreTables = [];
 
     /**
      * DatabaseSchemaComparator constructor.
@@ -67,6 +67,33 @@ class DatabaseSchemaComparator
     public function getDifferences(DatabaseSchema $currentSchema, DatabaseSchema $targetSchema)
     {
         $differences = [];
+        $tables = $this->getTables($targetSchema);
+
+        foreach ($tables as $table) {
+            if (!$currentSchema->hasTable($table->getName())) {
+                $differences[] = new MissingTable($table);
+            }
+        }
         return $differences;
+    }
+
+    /**
+     * Returns sorted list of database tables without tables listed in $ignoreTables property
+     *
+     * @param DatabaseSchema $schema database schema
+     * @return TableSchema[] list of tables
+     */
+    protected function getTables(DatabaseSchema $schema)
+    {
+        $tables = array_filter($schema->getTables(), function(TableSchema $table) {
+            if ($this->ignoreTables) {
+                return ! in_array($table->getName(), $this->ignoreTables);
+            }
+            return true;
+        });
+        usort($tables, function(TableSchema $a, TableSchema $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
+        return $tables;
     }
 }
