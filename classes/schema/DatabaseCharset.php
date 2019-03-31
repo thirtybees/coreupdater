@@ -17,6 +17,13 @@
  * @license   Open Software License (OSL 3.0)
  */
 
+namespace CoreUpdater;
+use \Db;
+
+if (!defined('_TB_VERSION_')) {
+    exit;
+}
+
 /**
  * Class DatabaseCharset
  *
@@ -26,15 +33,17 @@
  */
 class DatabaseCharset
 {
+    protected static $charsets = null;
+
     /**
      * @var string charset
      */
-    private $charset = null;
+    protected $charset = null;
 
     /**
      * @var string collation
      */
-    private $collate = null;
+    protected $collate = null;
 
     /**
      * DatabaseCharset constructor.
@@ -107,5 +116,37 @@ class DatabaseCharset
             return "$charset/$collate";
         }
         return "NONE";
+    }
+
+    /**
+     * Returns true, if collate is default collate for this charset
+     *
+     * @return bool
+     */
+    public function isDefaultCollate()
+    {
+        if (! static::$charsets) {
+            static::loadCharsets();
+        }
+        if (isset(static::$charsets[$this->getCharset()])) {
+            return static::$charsets[$this->getCharset()] === $this->getCollate();
+        }
+        return false;
+    }
+
+    /**
+     * Loads available character sets from database information schema
+     */
+    protected static function loadCharsets()
+    {
+        try {
+            $results = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT * FROM information_schema.CHARACTER_SETS');
+            static::$charsets = [];
+            foreach ($results as $row) {
+                static::$charsets[$row['CHARACTER_SET_NAME']] = $row['DEFAULT_COLLATE_NAME'];
+            }
+        } catch (\Exception $e) {
+            static::$charsets = [];
+        }
     }
 }
