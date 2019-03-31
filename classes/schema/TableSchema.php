@@ -265,4 +265,30 @@ class TableSchema
         return $this->keys;
     }
 
+    /**
+     * Returns DDL statement to create this database table
+     *
+     * @return string
+     */
+    public function getDDLStatement()
+    {
+        $charset = $this->getCharset();
+        $ddl = 'CREATE TABLE `' . $this->getName() . "` (\n";
+        $lines = [];
+        foreach ($this->getColumns() as $column) {
+            $lines[] = '  ' . $column->getDDLStatement($this);
+        }
+        foreach ($this->getKeys() as $key) {
+            $lines[] = '  ' . $key->getDDLStatement();
+        }
+        $ddl .= implode(",\n", $lines);
+        $ddl .= "\n)";
+        $ddl .= " ENGINE=" . $this->getEngine();
+        $ddl .= " DEFAULT CHARSET=" . $charset->getCharset();
+        if (! $charset->isDefaultCollate()) {
+            $ddl .= " COLLATE=" . $charset->getCollate();
+        }
+        return $ddl;
+    }
+
 }

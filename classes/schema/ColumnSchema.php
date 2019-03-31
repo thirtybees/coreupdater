@@ -222,4 +222,43 @@ class ColumnSchema
     {
         return $this->charset;
     }
+
+    /**
+     * Returns DDL statement to create this column
+     *
+     * @param TableSchema $table
+     * @return string
+     */
+    public function getDDLStatement(TableSchema $table)
+    {
+        $col =  '`' . $this->getName() . '` ' . $this->getDataType();
+        $charset = $this->getCharset()->getCharset();
+        $collate = $this->getCharset()->getCollate();
+        if ($charset && $collate && $this->getCharset()->isDefaultCollate()) {
+            if ($table->getCharset()->getCharset() !== $charset) {
+                $col .= ' CHARACTER SET ' . $charset;
+            }
+        } else if ($collate) {
+            $col .= ' COLLATE ' . $collate;
+        }
+        if (! $this->isNullable()) {
+            $col .= ' NOT NULL';
+        }
+        if ($this->hasDefaultValue()) {
+            $default = $this->getDefaultValue();
+            if (is_null($default)) {
+                if (! in_array($this->getDataType(), ['text', 'mediumtext', 'longtext'])) {
+                    $col .= ' DEFAULT NULL';
+                }
+            } elseif ($default === ObjectModel::DEFAULT_CURRENT_TIMESTAMP) {
+                $col .= ' DEFAULT CURRENT_TIMESTAMP';
+            } else {
+                $col .= ' DEFAULT \'' . $default . '\'';
+            }
+        }
+        if ($this->isAutoIncrement()) {
+            $col .= ' AUTO_INCREMENT';
+        }
+        return $col;
+    }
 }

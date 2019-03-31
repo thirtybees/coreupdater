@@ -83,4 +83,18 @@ class DatabaseSchema
         }
         return null;
     }
+
+    /**
+     * Returns DDL statements to create database schema
+     *
+     * @return string
+     */
+    public function getDDLStatement()
+    {
+        $stmt = '';
+        foreach ($this->getTables() as $table) {
+            $stmt .= $table->getDDLStatement() . ";\n\n";
+        }
+        return $stmt;
+    }
 }

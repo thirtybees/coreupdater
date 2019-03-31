@@ -150,4 +150,36 @@ class TableKey
                 return sprintf(Translate::getModuleTranslation('coreupdater', 'key `%1$s`', 'coreupdater'), $this->name);
         }
     }
+
+    /**
+     * Returns DDL statement to create this database key
+     *
+     * @return string
+     */
+    public function getDDLStatement()
+    {
+        $stmt = '';
+        switch ($this->getType()) {
+            case ObjectModel::PRIMARY_KEY:
+                $stmt .= 'PRIMARY KEY';
+                break;
+            case ObjectModel::UNIQUE_KEY:
+                $stmt .= 'UNIQUE KEY `' . $this->getName() .'`';
+                break;
+            case ObjectModel::KEY:
+                $stmt .= 'KEY `' . $this->getName() .'`';
+                break;
+        }
+        $columns = $this->getColumns();
+        $subParts = $this->getSubParts();
+        $colStmts = [];
+        for ($i = 0; $i<count($columns); $i++) {
+            $colStmt = '`' . $columns[$i] . '`';
+            if ($subParts[$i]) {
+                $colStmt .= '(' . $subParts[$i] . ')';
+            }
+            $colStmts[] = $colStmt;
+        }
+        return $stmt . ' (' . implode(',', $colStmts) . ')';
+    }
 }
