@@ -74,6 +74,13 @@ class DatabaseSchemaComparator
                 $differences[] = new MissingTable($table);
             }
         }
+
+        foreach ($this->getTables($currentSchema) as $table) {
+            if (! $targetSchema->hasTable($table->getName())) {
+                $differences[] = new ExtraTable($table);
+            }
+        }
+
         return $differences;
     }
 
