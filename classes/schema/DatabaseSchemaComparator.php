@@ -183,6 +183,10 @@ class DatabaseSchemaComparator
             $differences[] = new DifferentDefaultValue($table, $target, $current);
         }
 
+        if ($current->isNullable() !== $target->isNullable()) {
+            $differences[] = new DifferentNullable($table, $target, $current);
+        }
+
         return $differences;
     }
 
