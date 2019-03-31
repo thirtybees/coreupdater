@@ -187,6 +187,10 @@ class DatabaseSchemaComparator
             $differences[] = new DifferentNullable($table, $target, $current);
         }
 
+        if ($current->isAutoIncrement() !== $target->isAutoIncrement()) {
+            $differences[] = new DifferentAutoIncrement($table, $target, $current);
+        }
+
         return $differences;
     }
 
