@@ -174,6 +174,11 @@ class DatabaseSchemaComparator
     public function getColumnDifferences(TableSchema $table, ColumnSchema $current, ColumnSchema $target)
     {
         $differences = [];
+
+        if ($current->getDataType() !== $target->getDataType()) {
+            $differences[] = new DifferentDataType($table, $target, $current);
+        }
+
         return $differences;
     }
 
