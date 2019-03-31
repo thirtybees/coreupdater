@@ -126,6 +126,11 @@ class DatabaseSchemaComparator
             }
         }
 
+        // 4) detect missing key
+        foreach ($this->getMissingKeys($currentTable, $targetTable) as $key) {
+            $differences[] = new MissingKey($targetTable, $key);
+        }
+
         return $differences;
     }
 
@@ -141,6 +146,23 @@ class DatabaseSchemaComparator
     {
         $differences = [];
         return $differences;
+    }
+
+    /**
+     * Returns list of keys that exists in $currentTable, but a
+     * @param TableSchema $currentTable
+     * @param TableSchema $targetTable
+     * @return TableKey[]
+     */
+    public function getMissingKeys(TableSchema $currentTable, TableSchema $targetTable)
+    {
+        $missingKeys = [];
+        foreach ($targetTable->getKeys() as $key) {
+            if (! $currentTable->hasKey($key->getName())) {
+                $missingKeys[] = $key;
+            }
+        }
+        return $missingKeys;
     }
 
     /**
