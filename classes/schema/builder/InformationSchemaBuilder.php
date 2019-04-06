@@ -16,6 +16,7 @@
  * @copyright 2019 thirty bees
  * @license   Academic Free License (AFL 3.0)
  */
+
 namespace CoreUpdater;
 use \Db;
 use \ObjectModel;
