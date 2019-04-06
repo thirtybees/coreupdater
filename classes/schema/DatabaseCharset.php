@@ -47,8 +47,11 @@ class DatabaseCharset
 
     /**
      * DatabaseCharset constructor.
+     *
      * @param string $charset
      * @param string $collate
+     *
+     * @since 1.1.0
      */
     public function __construct($charset = null, $collate = null)
     {
@@ -56,9 +59,10 @@ class DatabaseCharset
         $this->collate = $collate;
     }
 
-
     /**
      * @return string
+     *
+     * @since 1.1.0
      */
     public function getCharset()
     {
@@ -67,6 +71,8 @@ class DatabaseCharset
 
     /**
      * @param string $charset
+     *
+     * @since 1.1.0
      */
     public function setCharset($charset)
     {
@@ -75,6 +81,8 @@ class DatabaseCharset
 
     /**
      * @return string
+     *
+     * @since 1.1.0
      */
     public function getCollate()
     {
@@ -83,6 +91,8 @@ class DatabaseCharset
 
     /**
      * @param string $collate
+     *
+     * @since 1.1.0
      */
     public function setCollate($collate)
     {
@@ -93,7 +103,10 @@ class DatabaseCharset
      * Returns true if both settings are equal
      *
      * @param DatabaseCharset $other
+     *
      * @return bool
+     *
+     * @since 1.1.0
      */
     public function equals(DatabaseCharset $other)
     {
@@ -107,6 +120,8 @@ class DatabaseCharset
      * Describes character set and collation
      *
      * @return string
+     *
+     * @since 1.1.0
      */
     public function describe()
     {
@@ -115,13 +130,16 @@ class DatabaseCharset
         if ($charset && $collate) {
             return "$charset/$collate";
         }
-        return "NONE";
+
+        return 'NONE';
     }
 
     /**
      * Returns true, if collate is default collate for this charset
      *
      * @return bool
+     *
+     * @since 1.1.0
      */
     public function isDefaultCollate()
     {
@@ -131,11 +149,14 @@ class DatabaseCharset
         if (isset(static::$charsets[$this->getCharset()])) {
             return static::$charsets[$this->getCharset()] === $this->getCollate();
         }
+
         return false;
     }
 
     /**
      * Loads available character sets from database information schema
+     *
+     * @since 1.1.0
      */
     protected static function loadCharsets()
     {

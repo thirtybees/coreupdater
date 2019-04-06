@@ -48,6 +48,15 @@ class DifferentKey implements SchemaDifference
      */
     protected $currentKey;
 
+    /**
+     * DifferentKey constructor.
+     *
+     * @param TableSchema $table
+     * @param TableKey $key
+     * @param TableKey $currentKey
+     *
+     * @since 1.1.0
+     */
     public function __construct(TableSchema $table, TableKey $key, TableKey $currentKey)
     {
         $this->table = $table;
@@ -55,6 +64,13 @@ class DifferentKey implements SchemaDifference
         $this->currentKey = $currentKey;
     }
 
+    /**
+     * Return description of the difference.
+     *
+     * @return string
+     *
+     * @since 1.1.0
+     */
     function describe()
     {
         return sprintf(
@@ -63,6 +79,4 @@ class DifferentKey implements SchemaDifference
             $this->table->getName()
         );
     }
-
-
 }

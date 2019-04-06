@@ -35,14 +35,27 @@ class ExtraTable implements SchemaDifference
 {
     private $table;
 
+    /**
+     * ExtraTable constructor.
+     *
+     * @param TableSchema $table
+     *
+     * @since 1.1.0
+     */
     public function __construct(TableSchema $table)
     {
         $this->table = $table;
     }
 
+    /**
+     * Return description of the difference.
+     *
+     * @return string
+     *
+     * @since 1.1.0
+     */
     function describe()
     {
         return sprintf(Translate::getModuleTranslation('coreupdater', 'Extra table `%1$s`', 'coreupdater'), $this->table->getName());
     }
-
 }

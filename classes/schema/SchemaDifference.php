@@ -22,13 +22,15 @@ namespace CoreUpdater;
 if (!defined('_TB_VERSION_')) {
     exit;
 }
+
 /**
  * Interface SchemaDifference
  *
  * Interface to represents difference between two database schemas
  *
- * At the moment, this interface only allows for reporting on database difference. In the future there will be another
- * methods to rectify the situation (apply database migration changes)
+ * At the moment, this interface only allows for reporting on database
+ * difference. In the future there will be another methods to rectify the
+ * situation (apply database migration changes).
  *
  * @since 1.1.0
  */

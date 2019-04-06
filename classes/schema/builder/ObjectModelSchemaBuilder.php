@@ -34,21 +34,23 @@ if (!defined('_TB_VERSION_')) {
 /**
  * Class ObjectModelSchemaBuilder
  *
- * This class is responsible for building DatabaseSchema object based on ObjectModel metadata present
- * in thirtybees php codebase
+ * This class is responsible for building DatabaseSchema object based on
+ * ObjectModel metadata present in thirty bees core.
  *
- * Subclasses of ObjectModel class contains static property $definition which describes information about
- * database tables and columns used by this domain object.
+ * Subclasses of ObjectModel class contains static property $definition which
+ * describes information about database tables and columns used by this domain
+ * object.
  *
- * Some core tables are not used by any ObjectModel, though. These tables are described in Models
- * class
+ * Some core tables are not used by any ObjectModel, though. These tables are
+ * described in Models class.
  *
- * Combining all $definition objects and Models, we can describe complete database schema, and compile
- * DatabaseSchema object that represents this schema.
+ * Combining all $definition objects and Models, we can describe complete
+ * database schema, and compile DatabaseSchema object that represents this
+ * schema.
  *
- * We can use this DatabaseSchema to create database for thirtybees. Also, by comparing this database schema
- * to current database schema (retrieved by InformationSchemaBuilder), we can find all differences, and
- * rectify them
+ * We can use this DatabaseSchema to create database for thirtybees. Also, by
+ * comparing this database schema to current database schema (retrieved by
+ * InformationSchemaBuilder), we can find all differences, and rectify them.
  *
  * @since 1.1.0
  */
@@ -60,12 +62,14 @@ class ObjectModelSchemaBuilder
     protected $schema;
 
     /**
-     * Builds DatabaseSchema object for from information stored in ObjectModel::$definition properties,
-     * and in Models
+     * Builds DatabaseSchema object for from information stored in
+     * ObjectModel::$definition properties, and in models.
      *
      * @return DatabaseSchema
      * @throws PrestaShopException
      * @throws ReflectionException
+     *
+     * @since 1.1.0
      */
     public function getSchema()
     {
@@ -74,6 +78,7 @@ class ObjectModelSchemaBuilder
             $this->processModels();
             $this->processObjectModels();
         }
+
         return $this->schema;
     }
 
@@ -81,6 +86,8 @@ class ObjectModelSchemaBuilder
      * Process all models defined in Models class
      *
      * @throws PrestaShopException
+     *
+     * @since 1.1.0
      */
     protected function processModels() {
         foreach (CoreModels::getModels() as $identifier => $definition) {
@@ -89,10 +96,13 @@ class ObjectModelSchemaBuilder
     }
 
     /**
-     * Finds all core ObjectModel subclasses in the thirtybees core codebase and process their $definition
+     * Finds all core ObjectModel subclasses in the thirtybees core codebase
+     * and process their $definition.
      *
      * @throws PrestaShopException
      * @throws ReflectionException
+     *
+     * @since 1.1.0
      */
     protected function processObjectModels()
     {
@@ -121,12 +131,15 @@ class ObjectModelSchemaBuilder
     }
 
     /**
-     * Process single ObjectModel::$definition array. This will adds all tables, columns, and keys used by
-     * this object model to the DatabaseSchema object
+     * Process single ObjectModel::$definition array. This will adds all tables,
+     * columns, and keys used by this object model to the DatabaseSchema object.
      *
      * @param $objectModel string object model name
      * @param $definition array object model definition
+     *
      * @throws PrestaShopException
+     *
+     * @since 1.1.0
      */
     protected function processModel($objectModel, $definition)
     {
@@ -166,7 +179,10 @@ class ObjectModelSchemaBuilder
      *
      * @param array $definition object model definition
      * @param DatabaseCharset $charset character set
+     *
      * @return TableSchema
+     *
+     * @since 1.1.0
      */
     protected function addPrimaryTable($definition, $charset)
     {
@@ -193,7 +209,10 @@ class ObjectModelSchemaBuilder
      *
      * @param array $definition object model definition
      * @param DatabaseCharset $charset character set
+     *
      * @return TableSchema | null
+     *
+     * @since 1.1.0
      */
     protected function addLangTable($definition, $charset)
     {
@@ -237,7 +256,10 @@ class ObjectModelSchemaBuilder
      *
      * @param array $definition object model definition
      * @param DatabaseCharset $charset character set
+     *
      * @return TableSchema | null
+     *
+     * @since 1.1.0
      */
     protected function addShopTable($definition, $charset)
     {
@@ -268,8 +290,9 @@ class ObjectModelSchemaBuilder
     }
 
     /**
-     * Process single field definition -- registers related database columns inside primary, lang, or shop tables.
-     * It is possible that one field definition impacts multiple tables
+     * Process single field definition -- registers related database columns
+     * inside primary, lang, or shop tables. It is possible that one field
+     * definition impacts multiple tables.
      *
      * @param string $objectModel object model name
      * @param string $columnName column name
@@ -278,11 +301,13 @@ class ObjectModelSchemaBuilder
      * @param TableSchema $langTable
      * @param TableSchema $shopTable
      * @param DatabaseCharset $charset
+     *
      * @throws PrestaShopException
+     *
+     * @since 1.1.0
      */
     protected function processField($objectModel, $columnName, $columnDefinition, $primaryTable, $langTable, $shopTable, $charset)
     {
-
         // create column
         $column = new ColumnSchema($columnName);
 
@@ -344,11 +369,13 @@ class ObjectModelSchemaBuilder
     }
 
     /**
-     * Process single key definition, and registers database primary/unique/foreign key
-     * for given table
+     * Process single key definition, and registers database primary/unique/
+     * foreign key for given table.
      *
      * @param $tableName
      * @param $keys
+     *
+     * @since 1.1.0
      */
     protected function addKey($tableName, $keys)
     {
@@ -366,15 +393,18 @@ class ObjectModelSchemaBuilder
     }
 
     /**
-     * If $objectModel class contains static function 'processTableSchema' we will call it
-     * for every table object model is using. This gives the object model option to modify
-     * the table in some way. This is needed for backwards compatibility only, this mechanism
-     * should not be used for new object models
+     * If $objectModel class contains static function 'processTableSchema' we
+     * will call it for every table object model is using. This gives the object
+     * model option to modify the table in some way. This is needed for
+     * backwards compatibility only, this mechanism should not be used for new
+     * object models.
      *
      * @param string $objectModel object model class name
      * @param TableSchema $primaryTable
      * @param TableSchema $shopTable
      * @param TableSchema $langTable
+     *
+     * @since 1.1.0
      */
     protected function postProcessTables($objectModel, $primaryTable, $shopTable, $langTable)
     {
@@ -390,12 +420,15 @@ class ObjectModelSchemaBuilder
     }
 
     /**
-     * Creates new TableSchema object and initialize its basic properties like database engine,
-     * character set, and collation
+     * Creates new TableSchema object and initialize its basic properties like
+     * database engine, character set, and collation.
      *
      * @param string $unprefixedTableName table name without _DB_PREFIX_
      * @param DatabaseCharset $charset
+     *
      * @return TableSchema
+     *
+     * @since 1.1.0
      */
     protected function getTable($unprefixedTableName, $charset)
     {
@@ -406,6 +439,7 @@ class ObjectModelSchemaBuilder
             $table->setEngine(_MYSQL_ENGINE_);
             $table->setCharset($charset);
         }
+
         return $table;
     }
 
@@ -415,8 +449,11 @@ class ObjectModelSchemaBuilder
      * @param $columnDefinition array
      * @param $objectModel string
      * @param $field
+     *
      * @return string
      * @throws PrestaShopException
+     *
+     * @since 1.1.0
      */
     protected function getColumnDataType($columnDefinition, $objectModel, $field)
     {
@@ -473,7 +510,10 @@ class ObjectModelSchemaBuilder
      *
      * @param array $columnDefinition field definition
      * @param DatabaseCharset $tableCharset table character set
+     *
      * @return DatabaseCharset | null
+     *
+     * @since 1.1.0
      */
     protected function getColumnCharset($columnDefinition, $tableCharset)
     {
@@ -498,7 +538,10 @@ class ObjectModelSchemaBuilder
      *
      * @param array $array
      * @param string $key
+     *
      * @return bool
+     *
+     * @since 1.1.0
      */
     protected static function checkOption($array, $key)
     {
@@ -507,16 +550,21 @@ class ObjectModelSchemaBuilder
 
     /**
      * Helper method - return array value with default
+     *
      * @param array $array
      * @param string $key
      * @param mixed $default
+     *
      * @return mixed
+     *
+     * @since 1.1.0
      */
     protected static function getOption($array, $key, $default)
     {
         if (array_key_exists($key, $array)) {
             return $array[$key];
         }
+
         return $default;
     }
 }

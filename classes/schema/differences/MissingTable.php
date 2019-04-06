@@ -35,11 +35,25 @@ class MissingTable implements SchemaDifference
 {
     private $table;
 
+    /**
+     * MissingTable constructor.
+     *
+     * @param TableSchema $table
+     *
+     * @since 1.1.0
+     */
     public function __construct(TableSchema $table)
     {
         $this->table = $table;
     }
 
+    /**
+     * Return description of the difference.
+     *
+     * @return string
+     *
+     * @since 1.1.0
+     */
     function describe()
     {
         return sprintf(Translate::getModuleTranslation('coreupdater', 'Table `%1$s` does not exist', 'coreupdater'), $this->table->getName());

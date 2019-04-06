@@ -26,10 +26,11 @@ if (!defined('_TB_VERSION_')) {
 /**
  * Class DatabaseSchemaComparator
  *
- * This class can compare two DatabaseSchema objects and return array of SchemaDifference[] describing differences
- * between these two databases.
+ * This class can compare two DatabaseSchema objects and return array of
+ * SchemaDifference[] describing differences between these two databases.
  *
- * Result can be used to report on changes, and also to apply fixes and migrate database to expected state
+ * Result can be used to report on changes, and also to apply fixes and migrate
+ * database to expected state.
  *
  * @since 1.1.0
  */
@@ -43,10 +44,14 @@ class DatabaseSchemaComparator
     /**
      * DatabaseSchemaComparator constructor.
      *
+     * Currently supported parameters:
+     *
+     *  - ignoreTables: string[] list of database tables to be ignored during
+     *    comparison.
+     *
      * @param array $parameters comparison parameters. Use this to adjust comparison
      *
-     * Currently supported parameters:
-     *   - ignoreTables: string[] list of database tables to be ignored during comparison
+     * @since 1.1.0
      */
     public function __construct($parameters = [])
     {
@@ -62,7 +67,10 @@ class DatabaseSchemaComparator
      *
      * @param DatabaseSchema $currentSchema
      * @param DatabaseSchema $targetSchema
+     *
      * @return SchemaDifference[]
+     *
+     * @since 1.1.0
      */
     public function getDifferences(DatabaseSchema $currentSchema, DatabaseSchema $targetSchema)
     {
@@ -92,7 +100,10 @@ class DatabaseSchemaComparator
      *
      * @param TableSchema $currentTable current table
      * @param TableSchema $targetTable  target table
+     *
      * @return SchemaDifference[]
+     *
+     * @since 1.1.0
      */
     public function getTableDifferences(TableSchema $currentTable, TableSchema $targetTable)
     {
@@ -169,7 +180,10 @@ class DatabaseSchemaComparator
      * @param TableSchema $table
      * @param ColumnSchema $current
      * @param ColumnSchema $target
+     *
      * @return SchemaDifference[]
+     *
+     * @since 1.1.0
      */
     public function getColumnDifferences(TableSchema $table, ColumnSchema $current, ColumnSchema $target)
     {
@@ -200,9 +214,13 @@ class DatabaseSchemaComparator
 
     /**
      * Returns list of keys that exists in $currentTable, but a
+     *
      * @param TableSchema $currentTable
      * @param TableSchema $targetTable
+     *
      * @return TableKey[]
+     *
+     * @since 1.1.0
      */
     public function getMissingKeys(TableSchema $currentTable, TableSchema $targetTable)
     {
@@ -212,6 +230,7 @@ class DatabaseSchemaComparator
                 $missingKeys[] = $key;
             }
         }
+
         return $missingKeys;
     }
 
@@ -219,7 +238,10 @@ class DatabaseSchemaComparator
      * Returns sorted list of database tables without tables listed in $ignoreTables property
      *
      * @param DatabaseSchema $schema database schema
+     *
      * @return TableSchema[] list of tables
+     *
+     * @since 1.1.0
      */
     protected function getTables(DatabaseSchema $schema)
     {
@@ -227,11 +249,13 @@ class DatabaseSchemaComparator
             if ($this->ignoreTables) {
                 return ! in_array($table->getName(), $this->ignoreTables);
             }
+
             return true;
         });
         usort($tables, function(TableSchema $a, TableSchema $b) {
             return strcmp($a->getName(), $b->getName());
         });
+
         return $tables;
     }
 
@@ -240,7 +264,10 @@ class DatabaseSchemaComparator
      *
      * @param TableSchema $currentTable
      * @param TableSchema $targetTable
+     *
      * @return ColumnSchema[]
+     *
+     * @since 1.1.0
      */
     protected function getMissingColumns(TableSchema $currentTable, TableSchema $targetTable)
     {
@@ -250,6 +277,7 @@ class DatabaseSchemaComparator
                 $missingColumns[] = $column;
             }
         }
+
         return $missingColumns;
     }
 }

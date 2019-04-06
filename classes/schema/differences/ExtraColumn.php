@@ -36,12 +36,27 @@ class ExtraColumn implements SchemaDifference
     private $table;
     private $column;
 
+    /**
+     * ExtraColumn constructor.
+     *
+     * @param TableSchema $table
+     * @param ColumnSchema $column
+     *
+     * @since 1.1.0
+     */
     public function __construct(TableSchema $table, ColumnSchema $column)
     {
         $this->table = $table;
         $this->column = $column;
     }
 
+    /**
+     * Return description of the difference.
+     *
+     * @return string
+     *
+     * @since 1.1.0
+     */
     function describe()
     {
         return sprintf(

@@ -37,6 +37,15 @@ class DifferentDefaultValue implements SchemaDifference
     private $column;
     private $currentColumn;
 
+    /**
+     * DifferentDefaultValue constructor.
+     *
+     * @param TableSchema $table
+     * @param ColumnSchema $column
+     * @param ColumnSchema $currentColumn
+     *
+     * @since 1.1.0
+     */
     public function __construct(TableSchema $table, ColumnSchema $column, ColumnSchema $currentColumn)
     {
         $this->table = $table;
@@ -44,12 +53,20 @@ class DifferentDefaultValue implements SchemaDifference
         $this->currentColumn = $currentColumn;
     }
 
+    /**
+     * Return description of the difference.
+     *
+     * @return string
+     *
+     * @since 1.1.0
+     */
     public function describe()
     {
         $table = $this->table->getName();
         $col = $this->column->getName();
         $value = $this->column->getDefaultValue();
         $currentValue = $this->currentColumn->getDefaultValue();
+
         return is_null($value)
             ? sprintf(Translate::getModuleTranslation('coreupdater', 'Column `%1$s`.`%2$s` should NOT have default value `%3$s`', 'coreupdater'), $table, $col, $currentValue)
             : sprintf(Translate::getModuleTranslation('coreupdater', 'Column `%1$s`.`%2$s` should have DEFAULT value `%3$s` instead of `%4$s`', 'coreupdater'), $table, $col, $value, $currentValue);

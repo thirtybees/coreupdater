@@ -68,6 +68,8 @@ class TableKey
      *
      * @param int $type type of database key, see constants above
      * @param string $name name of this key, ignored for primary key
+     *
+     * @since 1.1.0
      */
     public function __construct($type, $name)
     {
@@ -81,6 +83,8 @@ class TableKey
      * Returns name of the key
      *
      * @return string
+     *
+     * @since 1.1.0
      */
     public function getName()
     {
@@ -92,7 +96,10 @@ class TableKey
      * Adds column to the key
      *
      * @param string $columnName column name
-     * @param int $subPart if not null, then only a portion (prefix) of column will be used for index
+     * @param int $subPart If not null, then only a portion (prefix) of column
+     *                     will be used for index.
+     *
+     * @since 1.1.0
      */
     public function addColumn($columnName, $subPart = null)
     {
@@ -105,6 +112,8 @@ class TableKey
      * Returns type of the key
      *
      * @return int
+     *
+     * @since 1.1.0
      */
     public function getType()
     {
@@ -115,6 +124,8 @@ class TableKey
      * Returns column names used by this key
      *
      * @return string[]
+     *
+     * @since 1.1.0
      */
     public function getColumns()
     {
@@ -126,6 +137,8 @@ class TableKey
      * the array will contain null for given position
      *
      * @return int[]
+     *
+     * @since 1.1.0
      */
     public function getSubParts()
     {
@@ -136,6 +149,8 @@ class TableKey
      * Helper method to describe key
      *
      * @return string
+     *
+     * @since 1.1.0
      */
     public function describeKey()
     {
@@ -155,6 +170,8 @@ class TableKey
      * Returns DDL statement to create this database key
      *
      * @return string
+     *
+     * @since 1.1.0
      */
     public function getDDLStatement()
     {

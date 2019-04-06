@@ -74,6 +74,8 @@ class ColumnSchema
      * TableSchema constructor.
      *
      * @param string $columnName name of the database column
+     *
+     * @since 1.1.0
      */
     public function __construct($columnName)
     {
@@ -85,6 +87,8 @@ class ColumnSchema
      * Returns column name
      *
      * @return string
+     *
+     * @since 1.1.0
      */
     public function getName()
     {
@@ -95,6 +99,8 @@ class ColumnSchema
      * Set full database type, for example 'decimal(20,6)'
      *
      * @param string $dataType database type
+     *
+     * @since 1.1.0
      */
     public function setDataType($dataType)
     {
@@ -105,6 +111,8 @@ class ColumnSchema
      * Returns full database type
      *
      * @return string
+     *
+     * @since 1.1.0
      */
     public function getDataType()
     {
@@ -115,6 +123,8 @@ class ColumnSchema
      * Returns true, if this column can hold database NULL value.
      *
      * @return bool
+     *
+     * @since 1.1.0
      */
     public function isNullable()
     {
@@ -130,6 +140,7 @@ class ColumnSchema
         if (! is_null($this->defaultValue)) {
             return ($this->defaultValue === ObjectModel::DEFAULT_NULL);
         }
+
         return true;
     }
 
@@ -137,6 +148,8 @@ class ColumnSchema
      * Explicitly sets ability to hold NULL value
      *
      * @param bool $nullable
+     *
+     * @since 1.1.0
      */
     public function setNullable($nullable)
     {
@@ -147,6 +160,8 @@ class ColumnSchema
      * Returns true, if this column is AUTO_INCREMENT
      *
      * @return bool
+     *
+     * @since 1.1.0
      */
     public function isAutoIncrement()
     {
@@ -157,6 +172,8 @@ class ColumnSchema
      * Sets AUTO_INCREMENT flag
      *
      * @param bool $autoIncrement
+     *
+     * @since 1.1.0
      */
     public function setAutoIncrement($autoIncrement)
     {
@@ -164,12 +181,15 @@ class ColumnSchema
     }
 
     /**
-     * Returns default column value. If default value is sql NULL, then return value is php null
+     * Returns default column value. If default value is sql NULL, then return
+     * value is php null.
      *
-     * Do not use this function to test whether default value exists, because this test would
-     * fail for any field with DEFAULT NULL value
+     * Do not use this function to test whether default value exists, because
+     * this test would fail for any field with DEFAULT NULL value.
      *
      * @return string
+     *
+     * @since 1.1.0
      */
     public function getDefaultValue()
     {
@@ -180,6 +200,8 @@ class ColumnSchema
      * returns true, if table has default value (including NULL)
      *
      * @return bool
+     *
+     * @since 1.1.0
      */
     public function hasDefaultValue()
     {
@@ -191,6 +213,8 @@ class ColumnSchema
      * DEFAULT NULL, then pass ColumnSchema::DEFAULT_NULL
      *
      * @param string $defaultValue
+     *
+     * @since 1.1.0
      */
     public function setDefaultValue($defaultValue)
     {
@@ -207,6 +231,8 @@ class ColumnSchema
      * Sets character set and collation
      *
      * @param DatabaseCharset $charset character set, ie. utf8mb4
+     *
+     * @since 1.1.0
      */
     public function setCharset(DatabaseCharset $charset)
     {
@@ -217,6 +243,8 @@ class ColumnSchema
      * Returns character set for this column, or null if none is set
      *
      * @return DatabaseCharset
+     *
+     * @since 1.1.0
      */
     public function getCharset()
     {
@@ -227,7 +255,10 @@ class ColumnSchema
      * Returns DDL statement to create this column
      *
      * @param TableSchema $table
+     *
      * @return string
+     *
+     * @since 1.1.0
      */
     public function getDDLStatement(TableSchema $table)
     {
@@ -259,6 +290,7 @@ class ColumnSchema
         if ($this->isAutoIncrement()) {
             $col .= ' AUTO_INCREMENT';
         }
+
         return $col;
     }
 }

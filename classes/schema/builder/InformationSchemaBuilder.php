@@ -29,7 +29,8 @@ if (!defined('_TB_VERSION_')) {
 /**
  * Class InformationSchemaBuilder
  *
- * This class is responsible for building DatabaseSchema object based on mysql information schema
+ * This class is responsible for building DatabaseSchema object based on MySQL
+ * information schema.
  *
  * @since 1.1.0
  */
@@ -51,9 +52,12 @@ class InformationSchemaBuilder
     /**
      * InformationSchemaBuilder constructor.
      *
-     * @param string $databaseName optional name of database to load schema for. If not provided, information about
-     * current database will be returned
+     * @param string $databaseName Optional name of database to load schema for.
+     *                             If not provided, information about current
+     *                             database will be returned.
      * @param int $dbInstance
+     *
+     * @since 1.1.0
      */
     public function __construct($databaseName = null, $dbInstance = _PS_USE_SQL_SLAVE_)
     {
@@ -68,10 +72,14 @@ class InformationSchemaBuilder
     /**
      * Builds DatabaseSchema object for database
      *
-     * @param bool $force if true, then new schema will be build, otherwise cached version might be returned
+     * @param bool $force If true, then new schema will be build, otherwise
+     *                    cached version might be returned.
+     *
      * @return DatabaseSchema
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
+     *
+     * @since 1.1.0
      */
     public function getSchema($force = false)
     {
@@ -79,6 +87,7 @@ class InformationSchemaBuilder
             $this->schema = new DatabaseSchema();
             $this->loadInformationSchema();
         }
+
         return $this->schema;
     }
 
@@ -100,8 +109,11 @@ class InformationSchemaBuilder
      * Populates $this->schema with database tables
      *
      * @param Db $connection database connection
+     *
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
+     *
+     * @since 1.1.0
      */
     protected function loadTables($connection)
     {
@@ -123,8 +135,11 @@ class InformationSchemaBuilder
      * Populates $this->schema with table columns
      *
      * @param Db $connection
+     *
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
+     *
+     * @since 1.1.0
      */
     protected function loadColumns($connection)
     {
@@ -156,8 +171,11 @@ class InformationSchemaBuilder
      * Populates $this->schema with keys/indexes
      *
      * @param Db $connection
+     *
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
+     *
+     * @since 1.1.0
      */
     protected function loadKeys($connection)
     {
@@ -185,7 +203,10 @@ class InformationSchemaBuilder
      * Transforms mysql constraint type to TableKey constant
      *
      * @param string $constraintType database constraint type
+     *
      * @return int TableKey constant
+     *
+     * @since 1.1.0
      */
     protected function getKeyType($constraintType)
     {

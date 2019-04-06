@@ -36,12 +36,27 @@ class DifferentTableCharset implements SchemaDifference
     private $table;
     private $currentTable;
 
+    /**
+     * DifferentTableCharset constructor.
+     *
+     * @param TableSchema $table
+     * @param TableSchema $currentTable
+     *
+     * @since 1.1.0
+     */
     public function __construct(TableSchema $table, TableSchema $currentTable)
     {
         $this->table = $table;
         $this->currentTable = $currentTable;
     }
 
+    /**
+     * Return description of the difference.
+     *
+     * @return string
+     *
+     * @since 1.1.0
+     */
     public function describe()
     {
         return sprintf(

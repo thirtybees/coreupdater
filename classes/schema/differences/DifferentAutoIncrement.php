@@ -37,6 +37,15 @@ class DifferentAutoIncrement implements SchemaDifference
     private $column;
     private $currentColumn;
 
+    /**
+     * DifferentAutoIncrement constructor.
+     *
+     * @param TableSchema $table
+     * @param ColumnSchema $column
+     * @param ColumnSchema $currentColumn
+     *
+     * @since 1.1.0
+     */
     public function __construct(TableSchema $table, ColumnSchema $column, ColumnSchema $currentColumn)
     {
         $this->table = $table;
@@ -44,10 +53,18 @@ class DifferentAutoIncrement implements SchemaDifference
         $this->currentColumn = $currentColumn;
     }
 
+    /**
+     * Return description of the difference.
+     *
+     * @return string
+     *
+     * @since 1.1.0
+     */
     public function describe()
     {
         $table = $this->table->getName();
         $col = $this->column->getName();
+
         return $this->column->isAutoIncrement()
             ? sprintf(Translate::getModuleTranslation('coreupdater', 'Column `%1$s`.`%2$s` should be marked as AUTO_INCREMENT', 'coreupdater'), $table, $col)
             : sprintf(Translate::getModuleTranslation('coreupdater', 'Column `%1$s`.`%2$s` should NOT be marked as AUTO_INCREMENT', 'coreupdater'), $table, $col);

@@ -62,6 +62,8 @@ class TableSchema
      * TableSchema constructor.
      *
      * @param $name string name of the database table
+     *
+     * @since 1.1.0
      */
     public function __construct($name)
     {
@@ -75,6 +77,8 @@ class TableSchema
      * Returns name of database table, including _DB_PREFIX_
      *
      * @return string
+     *
+     * @since 1.1.0
      */
     public function getName()
     {
@@ -85,6 +89,8 @@ class TableSchema
      * Returns name of database table without _DB_PREFIX_
      *
      * @return string
+     *
+     * @since 1.1.0
      */
     public function getNameWithoutPrefix()
     {
@@ -95,6 +101,8 @@ class TableSchema
      * Returns database engine used by table, such as InnoDB or MyISAM
      *
      * @return string
+     *
+     * @since 1.1.0
      */
     public function getEngine()
     {
@@ -105,6 +113,8 @@ class TableSchema
      * Set database engine, such as InnoDB or MyISAM
      *
      * @param $engine string
+     *
+     * @since 1.1.0
      */
     public function setEngine($engine)
     {
@@ -115,6 +125,8 @@ class TableSchema
      * Returns default character set used by table
      *
      * @return DatabaseCharset
+     *
+     * @since 1.1.0
      */
     public function getCharset()
     {
@@ -125,6 +137,8 @@ class TableSchema
      * Sets default character set and collation
      *
      * @param DatabaseCharset $charset
+     *
+     * @since 1.1.0
      */
     public function setCharset(DatabaseCharset $charset)
     {
@@ -135,6 +149,8 @@ class TableSchema
      * Method to register database column
      *
      * @param ColumnSchema $column database column definition
+     *
+     * @since 1.1.0
      */
     public function addColumn(ColumnSchema $column)
     {
@@ -147,6 +163,8 @@ class TableSchema
      * Returns all table columns
      *
      * @return ColumnSchema[]
+     *
+     * @since 1.1.0
      */
     public function getColumns()
     {
@@ -157,6 +175,8 @@ class TableSchema
      * Sets table columns
      *
      * @param $columns ColumnSchema[]
+     *
+     * @since 1.1.0
      */
     public function setColumns($columns)
     {
@@ -166,8 +186,10 @@ class TableSchema
     /**
      * Method to reorder table columns
      *
-     * @param $columnNames string[] new order of columns. This list does not need to be exhaustive - all registered
-     * columns that are not part of this parameter will be last
+     * @param $columnNames string[] New order of columns. This list does not
+     *                              need to be exhaustive - all registered
+     *                              columns that are not part of this parameter
+     *                              will be last.
      */
     public function reorderColumns($columnNames)
     {
@@ -185,6 +207,8 @@ class TableSchema
      * Returns column names
      *
      * @return ColumnSchema[]
+     *
+     * @since 1.1.0
      */
     public function getColumnNames()
     {
@@ -197,7 +221,10 @@ class TableSchema
      * Returns true, if table contains column with given name
      *
      * @param $columnName string
+     *
      * @return bool
+     *
+     * @since 1.1.0
      */
     public function hasColumn($columnName)
     {
@@ -208,7 +235,10 @@ class TableSchema
      * Returns column definition
      *
      * @param $columnName string name of column
+     *
      * @return ColumnSchema | null
+     *
+     * @since 1.1.0
      */
     public function getColumn($columnName)
     {
@@ -217,6 +247,7 @@ class TableSchema
                 return $column;
             }
         }
+
         return null;
     }
 
@@ -224,13 +255,17 @@ class TableSchema
      * Returns key definition
      *
      * @param $keyName string name of key
+     *
      * @return TableKey | null
+     *
+     * @since 1.1.0
      */
     public function getKey($keyName)
     {
         if ($this->hasKey($keyName)) {
             return $this->keys[$keyName];
         }
+
         return null;
     }
 
@@ -238,7 +273,10 @@ class TableSchema
      * Returns true, if table contains key with given name
      *
      * @param $keyName
+     *
      * @return bool
+     *
+     * @since 1.1.0
      */
     public function hasKey($keyName)
     {
@@ -249,6 +287,8 @@ class TableSchema
      * Registers database key
      *
      * @param TableKey $key
+     *
+     * @since 1.1.0
      */
     public function addKey(TableKey $key)
     {
@@ -259,6 +299,8 @@ class TableSchema
      * Return all table keys
      *
      * @return TableKey[]
+     *
+     * @since 1.1.0
      */
     public function getKeys()
     {
@@ -269,6 +311,8 @@ class TableSchema
      * Returns DDL statement to create this database table
      *
      * @return string
+     *
+     * @since 1.1.0
      */
     public function getDDLStatement()
     {
@@ -288,7 +332,7 @@ class TableSchema
         if (! $charset->isDefaultCollate()) {
             $ddl .= " COLLATE=" . $charset->getCollate();
         }
+
         return $ddl;
     }
-
 }

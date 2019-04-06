@@ -37,6 +37,15 @@ class DifferentColumnCharset implements SchemaDifference
     private $column;
     private $currentColumn;
 
+    /**
+     * DifferentColumnCharset constructor.
+     *
+     * @param TableSchema $table
+     * @param ColumnSchema $column
+     * @param ColumnSchema $currentColumn
+     *
+     * @since 1.1.0
+     */
     public function __construct(TableSchema $table, ColumnSchema $column, ColumnSchema $currentColumn)
     {
         $this->table = $table;
@@ -44,6 +53,13 @@ class DifferentColumnCharset implements SchemaDifference
         $this->currentColumn = $currentColumn;
     }
 
+    /**
+     * Return description of the difference.
+     *
+     * @return string
+     *
+     * @since 1.1.0
+     */
     public function describe()
     {
         return sprintf(

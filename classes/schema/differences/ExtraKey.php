@@ -43,12 +43,27 @@ class ExtraKey implements SchemaDifference
      */
     public $key;
 
+    /**
+     * ExtraKey constructor.
+     *
+     * @param TableSchema $table
+     * @param TableKey $key
+     *
+     * @since 1.1.0
+     */
     public function __construct(TableSchema $table, TableKey $key)
     {
         $this->table = $table;
         $this->key = $key;
     }
 
+    /**
+     * Return description of the difference.
+     *
+     * @return string
+     *
+     * @since 1.1.0
+     */
     function describe()
     {
         return sprintf(
@@ -57,6 +72,4 @@ class ExtraKey implements SchemaDifference
             $this->table->getName()
         );
     }
-
-
 }

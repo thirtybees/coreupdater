@@ -33,7 +33,6 @@ if (!defined('_TB_VERSION_')) {
 class DatabaseSchema
 {
     /**
-     *
      * @var TableSchema[]
      */
     protected $tables = [];
@@ -42,6 +41,8 @@ class DatabaseSchema
      * Register new table
      *
      * @param TableSchema $table
+     *
+     * @since 1.1.0
      */
     public function addTable(TableSchema $table)
     {
@@ -52,10 +53,13 @@ class DatabaseSchema
      * Returns all registered tables
      *
      * @return TableSchema[]
+     *
+     * @since 1.1.0
      */
     public function getTables()
     {
-        ksort($this->tables) ;
+        ksort($this->tables);
+
         return $this->tables;
     }
 
@@ -63,7 +67,10 @@ class DatabaseSchema
      * Returns true, if table with $tableName exists
      *
      * @param string $tableName name of table
+     *
      * @return bool
+     *
+     * @since 1.1.0
      */
     public function hasTable($tableName)
     {
@@ -74,13 +81,17 @@ class DatabaseSchema
      * Returns table with name $tableName
      *
      * @param string $tableName
+     *
      * @return TableSchema | null
+     *
+     * @since 1.1.0
      */
     public function getTable($tableName)
     {
         if ($this->hasTable($tableName)) {
             return $this->tables[$tableName];
         }
+
         return null;
     }
 
@@ -88,6 +99,8 @@ class DatabaseSchema
      * Returns DDL statements to create database schema
      *
      * @return string
+     *
+     * @since 1.1.0
      */
     public function getDDLStatement()
     {
@@ -95,6 +108,7 @@ class DatabaseSchema
         foreach ($this->getTables() as $table) {
             $stmt .= $table->getDDLStatement() . ";\n\n";
         }
+
         return $stmt;
     }
 }

@@ -36,12 +36,27 @@ class DifferentEngine implements SchemaDifference
     private $table;
     private $currentEngine;
 
+    /**
+     * DifferentEngine constructor.
+     *
+     * @param TableSchema $table
+     * @param string $currentEngine
+     *
+     * @since 1.1.0
+     */
     public function __construct(TableSchema $table, $currentEngine)
     {
         $this->table = $table;
         $this->currentEngine = $currentEngine;
     }
 
+    /**
+     * Return description of the difference.
+     *
+     * @return string
+     *
+     * @since 1.1.0
+     */
     function describe()
     {
         return sprintf(
