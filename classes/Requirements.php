@@ -46,7 +46,7 @@ class Requirements
         $errors = [];
         $me = new Requirements;
 
-        $errors = array_merge($errors, $me->checkPhpVersion($version));
+        $errors = array_merge($errors, $me->testPhpVersion($version));
 
         return $errors;
     }
@@ -67,16 +67,16 @@ class Requirements
     }
 
     /**
-     * Apply database upgrade scripts.
+     * Test for the minimum required PHP version.
      *
-     * @param string $version The version to test for.
+     * @param string $version The thirty bees version to test for.
      *
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
      * @since 1.0.0
      */
-    protected function checkPhpVersion($version) {
+    protected function testPhpVersion($version) {
         $errors = [];
 
         // Minimum PHP version.
