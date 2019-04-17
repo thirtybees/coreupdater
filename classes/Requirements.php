@@ -47,6 +47,7 @@ class Requirements
         $me = new Requirements;
 
         $errors = array_merge($errors, $me->testPhpVersion($version));
+        $errors = array_merge($errors, $me->testOpenSSL($version));
 
         return $errors;
     }
@@ -88,6 +89,29 @@ class Requirements
             if (version_compare($version, $testVersion, '>=')
                 && ! version_compare(phpversion(), $phpVersion, '>=')) {
                 $errors[] = sprintf($this->l('thirty bees %s requires PHP %s or later.'), $version, $phpVersion);
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Test for presence of the OpenSSL PHP extension.
+     *
+     * @param string $version The thirty bees version to test for.
+     *
+     * @return array Empty array on success, array with error messages on
+     *               failure.
+     *
+     * @since 1.1.0
+     */
+    protected function testOpenSSL($version) {
+        $errors = [];
+
+        if (version_compare($version, '1.1.0', '>=')) {
+            if ( ! extension_loaded('openssl')
+                || ! function_exists('openssl_encrypt')) {
+                $errors[] = $this->l('thirty bees 1.1.0 or later requires the PHP OpenSSL extension.');
             }
         }
 
