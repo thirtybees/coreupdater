@@ -62,8 +62,8 @@ class Requirements
      */
     protected function l($string)
     {
-        return \Translate::getModuleTranslation('gitupdater', $string,
-                                                'gitupdater');
+        return \Translate::getModuleTranslation('coreupdater', $string,
+                                                'coreupdater');
     }
 
     /**
