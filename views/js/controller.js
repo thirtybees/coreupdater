@@ -50,8 +50,8 @@ $(document).ready(function () {
 });
 
 function channelChange(firstRun) {
-  let channelSelect = $('#CORE_UPDATER_CHANNEL');
-  let versionSelect = $('#CORE_UPDATER_VERSION');
+  var channelSelect = $('#CORE_UPDATER_CHANNEL');
+  var versionSelect = $('#CORE_UPDATER_VERSION');
 
   if ( ! channelSelect || ! versionSelect.length) {
     return;
@@ -87,7 +87,7 @@ function channelChange(firstRun) {
       versionSelect.trigger('change');
     },
     error: function(xhr, status, error) {
-      let helpText = $('#conf_id_CORE_UPDATER_VERSION').find('.help-block');
+      var helpText = $('#conf_id_CORE_UPDATER_VERSION').find('.help-block');
       helpText.html(coreUpdaterParameters.errorRetrieval);
       helpText.css('color', 'red');
       console.log('Request to '+coreUpdaterParameters.apiUrl
@@ -122,7 +122,7 @@ function comparePanelSlide() {
 }
 
 function processAction(action) {
-  let url = document.URL+'&action='+action+'&ajax=1';
+  var url = document.URL+'&action='+action+'&ajax=1';
 
   $.ajax({
     url: url,
@@ -212,11 +212,11 @@ function processAction(action) {
 }
 
 function appendChangeset(changeset, field) {
-  let node = $('#conf_id_'+field);
+  var node = $('#conf_id_'+field);
 
-  let html = '<table class="table"><tbody>';
+  var html = '<table class="table"><tbody>';
 
-  let count = 0;
+  var count = 0;
   for (line in changeset) {
     count++;
     html += '<tr>'
@@ -244,7 +244,7 @@ function appendChangeset(changeset, field) {
 }
 
 function collectSelectedObsolete() {
-  let selectedObsolete = [];
+  var selectedObsolete = [];
 
   $('#conf_id_CORE_UPDATER_REMOVE_OBSOLETE')
   .find('table')
@@ -264,7 +264,7 @@ function collectSelectedObsolete() {
 }
 
 function addCompletedText(field, text, number) {
-  let element = $('#conf_id_'+field).children('label');
+  var element = $('#conf_id_'+field).children('label');
   if (element.children('a').length) {
     element = element.children('a');
   }
@@ -273,8 +273,8 @@ function addCompletedText(field, text, number) {
     text = text.replace('%d', number);
   }
 
-  let string = element[0].innerHTML.trim();
-  let colon = string.slice(-1);
+  var string = element[0].innerHTML.trim();
+  var colon = string.slice(-1);
   if (colon === ':') {
     string = string.slice(0, -1);
   }
@@ -287,15 +287,15 @@ function addCompletedText(field, text, number) {
 }
 
 function addBootstrapCollapser(field, initiallyCollapsed) {
-  let trigger = $('#conf_id_'+field).children('label');
+  var trigger = $('#conf_id_'+field).children('label');
   if ( ! trigger.length) {
     return;
   }
 
-  let collapsible = $('#conf_id_'+field).children(':last');
-  let collapsibleName = 'collapsible_'+field;
+  var collapsible = $('#conf_id_'+field).children(':last');
+  var collapsibleName = 'collapsible_'+field;
 
-  let iconClass = 'icon-collapse-alt';
+  var iconClass = 'icon-collapse-alt';
   if (initiallyCollapsed) {
     iconClass = 'icon-expand-alt';
   }
