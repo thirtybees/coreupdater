@@ -51,6 +51,7 @@ class CoreUpdater extends Module
         $this->displayName = $this->l('Core Updater');
         $this->description = $this->l('This module brings the tools for keeping your shop installation up to date.');
         $this->tb_versions_compliancy = '>= 1.0.0';
+        $this->tb_min_version = '1.0.0';
     }
 
     /**
