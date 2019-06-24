@@ -24,7 +24,7 @@
     {if $warn}
         <div class="alert alert-danger">
             <p>
-                {l s='Found modules which can disturb operations of this module. Please disable them. These modules are:' mod='coreupdater'}
+                {l s='Found modules which can disturb operations of this module. Please uninstall them. These modules are:' mod='coreupdater'}
             </p>
             <ul>
                 {foreach $enabledModules as $module}

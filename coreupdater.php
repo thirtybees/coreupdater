@@ -137,13 +137,13 @@ class CoreUpdater extends Module
         $enabledModules = [];
         $warn = false;
         foreach ([
-            //'tbupdater', // Needed by core code so far.
+            //'tbupdater', // Still needed by core.
             'autoupgrade',
             'psonefivemigrator',
             'psonesixmigrator',
             'psonesevenmigrator',
         ] as $moduleName) {
-            if (Module::isEnabled($moduleName)) {
+            if (Module::isInstalled($moduleName)) {
                 $enabledModules[] = $moduleName;
                 $warn = true;
             }
