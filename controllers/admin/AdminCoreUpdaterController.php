@@ -55,6 +55,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
     public function __construct()
     {
         $this->bootstrap = true;
+        Shop::setContext(Shop::CONTEXT_ALL);
 
         // Take a shortcut for Ajax requests.
         if (Tools::getValue('ajax')) {

@@ -69,6 +69,8 @@ class CoreUpdater extends Module
             return false;
         }
 
+        Shop::setContext(Shop::CONTEXT_ALL);
+
         $success = parent::install();
 
         $tabSuccess = false;
@@ -108,8 +110,9 @@ class CoreUpdater extends Module
      */
     public function uninstall()
     {
-        $success = true;
+        Shop::setContext(Shop::CONTEXT_ALL);
 
+        $success = true;
         $success = $success && CoreUpdater\GitUpdate::uninstall();
 
         $tabs = Tab::getCollectionFromModule($this->name);
