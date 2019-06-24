@@ -156,8 +156,8 @@ class AdminCoreUpdaterController extends ModuleAdminController
                     ],
                     'CORE_UPDATER_IGNORE_THEME' => [
                         'type'       => 'bool',
-                        'title'      => $this->l('Ignore the community theme'),
-                        'desc'       => $this->l('When enabled, the updater ignores the theme coming with thirty bees. While this prohibits bugs getting fixed, it can make sense for those who customized this theme for their needs, without making a copy before.'),
+                        'title'      => $this->l('Ignore community themes'),
+                        'desc'       => $this->l('When enabled, the updater ignores themes coming with thirty bees. While this prohibits bugs from getting fixed, it can make sense for those who customized this theme for their needs, without making a copy before.'),
                         'default'    => false,
                     ],
                 ],

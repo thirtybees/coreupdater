@@ -80,6 +80,7 @@ class GitUpdate
     // This gets added with option 'Ignore the community theme' ON.
     const RELEASE_FILTER_THEME_OFF = [
         '#^themes/community-theme-default/#',
+        '#^themes/niara/#',
     ];
     /**
      * Set of regular expressions for removing file paths from the list of
@@ -100,10 +101,13 @@ class GitUpdate
     ];
     // This gets added with option 'Ignore the community theme' OFF.
     const INSTALLATION_FILTER_THEME_ON = [
-        '#^themes/(?!community-theme-default/)#',
+        '#^themes/(?!community-theme-default/|niara/)#',
         '#^themes/community-theme-default/cache/#',
         '#^themes/community-theme-default/lang/#',
         '#^themes/community-theme-default/mails/#',
+        '#^themes/niara/cache/#',
+        '#^themes/niara/lang/#',
+        '#^themes/niara/mails/#',
     ];
     // This gets added with option 'Ignore the community theme' ON.
     const INSTALLATION_FILTER_THEME_OFF = [
