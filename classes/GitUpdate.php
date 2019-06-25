@@ -562,23 +562,12 @@ class GitUpdate
         }
 
         if (is_dir($dir)) {
+            $recursive = true;
             if (in_array($dir, ['.', 'vendor'])) {
-                $iterator = new \DirectoryIterator($dir);
-            } else {
-                $iterator = new \RecursiveIteratorIterator(
-                                new \RecursiveDirectoryIterator($dir)
-                            );
+                $recursive = false;
             }
 
-            foreach ($iterator as $fileInfo) {
-                $path = $fileInfo->getPathname();
-                if (in_array(basename($path), ['.', '..'])
-                    || is_dir($path)) {
-                    continue;
-                }
-                // Strip leading './'.
-                $path = preg_replace('#(^./)#', '', $path);
-
+            foreach ($this->scandir($dir, $recursive) as $path) {
                 $keep = true;
                 if ( ! array_key_exists($path, $targetList)
                     && ! array_key_exists($path, $originList)) {
@@ -609,7 +598,7 @@ class GitUpdate
                     }
                 }
             }
-        }
+        } // else ignore files at the root level.
 
         chdir($oldCwd);
     }
@@ -1207,5 +1196,43 @@ class GitUpdate
         $content = file_get_contents($path);
 
         return sha1('blob '.strlen($content)."\0".$content);
+    }
+
+    /**
+     * Scan a directory.
+     *
+     * @param string $dir       Full path of the directory to scan.
+     * @param bool   $recursive Wether to scan the directory recursively.
+     *
+     * @return array List of paths of files found, without directories.
+     *
+     * @version 1.1.0 Initial version.
+     */
+    protected function scandir($dir, $recursive = false)
+    {
+        $pathList = [];
+
+        foreach (scandir($dir) as $file) {
+            if (in_array($file, ['.', '..'])) {
+                continue;
+            }
+
+            $path = rtrim($dir, '/').'/'.$file;
+            // Strip leading './'.
+            $path = preg_replace('#^\./#', '', $path);
+
+            if (is_dir($path)) {
+                if ($recursive) {
+                    $pathList = array_merge(
+                        $pathList,
+                        $this->scandir($path, $recursive, $filter)
+                    );
+                }
+            } else {
+                $pathList[] = $path;
+            }
+        }
+
+        return $pathList;
     }
 }
