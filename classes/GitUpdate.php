@@ -101,7 +101,7 @@ class GitUpdate
     ];
     // This gets added with option 'Ignore the community theme' OFF.
     const INSTALLATION_FILTER_THEME_ON = [
-        '#^themes/(?!community-theme-default/|niara/)#',
+        '#^themes/(?!community-theme-default/|niara/).+/#',
         '#^themes/community-theme-default/cache/#',
         '#^themes/community-theme-default/lang/#',
         '#^themes/community-theme-default/mails/#',
@@ -543,7 +543,8 @@ class GitUpdate
      *
      * @param string $dir Directory to search.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
+     * @version 1.1.0 Use filtered directory scanning.
      */
     protected function searchInstallation($dir)
     {
@@ -554,11 +555,11 @@ class GitUpdate
         chdir(_PS_ROOT_DIR_);
 
         if ($this->storage['ignoreTheme']) {
-            $installFilter = array_merge(static::INSTALLATION_FILTER,
-                                         static::INSTALLATION_FILTER_THEME_OFF);
+            $scanFilter = array_merge(static::INSTALLATION_FILTER,
+                                      static::INSTALLATION_FILTER_THEME_OFF);
         } else {
-            $installFilter = array_merge(static::INSTALLATION_FILTER,
-                                         static::INSTALLATION_FILTER_THEME_ON);
+            $scanFilter = array_merge(static::INSTALLATION_FILTER,
+                                      static::INSTALLATION_FILTER_THEME_ON);
         }
 
         if (is_dir($dir)) {
@@ -567,35 +568,29 @@ class GitUpdate
                 $recursive = false;
             }
 
-            foreach ($this->scandir($dir, $recursive) as $path) {
-                $keep = true;
-                if ( ! array_key_exists($path, $targetList)
-                    && ! array_key_exists($path, $originList)) {
-                    foreach ($installFilter as $filter) {
-                        if (preg_match($filter, $path)) {
-                            $keep = false;
-                            break;
-                        }
-                    }
+            // Scan files on disk.
+            foreach ($this->scandir($dir, $recursive, $scanFilter) as $path) {
+                if (array_key_exists($path, $targetList)
+                    || array_key_exists($path, $originList)) {
+                    $this->storage['installationList'][$path]
+                        = static::getGitHash($path);
+                } else {
+                    // Pointless to calculate a hash.
+                    $this->storage['installationList'][$path] = true;
                 }
-                if ($keep) {
-                    foreach (static::KEEP_FILTER as $filter) {
-                        if (preg_match($filter, $path)) {
-                            $keep = false;
-                            break;
-                        }
-                    }
-                }
+            }
 
-                if ($keep) {
-                    if (array_key_exists($path, $targetList)
-                        || array_key_exists($path, $originList)) {
-                        $this->storage['installationList'][$path]
-                            = static::getGitHash($path);
-                    } else {
-                        // Pointless to calculate a hash.
-                        $this->storage['installationList'][$path] = true;
-                    }
+            // Always add distribution files.
+            // TODO: this is not ideal, we search both long lists for each
+            //       directory again. Better establish a separate step for this.
+            $dirlen = strlen($dir);
+            foreach (array_merge($targetList, $originList) as $path => $unused) {
+                if (substr($path, 0, $dirlen) === $dir
+                    && is_file($path)
+                    && ! array_key_exists($path, $this->storage['installationList'])
+                ) {
+                    $this->storage['installationList'][$path]
+                        = static::getGitHash($path);
                 }
             }
         } // else ignore files at the root level.
@@ -1199,16 +1194,20 @@ class GitUpdate
     }
 
     /**
-     * Scan a directory.
+     * Scan a directory filtered. Applying the filter immediately avoids
+     * diving into directories which get filtered away anyways. This enhances
+     * performance a lot, e.g. on large product image directories.
      *
      * @param string $dir       Full path of the directory to scan.
      * @param bool   $recursive Wether to scan the directory recursively.
+     * @param array  $filter    List of regular expressions to filter against.
+     *                          Paths matching one of these won't get listed.
      *
      * @return array List of paths of files found, without directories.
      *
      * @version 1.1.0 Initial version.
      */
-    protected function scandir($dir, $recursive = false)
+    protected function scandir($dir, $recursive = false, $filter = [])
     {
         $pathList = [];
 
@@ -1220,6 +1219,17 @@ class GitUpdate
             $path = rtrim($dir, '/').'/'.$file;
             // Strip leading './'.
             $path = preg_replace('#^\./#', '', $path);
+
+            $keep = true;
+            foreach ($filter as $regexp) {
+                if (preg_match($regexp, $path, $matches)) {
+                    $keep = false;
+                    break;
+                }
+            }
+            if ( ! $keep) {
+                continue;
+            }
 
             if (is_dir($path)) {
                 if ($recursive) {
