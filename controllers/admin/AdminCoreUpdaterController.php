@@ -50,7 +50,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
     /**
      * AdminCoreUpdaterController constructor.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public function __construct()
     {
@@ -263,7 +263,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
      *
      * @return string Page HTML.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public function initContent()
     {
@@ -275,7 +275,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
     /**
      * Set media.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public function setMedia()
     {
@@ -288,7 +288,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
     /**
      * Post processing. All custom code, no default processing used.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public function postProcess()
     {
@@ -337,7 +337,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
      *                     GitUpdate::compareStep(), 'processUpdate' triggers
      *                     GitUpdate::updateStep(), everything else is invalid.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public function ajaxProcess($type) {
         $messages = [

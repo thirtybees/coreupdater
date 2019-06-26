@@ -150,7 +150,7 @@ class GitUpdate
     /**
      * The signature prohibits instantiating a non-singleton class.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function __construct()
     {
@@ -160,7 +160,7 @@ class GitUpdate
     }
 
     /**
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public function __destruct()
     {
@@ -179,7 +179,7 @@ class GitUpdate
     /**
      * @return bool True on success, false on failure.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public static function uninstall()
     {
@@ -196,7 +196,7 @@ class GitUpdate
      *
      * @return GitUpdate Singleton instance of class GitUpdate.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public static function getInstance()
     {
@@ -212,7 +212,7 @@ class GitUpdate
      *
      * @return GuzzleHttp Singleton instance of class GuzzleHttp\Client.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function getGuzzle()
     {
@@ -236,7 +236,7 @@ class GitUpdate
      *                        AdminCoreUpdaterController->ajaxProcess().
      * @param string $version Version to compare the installation on disk to.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public static function compareStep(&$messages, $version)
     {
@@ -367,7 +367,10 @@ class GitUpdate
     /**
      * Delete storage. Which means, the next compareStep() call starts over.
      *
-     * @since 1.0.0
+     * @param bool $fullDelete Whether to delete all storage. Else only data
+     *                         collected and evaluated locally gets removed.
+     *
+     * @version 1.0.0 Initial version.
      */
     public static function deleteStorage($fullDelete = true)
     {
@@ -397,7 +400,7 @@ class GitUpdate
      *
      * @return string Translation.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function l($string)
     {
@@ -418,7 +421,7 @@ class GitUpdate
      *
      * @return bool|string True on success, or error message on failure.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function downloadFileList($version)
     {
@@ -505,7 +508,7 @@ class GitUpdate
      *
      * @param array $version Version of the file path list.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function extractTopLevelDirs($version)
     {
@@ -594,7 +597,7 @@ class GitUpdate
      * Add distribution files to the fileset of installed files. Only files
      * actually existing, of course.
      *
-     * This is for those files which get filtered away by too broad filters,
+     * This is for those files which get filtered away by broad filters,
      * still should get considered. E.g. img/p/index.php, while files in
      * img/p/ get filtered.
      *
@@ -652,7 +655,7 @@ class GitUpdate
      *               boolean indicating whether a change/add/remove overwrites
      *               manual edits.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function calculateChanges()
     {
@@ -716,7 +719,7 @@ class GitUpdate
      *
      * @param array $list List of file paths.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public static function setSelectedObsolete($list)
     {
@@ -740,7 +743,7 @@ class GitUpdate
      * @param string $version Unused, for signature compatibility with
      *                        compareStep().
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public static function updateStep(&$messages, $version)
     {
@@ -861,7 +864,7 @@ class GitUpdate
      *
      * @return bool|string Boolean true on success, error message on failure.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function downloadFiles()
     {
@@ -981,7 +984,7 @@ class GitUpdate
      *
      * @return bool|string Boolean true on success, error message on failure.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function createUpdateScript()
     {
@@ -1069,7 +1072,7 @@ class GitUpdate
      *                    operate after partial failures, so multiple error
      *                    messages can appear.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function doAftermath()
     {
@@ -1126,7 +1129,7 @@ class GitUpdate
      * Clear all the caches. Luckily, this doesn't delete our own storage.
      * No failure expected.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function clearCaches()
     {
@@ -1150,7 +1153,7 @@ class GitUpdate
      *
      * @return string Version.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public static function getInstalledVersion()
     {
@@ -1172,7 +1175,7 @@ class GitUpdate
      *
      * @return bool|string Directory path if it's determined (yet), else false.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public static function getBackupDir()
     {
@@ -1196,8 +1199,8 @@ class GitUpdate
      *
      * @return bool|string Hash, or boolean false on expected memory exhaustion.
      *
-     * @since 1.0.0
-     * @since 1.0.1 Predict memory exhaustion.
+     * @version 1.0.0 Initial version.
+     * @version 1.0.1 Predict memory exhaustion.
      */
     public static function getGitHash($path)
     {

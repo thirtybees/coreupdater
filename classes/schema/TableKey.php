@@ -31,7 +31,7 @@ if (!defined('_TB_VERSION_')) {
  *
  * This class holds information about specific database key/constraint/index
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class TableKey
 {
@@ -69,7 +69,7 @@ class TableKey
      * @param int $type type of database key, see constants above
      * @param string $name name of this key, ignored for primary key
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct($type, $name)
     {
@@ -84,7 +84,7 @@ class TableKey
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getName()
     {
@@ -99,7 +99,7 @@ class TableKey
      * @param int $subPart If not null, then only a portion (prefix) of column
      *                     will be used for index.
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function addColumn($columnName, $subPart = null)
     {
@@ -113,7 +113,7 @@ class TableKey
      *
      * @return int
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getType()
     {
@@ -125,7 +125,7 @@ class TableKey
      *
      * @return string[]
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getColumns()
     {
@@ -138,7 +138,7 @@ class TableKey
      *
      * @return int[]
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getSubParts()
     {
@@ -150,7 +150,7 @@ class TableKey
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function describeKey()
     {
@@ -171,7 +171,7 @@ class TableKey
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getDDLStatement()
     {

@@ -40,7 +40,7 @@ class Requirements
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public static function checkAllRequirements($version) {
         $errors = [];
@@ -59,7 +59,7 @@ class Requirements
      *
      * @return string Translation.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function l($string)
     {
@@ -75,7 +75,7 @@ class Requirements
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function testPhpVersion($version) {
         $errors = [];
@@ -103,7 +103,7 @@ class Requirements
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function testOpenSSL($version) {
         $errors = [];

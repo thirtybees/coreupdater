@@ -29,7 +29,7 @@ if (!defined('_TB_VERSION_')) {
  *
  * Difference in column AUTO_INCREMENT settings
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class DifferentAutoIncrement implements SchemaDifference
 {
@@ -44,7 +44,7 @@ class DifferentAutoIncrement implements SchemaDifference
      * @param ColumnSchema $column
      * @param ColumnSchema $currentColumn
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct(TableSchema $table, ColumnSchema $column, ColumnSchema $currentColumn)
     {
@@ -58,7 +58,7 @@ class DifferentAutoIncrement implements SchemaDifference
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function describe()
     {

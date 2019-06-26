@@ -29,7 +29,7 @@ if (!defined('_TB_VERSION_')) {
  *
  * Represents difference in table default character set and collation
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class DifferentTableCharset implements SchemaDifference
 {
@@ -42,7 +42,7 @@ class DifferentTableCharset implements SchemaDifference
      * @param TableSchema $table
      * @param TableSchema $currentTable
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct(TableSchema $table, TableSchema $currentTable)
     {
@@ -55,7 +55,7 @@ class DifferentTableCharset implements SchemaDifference
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function describe()
     {

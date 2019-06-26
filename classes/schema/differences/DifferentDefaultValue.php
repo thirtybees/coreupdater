@@ -29,7 +29,7 @@ if (!defined('_TB_VERSION_')) {
  *
  * Difference in column's default value
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class DifferentDefaultValue implements SchemaDifference
 {
@@ -44,7 +44,7 @@ class DifferentDefaultValue implements SchemaDifference
      * @param ColumnSchema $column
      * @param ColumnSchema $currentColumn
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct(TableSchema $table, ColumnSchema $column, ColumnSchema $currentColumn)
     {
@@ -58,7 +58,7 @@ class DifferentDefaultValue implements SchemaDifference
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function describe()
     {

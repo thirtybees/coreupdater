@@ -32,7 +32,7 @@ if (!defined('_TB_VERSION_')) {
  * difference. In the future there will be another methods to rectify the
  * situation (apply database migration changes).
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 interface SchemaDifference
 {

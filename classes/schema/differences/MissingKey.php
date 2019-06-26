@@ -29,7 +29,7 @@ if (!defined('_TB_VERSION_')) {
  *
  * Missing table key / index
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class MissingKey implements SchemaDifference
 {
@@ -49,7 +49,7 @@ class MissingKey implements SchemaDifference
      * @param TableSchema $table
      * @param TableKey $key
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct(TableSchema $table, TableKey $key)
     {
@@ -62,7 +62,7 @@ class MissingKey implements SchemaDifference
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     function describe()
     {

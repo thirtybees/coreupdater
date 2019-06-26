@@ -29,7 +29,7 @@ if (!defined('_TB_VERSION_')) {
  *
  * This class holds information about specific database column
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class ColumnSchema
 {
@@ -75,7 +75,7 @@ class ColumnSchema
      *
      * @param string $columnName name of the database column
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct($columnName)
     {
@@ -88,7 +88,7 @@ class ColumnSchema
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getName()
     {
@@ -100,7 +100,7 @@ class ColumnSchema
      *
      * @param string $dataType database type
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function setDataType($dataType)
     {
@@ -112,7 +112,7 @@ class ColumnSchema
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getDataType()
     {
@@ -124,7 +124,7 @@ class ColumnSchema
      *
      * @return bool
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function isNullable()
     {
@@ -149,7 +149,7 @@ class ColumnSchema
      *
      * @param bool $nullable
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function setNullable($nullable)
     {
@@ -161,7 +161,7 @@ class ColumnSchema
      *
      * @return bool
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function isAutoIncrement()
     {
@@ -173,7 +173,7 @@ class ColumnSchema
      *
      * @param bool $autoIncrement
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function setAutoIncrement($autoIncrement)
     {
@@ -189,7 +189,7 @@ class ColumnSchema
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getDefaultValue()
     {
@@ -201,7 +201,7 @@ class ColumnSchema
      *
      * @return bool
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function hasDefaultValue()
     {
@@ -214,7 +214,7 @@ class ColumnSchema
      *
      * @param string $defaultValue
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function setDefaultValue($defaultValue)
     {
@@ -232,7 +232,7 @@ class ColumnSchema
      *
      * @param DatabaseCharset $charset character set, ie. utf8mb4
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function setCharset(DatabaseCharset $charset)
     {
@@ -244,7 +244,7 @@ class ColumnSchema
      *
      * @return DatabaseCharset
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getCharset()
     {
@@ -258,7 +258,7 @@ class ColumnSchema
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getDDLStatement(TableSchema $table)
     {

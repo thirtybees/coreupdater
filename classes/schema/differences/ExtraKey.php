@@ -29,7 +29,7 @@ if (!defined('_TB_VERSION_')) {
  *
  * Represents extra / unknown table key
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class ExtraKey implements SchemaDifference
 {
@@ -49,7 +49,7 @@ class ExtraKey implements SchemaDifference
      * @param TableSchema $table
      * @param TableKey $key
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct(TableSchema $table, TableKey $key)
     {
@@ -62,7 +62,7 @@ class ExtraKey implements SchemaDifference
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     function describe()
     {

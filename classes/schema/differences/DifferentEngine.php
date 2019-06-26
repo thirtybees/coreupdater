@@ -29,7 +29,7 @@ if (!defined('_TB_VERSION_')) {
  *
  * Represents different table engine (InnoDB / MyISAM)
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class DifferentEngine implements SchemaDifference
 {
@@ -42,7 +42,7 @@ class DifferentEngine implements SchemaDifference
      * @param TableSchema $table
      * @param string $currentEngine
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct(TableSchema $table, $currentEngine)
     {
@@ -55,7 +55,7 @@ class DifferentEngine implements SchemaDifference
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     function describe()
     {

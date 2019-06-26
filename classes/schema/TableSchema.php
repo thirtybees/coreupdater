@@ -29,7 +29,7 @@ if (!defined('_TB_VERSION_')) {
  *
  * This class holds information specific database table
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class TableSchema
 {
@@ -63,7 +63,7 @@ class TableSchema
      *
      * @param $name string name of the database table
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct($name)
     {
@@ -78,7 +78,7 @@ class TableSchema
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getName()
     {
@@ -90,7 +90,7 @@ class TableSchema
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getNameWithoutPrefix()
     {
@@ -102,7 +102,7 @@ class TableSchema
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getEngine()
     {
@@ -114,7 +114,7 @@ class TableSchema
      *
      * @param $engine string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function setEngine($engine)
     {
@@ -126,7 +126,7 @@ class TableSchema
      *
      * @return DatabaseCharset
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getCharset()
     {
@@ -138,7 +138,7 @@ class TableSchema
      *
      * @param DatabaseCharset $charset
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function setCharset(DatabaseCharset $charset)
     {
@@ -150,7 +150,7 @@ class TableSchema
      *
      * @param ColumnSchema $column database column definition
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function addColumn(ColumnSchema $column)
     {
@@ -164,7 +164,7 @@ class TableSchema
      *
      * @return ColumnSchema[]
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getColumns()
     {
@@ -176,7 +176,7 @@ class TableSchema
      *
      * @param $columns ColumnSchema[]
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function setColumns($columns)
     {
@@ -208,7 +208,7 @@ class TableSchema
      *
      * @return ColumnSchema[]
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getColumnNames()
     {
@@ -224,7 +224,7 @@ class TableSchema
      *
      * @return bool
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function hasColumn($columnName)
     {
@@ -238,7 +238,7 @@ class TableSchema
      *
      * @return ColumnSchema | null
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getColumn($columnName)
     {
@@ -258,7 +258,7 @@ class TableSchema
      *
      * @return TableKey | null
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getKey($keyName)
     {
@@ -276,7 +276,7 @@ class TableSchema
      *
      * @return bool
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function hasKey($keyName)
     {
@@ -288,7 +288,7 @@ class TableSchema
      *
      * @param TableKey $key
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function addKey(TableKey $key)
     {
@@ -300,7 +300,7 @@ class TableSchema
      *
      * @return TableKey[]
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getKeys()
     {
@@ -312,7 +312,7 @@ class TableSchema
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getDDLStatement()
     {

@@ -32,7 +32,7 @@ if (!defined('_TB_VERSION_')) {
  * Result can be used to report on changes, and also to apply fixes and migrate
  * database to expected state.
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class DatabaseSchemaComparator
 {
@@ -51,7 +51,7 @@ class DatabaseSchemaComparator
      *
      * @param array $parameters comparison parameters. Use this to adjust comparison
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct($parameters = [])
     {
@@ -70,7 +70,7 @@ class DatabaseSchemaComparator
      *
      * @return SchemaDifference[]
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getDifferences(DatabaseSchema $currentSchema, DatabaseSchema $targetSchema)
     {
@@ -103,7 +103,7 @@ class DatabaseSchemaComparator
      *
      * @return SchemaDifference[]
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getTableDifferences(TableSchema $currentTable, TableSchema $targetTable)
     {
@@ -183,7 +183,7 @@ class DatabaseSchemaComparator
      *
      * @return SchemaDifference[]
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getColumnDifferences(TableSchema $table, ColumnSchema $current, ColumnSchema $target)
     {
@@ -220,7 +220,7 @@ class DatabaseSchemaComparator
      *
      * @return TableKey[]
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getMissingKeys(TableSchema $currentTable, TableSchema $targetTable)
     {
@@ -241,7 +241,7 @@ class DatabaseSchemaComparator
      *
      * @return TableSchema[] list of tables
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function getTables(DatabaseSchema $schema)
     {
@@ -267,7 +267,7 @@ class DatabaseSchemaComparator
      *
      * @return ColumnSchema[]
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function getMissingColumns(TableSchema $currentTable, TableSchema $targetTable)
     {

@@ -52,7 +52,7 @@ if (!defined('_TB_VERSION_')) {
  * comparing this database schema to current database schema (retrieved by
  * InformationSchemaBuilder), we can find all differences, and rectify them.
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class ObjectModelSchemaBuilder
 {
@@ -69,7 +69,7 @@ class ObjectModelSchemaBuilder
      * @throws PrestaShopException
      * @throws ReflectionException
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getSchema()
     {
@@ -87,7 +87,7 @@ class ObjectModelSchemaBuilder
      *
      * @throws PrestaShopException
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function processModels() {
         foreach (CoreModels::getModels() as $identifier => $definition) {
@@ -102,7 +102,7 @@ class ObjectModelSchemaBuilder
      * @throws PrestaShopException
      * @throws ReflectionException
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function processObjectModels()
     {
@@ -139,7 +139,7 @@ class ObjectModelSchemaBuilder
      *
      * @throws PrestaShopException
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function processModel($objectModel, $definition)
     {
@@ -182,7 +182,7 @@ class ObjectModelSchemaBuilder
      *
      * @return TableSchema
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function addPrimaryTable($definition, $charset)
     {
@@ -212,7 +212,7 @@ class ObjectModelSchemaBuilder
      *
      * @return TableSchema | null
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function addLangTable($definition, $charset)
     {
@@ -259,7 +259,7 @@ class ObjectModelSchemaBuilder
      *
      * @return TableSchema | null
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function addShopTable($definition, $charset)
     {
@@ -304,7 +304,7 @@ class ObjectModelSchemaBuilder
      *
      * @throws PrestaShopException
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function processField($objectModel, $columnName, $columnDefinition, $primaryTable, $langTable, $shopTable, $charset)
     {
@@ -375,7 +375,7 @@ class ObjectModelSchemaBuilder
      * @param $tableName
      * @param $keys
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function addKey($tableName, $keys)
     {
@@ -404,7 +404,7 @@ class ObjectModelSchemaBuilder
      * @param TableSchema $shopTable
      * @param TableSchema $langTable
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function postProcessTables($objectModel, $primaryTable, $shopTable, $langTable)
     {
@@ -428,7 +428,7 @@ class ObjectModelSchemaBuilder
      *
      * @return TableSchema
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function getTable($unprefixedTableName, $charset)
     {
@@ -453,7 +453,7 @@ class ObjectModelSchemaBuilder
      * @return string
      * @throws PrestaShopException
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function getColumnDataType($columnDefinition, $objectModel, $field)
     {
@@ -513,7 +513,7 @@ class ObjectModelSchemaBuilder
      *
      * @return DatabaseCharset | null
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function getColumnCharset($columnDefinition, $tableCharset)
     {
@@ -541,7 +541,7 @@ class ObjectModelSchemaBuilder
      *
      * @return bool
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected static function checkOption($array, $key)
     {
@@ -557,7 +557,7 @@ class ObjectModelSchemaBuilder
      *
      * @return mixed
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected static function getOption($array, $key, $default)
     {

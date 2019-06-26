@@ -29,7 +29,7 @@ if (!defined('_TB_VERSION_')) {
  *
  * Difference in column's nullable settings
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class DifferentNullable implements SchemaDifference
 {
@@ -44,7 +44,7 @@ class DifferentNullable implements SchemaDifference
      * @param ColumnSchema $column
      * @param ColumnSchema $currentColumn
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct(TableSchema $table, ColumnSchema $column, ColumnSchema $currentColumn)
     {
@@ -58,7 +58,7 @@ class DifferentNullable implements SchemaDifference
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function describe()
     {

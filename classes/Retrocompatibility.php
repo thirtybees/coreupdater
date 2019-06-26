@@ -97,7 +97,7 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public static function doAllDatabaseUpgrades() {
         $errors = [];
@@ -119,7 +119,7 @@ class Retrocompatibility
      *
      * @return string Translation.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function l($string)
     {
@@ -133,7 +133,7 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function doSqlUpgrades() {
         $errors = [];
@@ -170,7 +170,7 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function handleSingleLangConfigs() {
         $errors = [];
@@ -199,7 +199,7 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function handleMultiLangConfigs() {
         $errors = [];
@@ -256,7 +256,7 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function deleteObsoleteTabs() {
         $errors = [];
@@ -284,7 +284,7 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     protected function addMissingTabs() {
         $errors = [];
@@ -375,7 +375,7 @@ class Retrocompatibility
      * @return array Array with strings of module names. Empty array if there
      *               are no incompatible ones installed.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public static function getIncompatibleModules($targetVersion) {
         $incompatibles = [];
@@ -410,7 +410,7 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public static function removeModule($moduleName) {
         $errors = [];

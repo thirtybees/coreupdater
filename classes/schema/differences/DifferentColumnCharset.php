@@ -29,7 +29,7 @@ if (!defined('_TB_VERSION_')) {
  *
  * Difference in column character set and collation
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class DifferentColumnCharset implements SchemaDifference
 {
@@ -44,7 +44,7 @@ class DifferentColumnCharset implements SchemaDifference
      * @param ColumnSchema $column
      * @param ColumnSchema $currentColumn
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct(TableSchema $table, ColumnSchema $column, ColumnSchema $currentColumn)
     {
@@ -58,7 +58,7 @@ class DifferentColumnCharset implements SchemaDifference
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function describe()
     {

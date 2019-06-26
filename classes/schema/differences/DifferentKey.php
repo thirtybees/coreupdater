@@ -29,7 +29,7 @@ if (!defined('_TB_VERSION_')) {
  *
  * Represents difference in database key definition
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class DifferentKey implements SchemaDifference
 {
@@ -55,7 +55,7 @@ class DifferentKey implements SchemaDifference
      * @param TableKey $key
      * @param TableKey $currentKey
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct(TableSchema $table, TableKey $key, TableKey $currentKey)
     {
@@ -69,7 +69,7 @@ class DifferentKey implements SchemaDifference
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     function describe()
     {

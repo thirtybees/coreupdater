@@ -28,7 +28,7 @@ if (!defined('_TB_VERSION_')) {
  *
  * This class represents database schema
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class DatabaseSchema
 {
@@ -42,7 +42,7 @@ class DatabaseSchema
      *
      * @param TableSchema $table
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function addTable(TableSchema $table)
     {
@@ -54,7 +54,7 @@ class DatabaseSchema
      *
      * @return TableSchema[]
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getTables()
     {
@@ -70,7 +70,7 @@ class DatabaseSchema
      *
      * @return bool
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function hasTable($tableName)
     {
@@ -84,7 +84,7 @@ class DatabaseSchema
      *
      * @return TableSchema | null
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getTable($tableName)
     {
@@ -100,7 +100,7 @@ class DatabaseSchema
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getDDLStatement()
     {

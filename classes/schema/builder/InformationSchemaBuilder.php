@@ -32,7 +32,7 @@ if (!defined('_TB_VERSION_')) {
  * This class is responsible for building DatabaseSchema object based on MySQL
  * information schema.
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class InformationSchemaBuilder
 {
@@ -57,7 +57,7 @@ class InformationSchemaBuilder
      *                             database will be returned.
      * @param int $dbInstance
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct($databaseName = null, $dbInstance = _PS_USE_SQL_SLAVE_)
     {
@@ -79,7 +79,7 @@ class InformationSchemaBuilder
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getSchema($force = false)
     {
@@ -113,7 +113,7 @@ class InformationSchemaBuilder
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function loadTables($connection)
     {
@@ -139,7 +139,7 @@ class InformationSchemaBuilder
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function loadColumns($connection)
     {
@@ -175,7 +175,7 @@ class InformationSchemaBuilder
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function loadKeys($connection)
     {
@@ -206,7 +206,7 @@ class InformationSchemaBuilder
      *
      * @return int TableKey constant
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected function getKeyType($constraintType)
     {

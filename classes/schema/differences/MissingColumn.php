@@ -29,7 +29,7 @@ if (!defined('_TB_VERSION_')) {
  *
  * Represents missing database column
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class MissingColumn implements SchemaDifference
 {
@@ -42,7 +42,7 @@ class MissingColumn implements SchemaDifference
      * @param TableSchema $table
      * @param ColumnSchema $column
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct(TableSchema $table, ColumnSchema $column)
     {
@@ -55,7 +55,7 @@ class MissingColumn implements SchemaDifference
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     function describe()
     {

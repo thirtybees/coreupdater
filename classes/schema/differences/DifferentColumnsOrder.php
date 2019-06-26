@@ -30,7 +30,7 @@ if (!defined('_TB_VERSION_')) {
  * This difference represents situation when two database tables have the same
  * columns, but in different order.
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class DifferentColumnsOrder implements SchemaDifference
 {
@@ -43,7 +43,7 @@ class DifferentColumnsOrder implements SchemaDifference
      * @param TableSchema $table
      * @param TableSchema $currentTable
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct(TableSchema $table, TableSchema $currentTable)
     {
@@ -56,7 +56,7 @@ class DifferentColumnsOrder implements SchemaDifference
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function describe()
     {

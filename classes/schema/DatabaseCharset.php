@@ -29,7 +29,7 @@ if (!defined('_TB_VERSION_')) {
  *
  * This class represents character set and collate settings
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class DatabaseCharset
 {
@@ -51,7 +51,7 @@ class DatabaseCharset
      * @param string $charset
      * @param string $collate
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct($charset = null, $collate = null)
     {
@@ -62,7 +62,7 @@ class DatabaseCharset
     /**
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getCharset()
     {
@@ -72,7 +72,7 @@ class DatabaseCharset
     /**
      * @param string $charset
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function setCharset($charset)
     {
@@ -82,7 +82,7 @@ class DatabaseCharset
     /**
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getCollate()
     {
@@ -92,7 +92,7 @@ class DatabaseCharset
     /**
      * @param string $collate
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function setCollate($collate)
     {
@@ -106,7 +106,7 @@ class DatabaseCharset
      *
      * @return bool
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function equals(DatabaseCharset $other)
     {
@@ -121,7 +121,7 @@ class DatabaseCharset
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function describe()
     {
@@ -139,7 +139,7 @@ class DatabaseCharset
      *
      * @return bool
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function isDefaultCollate()
     {
@@ -156,7 +156,7 @@ class DatabaseCharset
     /**
      * Loads available character sets from database information schema
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     protected static function loadCharsets()
     {

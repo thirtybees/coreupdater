@@ -29,7 +29,7 @@ if (!defined('_TB_VERSION_')) {
  *
  * Missing table in target database
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class MissingTable implements SchemaDifference
 {
@@ -40,7 +40,7 @@ class MissingTable implements SchemaDifference
      *
      * @param TableSchema $table
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct(TableSchema $table)
     {
@@ -52,7 +52,7 @@ class MissingTable implements SchemaDifference
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     function describe()
     {

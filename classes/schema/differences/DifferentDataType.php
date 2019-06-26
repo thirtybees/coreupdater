@@ -29,7 +29,7 @@ if (!defined('_TB_VERSION_')) {
  *
  * Difference in column database type
  *
- * @since 1.1.0
+ * @version 1.1.0 Initial version.
  */
 class DifferentDataType implements SchemaDifference
 {
@@ -44,7 +44,7 @@ class DifferentDataType implements SchemaDifference
      * @param ColumnSchema $column
      * @param ColumnSchema $currentColumn
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function __construct(TableSchema $table, ColumnSchema $column, ColumnSchema $currentColumn)
     {
@@ -58,7 +58,7 @@ class DifferentDataType implements SchemaDifference
      *
      * @return string
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function describe()
     {
@@ -74,7 +74,7 @@ class DifferentDataType implements SchemaDifference
     /**
      * @param ColumnSchema $column
      *
-     * @since 1.1.0
+     * @version 1.1.0 Initial version.
      */
     public function getDataType(ColumnSchema $column)
     {

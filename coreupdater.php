@@ -35,7 +35,7 @@ class CoreUpdater extends Module
     /**
      * CoreUpdater constructor.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public function __construct()
     {
@@ -59,7 +59,7 @@ class CoreUpdater extends Module
      *
      * @return bool Whether this module was successfully installed.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public function install()
     {
@@ -106,7 +106,7 @@ class CoreUpdater extends Module
      *
      * @return bool Whether this module was successfully uninstalled.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public function uninstall()
     {
@@ -130,7 +130,7 @@ class CoreUpdater extends Module
      *
      * @return string Configuration page HTML.
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
      */
     public function getContent()
     {
