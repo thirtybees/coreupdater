@@ -333,6 +333,12 @@ class GitUpdate
 
             $messages['informations'][] = sprintf($me->l('Searched installed files in %s/'), $dir);
             $messages['done'] = false;
+        } elseif ( ! array_key_exists('distributionFileset', $me->storage)) {
+            $me->addDistributionFileset();
+            $me->storage['distributionFileset'] = true;
+
+            $messages['informations'][] = $me->l('Added distribution fileset.');
+            $messages['done'] = false;
         } elseif ( ! array_key_exists('changeset', $me->storage)) {
             $me->calculateChanges();
             $messages['changeset'] = $me->storage['changeset'];
@@ -579,21 +585,39 @@ class GitUpdate
                     $this->storage['installationList'][$path] = true;
                 }
             }
-
-            // Always add distribution files.
-            // TODO: this is not ideal, we search both long lists for each
-            //       directory again. Better establish a separate step for this.
-            $dirlen = strlen($dir);
-            foreach (array_merge($targetList, $originList) as $path => $unused) {
-                if (substr($path, 0, $dirlen) === $dir
-                    && is_file($path)
-                    && ! array_key_exists($path, $this->storage['installationList'])
-                ) {
-                    $this->storage['installationList'][$path]
-                        = static::getGitHash($path);
-                }
-            }
         } // else ignore files at the root level.
+
+        chdir($oldCwd);
+    }
+
+    /**
+     * Add distribution files to the fileset of installed files. Only files
+     * actually existing, of course.
+     *
+     * This is for those files which get filtered away by too broad filters,
+     * still should get considered. E.g. img/p/index.php, while files in
+     * img/p/ get filtered.
+     *
+     * No failure expected, operations happen on existing data, only.
+     *
+     * @version 1.1.0 Initial version.
+     */
+    protected function addDistributionFileset()
+    {
+        $oldCwd = getcwd();
+        chdir(_PS_ROOT_DIR_);
+
+        foreach (array_merge(
+            $this->storage['fileList-'.$this->storage['versionTarget']],
+            $this->storage['fileList-'.$this->storage['versionOrigin']]
+        ) as $path => $unused) {
+            if (is_file($path)
+                && ! array_key_exists($path, $this->storage['installationList'])
+            ) {
+                $this->storage['installationList'][$path]
+                    = static::getGitHash($path);
+            }
+        }
 
         chdir($oldCwd);
     }
