@@ -16,7 +16,7 @@
  * @license   Academic Free License (AFL 3.0)
  *}
 
-<div id="blockCompetitionWarning" class="panel col-lg-12">
+<div id="blockCompetitionWarning" class="panel">
     <div class="panel-heading">
         {l s='Competing modules' mod='coreupdater'}
     </div>
