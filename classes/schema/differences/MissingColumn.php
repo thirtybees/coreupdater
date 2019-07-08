@@ -18,7 +18,9 @@
  */
 
 namespace CoreUpdater;
+
 use \Translate;
+use \Db;
 
 if (!defined('_TB_VERSION_')) {
     exit;
@@ -65,4 +67,61 @@ class MissingColumn implements SchemaDifference
             $this->table->getName()
         );
     }
+
+    /**
+     * Returns unique identification of this database difference.
+     *
+     * @return string
+     */
+    function getUniqueId()
+    {
+        return get_class($this) . ':' . $this->table->getName() . '.' . $this->column->getName();
+    }
+
+    /**
+     * This operation is NOT destructive
+     *
+     * @return bool
+     */
+    function isDestructive()
+    {
+        return false;
+    }
+
+    /**
+     * Returns severity of this difference
+     *
+     * @return int severity
+     */
+    function getSeverity()
+    {
+        return self::SEVERITY_CRITICAL;
+    }
+
+    /**
+     * Applies fix to correct this database difference - adds column to table
+     *
+     * @param Db $connection
+     * @return bool
+     * @throws \PrestaShopException
+     */
+    function applyFix(Db $connection)
+    {
+        $stmt = 'ALTER TABLE `' . bqSQL($this->table->getName()) . '` ADD COLUMN ' . $this->column->getDDLStatement($this->table);
+        $prev = null;
+        foreach ($this->table->getColumnNames() as $columnName) {
+            if ($columnName === $this->column->getName()) {
+                break;
+            }
+            $prev = $columnName;
+        }
+        if (! $prev) {
+            $stmt .= " FIRST";
+        } else {
+            $stmt .= " AFTER `".pSQL($prev)."`";
+        }
+
+        return $connection->execute($stmt);
+    }
 }
+
