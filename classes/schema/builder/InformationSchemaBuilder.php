@@ -53,15 +53,22 @@ class InformationSchemaBuilder
     protected $schema;
 
     /**
+     * @var string[]|null optional list of tables to retrieve
+     */
+    protected $tables;
+
+    /**
      * InformationSchemaBuilder constructor.
      *
      * @param Db $connection
      * @param string $databaseName Optional name of database to load schema for.
      *                             If not provided, information about current
      *                             database will be returned.
+     * @param string[] $tables     Optional table names. If present, builder will
+     *                             load information for these tables only
      * @version 1.1.0 Initial version.
      */
-    public function __construct($connection = null, $databaseName = null)
+    public function __construct($connection = null, $databaseName = null, $tables = null)
     {
         if (! $connection) {
             $this->connection = Db::getInstance();
@@ -73,6 +80,7 @@ class InformationSchemaBuilder
         } else {
             $this->database = pSQL($databaseName);
         }
+        $this->tables = $tables;
     }
 
     /**
@@ -127,7 +135,8 @@ class InformationSchemaBuilder
             SELECT t.TABLE_NAME, t.ENGINE, c.CHARACTER_SET_NAME, t.TABLE_COLLATION
             FROM information_schema.TABLES t
             LEFT JOIN information_schema.COLLATION_CHARACTER_SET_APPLICABILITY c ON (c.COLLATION_NAME = t.TABLE_COLLATION)
-            WHERE t.TABLE_SCHEMA = ' . $this->database
+            WHERE t.TABLE_SCHEMA = ' . $this->database .
+            $this->addTablesRestriction('t')
         );
         foreach ($tables as $row) {
             $table = new TableSchema($row['TABLE_NAME']);
@@ -151,8 +160,9 @@ class InformationSchemaBuilder
     {
         $columns = $connection->executeS('
             SELECT *
-            FROM information_schema.COLUMNS
-            WHERE TABLE_SCHEMA = ' . $this->database
+            FROM information_schema.COLUMNS c
+            WHERE TABLE_SCHEMA = ' . $this->database .
+            $this->addTablesRestriction('c')
         );
         foreach ($columns as $row) {
             $columnName = $row['COLUMN_NAME'];
@@ -189,7 +199,7 @@ class InformationSchemaBuilder
             SELECT s.TABLE_NAME, s.INDEX_NAME, t.CONSTRAINT_TYPE, s.COLUMN_NAME, s.SUB_PART
             FROM information_schema.STATISTICS s
             LEFT JOIN information_schema.TABLE_CONSTRAINTS t ON (t.TABLE_SCHEMA = s.TABLE_SCHEMA AND t.TABLE_NAME = s.TABLE_NAME and t.CONSTRAINT_NAME = s.INDEX_NAME)
-            WHERE s.TABLE_SCHEMA = ' . $this->database . '
+            WHERE s.TABLE_SCHEMA = ' . $this->database . $this->addTablesRestriction('s') . '
             ORDER BY s.TABLE_NAME, s.INDEX_NAME, s.SEQ_IN_INDEX'
         );
         foreach ($keys as $row) {
@@ -226,5 +236,19 @@ class InformationSchemaBuilder
             default:
                 return ObjectModel::KEY;
         }
+    }
+
+    /**
+     * Helper method to restrict sql query for specific tables only
+     *
+     * @param $alias
+     * @return string
+     */
+    protected function addTablesRestriction($alias)
+    {
+        if ($this->tables) {
+            return ' AND ' . $alias . ".TABLE_NAME IN ('" . implode("', '", $this->tables) . "') ";
+        }
+        return '';
     }
 }
