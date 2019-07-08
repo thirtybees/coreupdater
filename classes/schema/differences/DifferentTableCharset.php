@@ -18,7 +18,9 @@
  */
 
 namespace CoreUpdater;
+
 use \Translate;
+use \Db;
 
 if (!defined('_TB_VERSION_')) {
     exit;
@@ -65,5 +67,50 @@ class DifferentTableCharset implements SchemaDifference
             $this->table->getCharset()->describe(),
             $this->currentTable->getCharset()->describe()
         );
+    }
+
+    /**
+     * Returns unique identification of this database difference.
+     *
+     * @return string
+     */
+    function getUniqueId()
+    {
+        return get_class($this) . ':' . $this->table->getName();
+    }
+
+    /**
+     * This operation is NOT destructive -- this is only table's DEFAULT character set. Every column tracks information
+     * about its own character set and collation.
+     *
+     * @return bool
+     */
+    function isDestructive()
+    {
+        return false;
+    }
+
+    /**
+     * Returns severity of this difference
+     *
+     * @return int severity
+     */
+    function getSeverity()
+    {
+        return self::SEVERITY_NORMAL;
+    }
+
+    /**
+     * Applies fix to correct this database difference
+     *
+     * @param Db $connection
+     * @return bool
+     * @throws \PrestaShopException
+     */
+    function applyFix(Db $connection)
+    {
+        $charset = $this->table->getCharset();
+        $stmt = 'ALTER TABLE `' . bqSQL($this->table->getName()) . '` CHARACTER SET ' . $charset->getCharset() . ' COLLATE ' . $charset->getCollate();
+        return $connection->execute($stmt);
     }
 }
