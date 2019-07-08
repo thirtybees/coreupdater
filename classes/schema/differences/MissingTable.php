@@ -18,7 +18,9 @@
  */
 
 namespace CoreUpdater;
+
 use \Translate;
+use \Db;
 
 if (!defined('_TB_VERSION_')) {
     exit;
@@ -57,5 +59,47 @@ class MissingTable implements SchemaDifference
     function describe()
     {
         return sprintf(Translate::getModuleTranslation('coreupdater', 'Table `%1$s` does not exist', 'coreupdater'), $this->table->getName());
+    }
+
+    /**
+     * Returns unique identification of this database difference.
+     *
+     * @return string
+     */
+    function getUniqueId()
+    {
+        return get_class($this) . ':' . $this->table->getName();
+    }
+
+    /**
+     * This operation is NOT destructive
+     *
+     * @return bool
+     */
+    function isDestructive()
+    {
+        return false;
+    }
+
+    /**
+     * Returns severity of this difference
+     *
+     * @return int severity
+     */
+    function getSeverity()
+    {
+        return self::SEVERITY_CRITICAL;
+    }
+
+    /**
+     * Applies fix to correct this database difference - creates table
+     *
+     * @param Db $connection
+     * @return bool
+     * @throws \PrestaShopException
+     */
+    function applyFix(Db $connection)
+    {
+        return $connection->execute($this->table->getDDLStatement());
     }
 }
