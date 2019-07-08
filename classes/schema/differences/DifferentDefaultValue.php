@@ -18,7 +18,10 @@
  */
 
 namespace CoreUpdater;
+
 use \Translate;
+use \Db;
+use \ObjectModel;
 
 if (!defined('_TB_VERSION_')) {
     exit;
@@ -70,5 +73,67 @@ class DifferentDefaultValue implements SchemaDifference
         return is_null($value)
             ? sprintf(Translate::getModuleTranslation('coreupdater', 'Column `%1$s`.`%2$s` should NOT have default value `%3$s`', 'coreupdater'), $table, $col, $currentValue)
             : sprintf(Translate::getModuleTranslation('coreupdater', 'Column `%1$s`.`%2$s` should have DEFAULT value `%3$s` instead of `%4$s`', 'coreupdater'), $table, $col, $value, $currentValue);
+    }
+
+    /**
+     * Returns unique identification of this database difference.
+     *
+     * @return string
+     */
+    function getUniqueId()
+    {
+        return get_class($this) . ':' . $this->table->getName() . '.' . $this->column->getName();
+    }
+
+    /**
+     * This operation is NOT destructive
+     *
+     * @return bool
+     */
+    function isDestructive()
+    {
+        return false;
+    }
+
+    /**
+     * Returns severity of this difference
+     *
+     * @return int severity
+     */
+    function getSeverity()
+    {
+        return self::SEVERITY_CRITICAL;
+    }
+
+    /**
+     * Applies fix to correct this database difference
+     *
+     * @param Db $connection
+     * @return bool
+     * @throws \PrestaShopDatabaseException
+     * @throws \PrestaShopException
+     */
+    function applyFix(Db $connection)
+    {
+        $stmt = 'ALTER TABLE `' . bqSQL($this->table->getName()) . '` ALTER COLUMN `' .bqSQL($this->column->getName()) . '` ';
+        if ($this->column->hasDefaultValue()) {
+            $default = $this->column->getDefaultValue();
+            if (is_null($default)) {
+                $default = 'NULL';
+            } else if ($default === ObjectModel::DEFAULT_CURRENT_TIMESTAMP) {
+                // current timestamp cant be set using alter table
+                $builder = new InformationSchemaBuilder($connection);
+                $column = $builder->getCurrentColumn($this->table->getName(), $this->column->getName());
+                $column->setDefaultValue($default);
+                $stmt = 'ALTER TABLE `' . bqSQL($this->table->getName()) . '` MODIFY COLUMN ' .$column->getDDLStatement($this->table);
+                return $connection->execute($stmt);
+            } else {
+                $default = "'".pSQL($default)."'";
+            }
+            $stmt .= "SET DEFAULT " . $default;
+        } else {
+            $stmt .= "DROP DEFAULT";
+        }
+        return $connection->execute($stmt);
     }
 }
