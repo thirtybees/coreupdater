@@ -106,6 +106,30 @@ class InformationSchemaBuilder
     }
 
     /**
+     * Returns current column
+     *
+     * @param string $tableName
+     * @param string $columnName
+     * @return ColumnSchema
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
+    public function getCurrentColumn($tableName, $columnName)
+    {
+        $columns = $this->connection->executeS('
+            SELECT *
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = ' . $this->database . '
+              AND TABLE_NAME = \'' . pSql($tableName) . '\'
+              AND COLUMN_NAME = \'' . pSql($columnName) . '\''
+        );
+        if ($columns && count($columns) === 1) {
+            return $this->toColumn($columns[0]);
+        }
+        throw new PrestaShopException(sprintf("Column `%s$1`.`%s$2` not found in database", $tableName, $columnName));
+    }
+
+    /**
      * Builds DatabaseSchema object
      *
      * @throws PrestaShopDatabaseException
