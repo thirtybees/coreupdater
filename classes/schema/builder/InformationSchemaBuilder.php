@@ -18,6 +18,7 @@
  */
 
 namespace CoreUpdater;
+
 use \Db;
 use \ObjectModel;
 use \PrestaShopException;
@@ -37,31 +38,36 @@ if (!defined('_TB_VERSION_')) {
 class InformationSchemaBuilder
 {
     /**
-     * @var int Database connection name to be used to query information schema
+     * @var Db Database connection name to be used to query information schema
      */
-    protected $dbInstance;
+    protected $connection;
 
     /**
      * @var string database name
      */
     protected $database;
 
-    /** @var DatabaseSchema */
+    /**
+     * @var DatabaseSchema
+     */
     protected $schema;
 
     /**
      * InformationSchemaBuilder constructor.
      *
+     * @param Db $connection
      * @param string $databaseName Optional name of database to load schema for.
      *                             If not provided, information about current
      *                             database will be returned.
-     * @param int $dbInstance
-     *
      * @version 1.1.0 Initial version.
      */
-    public function __construct($databaseName = null, $dbInstance = _PS_USE_SQL_SLAVE_)
+    public function __construct($connection = null, $databaseName = null)
     {
-        $this->dbInstance = $dbInstance;
+        if (! $connection) {
+            $this->connection = Db::getInstance();
+        } else {
+            $this->connection = $connection;
+        }
         if (! $databaseName) {
             $this->database = 'database()';
         } else {
@@ -99,7 +105,7 @@ class InformationSchemaBuilder
      */
     protected function loadInformationSchema()
     {
-        $connection = Db::getInstance($this->dbInstance);
+        $connection = $this->connection;
         $this->loadTables($connection);
         $this->loadColumns($connection);
         $this->loadKeys($connection);
