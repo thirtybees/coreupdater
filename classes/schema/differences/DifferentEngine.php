@@ -18,7 +18,9 @@
  */
 
 namespace CoreUpdater;
+
 use \Translate;
+use \Db;
 
 if (!defined('_TB_VERSION_')) {
     exit;
@@ -65,5 +67,48 @@ class DifferentEngine implements SchemaDifference
             $this->currentEngine,
             $this->table->getEngine()
         );
+    }
+
+    /**
+     * Returns unique identification of this database difference.
+     *
+     * @return string
+     */
+    function getUniqueId()
+    {
+        return get_class($this) . ':' . $this->table->getName();
+    }
+
+    /**
+     * This operation is NOT destructive
+     *
+     * @return bool
+     */
+    function isDestructive()
+    {
+        return false;
+    }
+
+    /**
+     * Returns severity of this difference
+     *
+     * @return int severity
+     */
+    function getSeverity()
+    {
+        return self::SEVERITY_NORMAL;
+    }
+
+    /**
+     * Applies fix to correct this database difference
+     *
+     * @param Db $connection
+     * @return bool
+     * @throws \PrestaShopException
+     */
+    function applyFix(Db $connection)
+    {
+        $stmt = 'ALTER TABLE `' . bqSQL($this->table->getName()) . '` ENGINE=' . $this->table->getEngine();
+        return $connection->execute($stmt);
     }
 }
