@@ -324,4 +324,18 @@ class ColumnSchema
         return $type;
     }
 
+    /**
+     * Returns extra information from data type, ie 32 from varchar(32), or 'x', 'y' from enum('x', 'y')
+     */
+    public function getExtraInformation()
+    {
+        $type = $this->getDataType();
+        $type = strtolower($type);
+        $match = null;
+        preg_match('/(?<=\()(.+)(?=\))/is', $type, $match);
+        if ($match) {
+            return $match[1];
+        }
+        return null;
+    }
 }
