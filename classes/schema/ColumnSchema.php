@@ -106,6 +106,9 @@ class ColumnSchema
     public function setDataType($dataType)
     {
         $this->dataType = $dataType;
+        if ($this->defaultValue === ObjectModel::DEFAULT_CURRENT_TIMESTAMP) {
+            $this->defaultValue = null;
+        }
     }
 
     /**
