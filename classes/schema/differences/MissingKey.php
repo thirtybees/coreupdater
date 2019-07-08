@@ -18,7 +18,10 @@
  */
 
 namespace CoreUpdater;
+
 use \Translate;
+use \Db;
+use \ObjectModel;
 
 if (!defined('_TB_VERSION_')) {
     exit;
@@ -72,4 +75,52 @@ class MissingKey implements SchemaDifference
             $this->table->getName()
         );
     }
+
+    /**
+     * Returns unique identification of this database difference.
+     *
+     * @return string
+     */
+    function getUniqueId()
+    {
+        return get_class($this) . ':' . $this->table->getName() . '.' . $this->key->getName();
+    }
+
+    /**
+     * This operation is NOT destructive
+     *
+     * @return bool
+     */
+    function isDestructive()
+    {
+        return false;
+    }
+
+    /**
+     * Returns severity of this difference
+     *
+     * @return int severity
+     */
+    function getSeverity()
+    {
+        if ($this->key->getType() === ObjectModel::KEY) {
+            return self::SEVERITY_NORMAL;
+        }
+        return self::SEVERITY_CRITICAL;
+    }
+
+    /**
+     * Applies fix to correct this database difference - adds key to table
+     *
+     * @param Db $connection
+     * @return bool
+     * @throws \PrestaShopException
+     */
+    function applyFix(Db $connection)
+    {
+        $stmt = 'ALTER TABLE `' . bqSQL($this->table->getName()) . '` ADD ' . $this->key->getDDLStatement();
+        return $connection->execute($stmt);
+    }
+
 }
+
