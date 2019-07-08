@@ -18,6 +18,7 @@
  */
 
 namespace CoreUpdater;
+
 use \ObjectModel;
 
 if (!defined('_TB_VERSION_')) {
@@ -209,8 +210,18 @@ class ColumnSchema
     }
 
     /**
+     * Returns true, if this column has DEFAULT NULL
+     *
+     * @return bool
+     */
+    public function hasDefaultValueNull()
+    {
+        return $this->defaultValue === ObjectModel::DEFAULT_NULL;
+    }
+
+    /**
      * Sets column default value. PHP null means no default value exists. If column should have
-     * DEFAULT NULL, then pass ColumnSchema::DEFAULT_NULL
+     * DEFAULT NULL, then pass ObjectModel::DEFAULT_NULL
      *
      * @param string $defaultValue
      *
