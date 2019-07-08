@@ -307,4 +307,21 @@ class ColumnSchema
 
         return $col;
     }
+
+    /**
+     * Returns base database type, ie varchar instead of varchar(32)
+     */
+    public function getBaseType()
+    {
+        $type = $this->getDataType();
+        $type = strtolower($type);
+        $type = str_replace('unsigned', '', $type);
+        $type = str_replace('signed', '', $type);
+        if (strpos($type, '(')) {
+            $parts = explode('(', $type);
+            $type = $parts[0];
+        }
+        return $type;
+    }
+
 }
