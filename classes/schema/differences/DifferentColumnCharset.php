@@ -18,7 +18,9 @@
  */
 
 namespace CoreUpdater;
+
 use \Translate;
+use \Db;
 
 if (!defined('_TB_VERSION_')) {
     exit;
@@ -71,4 +73,50 @@ class DifferentColumnCharset implements SchemaDifference
         );
     }
 
+    /**
+     * Returns unique identification of this database difference.
+     *
+     * @return string
+     */
+    function getUniqueId()
+    {
+        return get_class($this) . ':' . $this->table->getName() . '.' . $this->column->getName();
+    }
+
+    /**
+     * This operation is potentially destructive -- changing column charset might lead to data corruption
+     *
+     * @return bool
+     */
+    function isDestructive()
+    {
+        return true;
+    }
+
+    /**
+     * Returns severity of this difference
+     *
+     * @return int severity
+     */
+    function getSeverity()
+    {
+        return self::SEVERITY_NORMAL;
+    }
+
+    /**
+     * Applies fix to correct this database difference
+     *
+     * @param Db $connection
+     * @return bool
+     * @throws \PrestaShopDatabaseException
+     * @throws \PrestaShopException
+     */
+    function applyFix(Db $connection)
+    {
+        $builder = new InformationSchemaBuilder($connection);
+        $column = $builder->getCurrentColumn($this->table->getName(), $this->column->getName());
+        $column->setCharset($this->column->getCharset());
+        $stmt = 'ALTER TABLE `' . bqSQL($this->table->getName()) . '` MODIFY COLUMN ' .$column->getDDLStatement($this->table);
+        return $connection->execute($stmt);
+    }
 }
