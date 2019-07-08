@@ -19,6 +19,11 @@
 
 namespace CoreUpdater;
 
+use \Db;
+use \PrestaShopException;
+use \PrestaShopDatabaseException;
+
+
 if (!defined('_TB_VERSION_')) {
     exit;
 }
@@ -36,5 +41,52 @@ if (!defined('_TB_VERSION_')) {
  */
 interface SchemaDifference
 {
+    /**
+     * Severity levels
+     */
+    const SEVERITY_NOTICE = 0;
+    const SEVERITY_NORMAL = 1;
+    const SEVERITY_CRITICAL = 2;
+
+    /**
+     * Returns unique identification of this database difference. This is needed to find and apply fix for
+     * specific database difference
+     *
+     * @return string
+     */
+    function getUniqueId();
+
+    /**
+     * Returns string representation of this database difference
+     *
+     * @return string
+     */
     function describe();
+
+    /**
+     * Returns true, if the fix could mean loosing data. For example, dropping database column is always destructive.
+     * Changing column database type can be destructive, but it doesn't need to be. As an example, change data type
+     * from int(11) to int(4) does not modify data, it only affects display length
+     *
+     * @return boolean
+     */
+    function isDestructive();
+
+    /**
+     * Returns severity of this database difference
+     *
+     * @return int severity level
+     */
+    function getSeverity();
+
+    /**
+     * Method to actually fix the schema difference
+     *
+     * @param Db $connection database connection on which to apply fix
+     * @throws PrestaShopException
+     * @throws PrestaShopDatabaseException
+     * @return boolean
+     */
+    function applyFix(Db $connection);
 }
+
