@@ -165,20 +165,8 @@ class InformationSchemaBuilder
             $this->addTablesRestriction('c')
         );
         foreach ($columns as $row) {
-            $columnName = $row['COLUMN_NAME'];
             $tableName = $row['TABLE_NAME'];
-            $autoIncrement = strpos($row['EXTRA'], 'auto_increment') !== false;
-            $isNullable = strtoupper($row['IS_NULLABLE']) === 'YES';
-            $defaultValue = $row['COLUMN_DEFAULT'];
-            if (is_null($defaultValue) && $isNullable) {
-                $defaultValue = ObjectModel::DEFAULT_NULL;
-            }
-            $column = new ColumnSchema($columnName);;
-            $column->setDataType($row['COLUMN_TYPE']);
-            $column->setAutoIncrement($autoIncrement);
-            $column->setNullable($isNullable);
-            $column->setDefaultValue($defaultValue);
-            $column->setCharset(new DatabaseCharset($row['CHARACTER_SET_NAME'], $row['COLLATION_NAME']));
+            $column = $this->toColumn($row);
             $this->schema->getTable($tableName)->addColumn($column);
         }
     }
@@ -236,6 +224,30 @@ class InformationSchemaBuilder
             default:
                 return ObjectModel::KEY;
         }
+    }
+
+    /**
+     * Helper method that converts resultset row into ColumnSchema
+     *
+     * @param array $row
+     * @return ColumnSchema
+     */
+    protected function toColumn($row)
+    {
+        $columnName = $row['COLUMN_NAME'];
+        $autoIncrement = strpos($row['EXTRA'], 'auto_increment') !== false;
+        $isNullable = strtoupper($row['IS_NULLABLE']) === 'YES';
+        $defaultValue = $row['COLUMN_DEFAULT'];
+        if (is_null($defaultValue) && $isNullable) {
+            $defaultValue = ObjectModel::DEFAULT_NULL;
+        }
+        $column = new ColumnSchema($columnName);;
+        $column->setDataType($row['COLUMN_TYPE']);
+        $column->setAutoIncrement($autoIncrement);
+        $column->setNullable($isNullable);
+        $column->setDefaultValue($defaultValue);
+        $column->setCharset(new DatabaseCharset($row['CHARACTER_SET_NAME'], $row['COLLATION_NAME']));
+        return $column;
     }
 
     /**
