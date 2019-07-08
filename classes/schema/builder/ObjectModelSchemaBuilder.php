@@ -18,6 +18,7 @@
  */
 
 namespace CoreUpdater;
+
 use \CoreModels;
 use \ObjectModel;
 use \PrestaShopException;
