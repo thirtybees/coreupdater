@@ -18,7 +18,9 @@
  */
 
 namespace CoreUpdater;
+
 use \Translate;
+use \Db;
 
 if (!defined('_TB_VERSION_')) {
     exit;
@@ -67,5 +69,55 @@ class DifferentNullable implements SchemaDifference
         return $this->column->isNullable()
             ? sprintf(Translate::getModuleTranslation('coreupdater', 'Column `%1$s`.`%2$s` should be marked as NULL', 'coreupdater'), $table, $col)
             : sprintf(Translate::getModuleTranslation('coreupdater', 'Column `%1$s`.`%2$s` should be marked as NOT NULL', 'coreupdater'), $table, $col);
+    }
+
+    /**
+     * Returns unique identification of this database difference.
+     *
+     * @return string
+     */
+    function getUniqueId()
+    {
+        return get_class($this) . ':' . $this->table->getName() . '.' . $this->column->getName();
+    }
+
+    /**
+     * This operation is NOT destructive
+     *
+     * @return bool
+     */
+    function isDestructive()
+    {
+        return false;
+    }
+
+    /**
+     * Returns severity of this difference
+     *
+     * @return int severity
+     */
+    function getSeverity()
+    {
+        return self::SEVERITY_CRITICAL;
+    }
+
+    /**
+     * Applies fix to correct this database difference
+     *
+     * @param Db $connection
+     * @return bool
+     * @throws \PrestaShopDatabaseException
+     * @throws \PrestaShopException
+     */
+    function applyFix(Db $connection)
+    {
+        $builder = new InformationSchemaBuilder($connection);
+        $column = $builder->getCurrentColumn($this->table->getName(), $this->column->getName());
+        $column->setNullable($this->column->isNullable());
+        if (! $column->isNullable() && $column->hasDefaultValueNull()) {
+            $column->setDefaultValue(null);
+        }
+        $stmt = 'ALTER TABLE `' . bqSQL($this->table->getName()) . '` MODIFY COLUMN ' .$column->getDDLStatement($this->table);
+        return $connection->execute($stmt);
     }
 }
