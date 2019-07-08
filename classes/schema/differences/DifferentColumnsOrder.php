@@ -18,7 +18,9 @@
  */
 
 namespace CoreUpdater;
+
 use \Translate;
+use \Db;
 
 if (!defined('_TB_VERSION_')) {
     exit;
@@ -66,5 +68,57 @@ class DifferentColumnsOrder implements SchemaDifference
             "\n      expected: [" . implode(', ', $this->table->getColumnNames()) . "]",
             "\n      current:  [" . implode(', ', $this->currentTable->getColumnNames()) . "]"
         );
+    }
+
+    /**
+     * Returns unique identification of this database difference.
+     *
+     * @return string
+     */
+    function getUniqueId()
+    {
+        return get_class($this) . ':' . $this->table->getName();
+    }
+
+    /**
+     * This operation is NOT destructive
+     *
+     * @return bool
+     */
+    function isDestructive()
+    {
+        return false;
+    }
+
+    /**
+     * Returns severity of this difference
+     *
+     * @return int severity
+     */
+    function getSeverity()
+    {
+        return self::SEVERITY_NORMAL;
+    }
+
+    /**
+     * Applies fix to correct this database difference
+     *
+     * @param Db $connection
+     * @return bool
+     * @throws \PrestaShopDatabaseException
+     * @throws \PrestaShopException
+     */
+    function applyFix(Db $connection)
+    {
+        $columns = [];
+        $builder = new InformationSchemaBuilder($connection);
+        $prev = null;
+        foreach ($this->table->getColumnNames() as $columnName) {
+            $column = $builder->getCurrentColumn($this->table->getName(), $columnName);
+            $columns[] = "  MODIFY COLUMN " . $column->getDDLStatement($this->table) . ($prev ? " AFTER `$prev`" : " FIRST");
+            $prev = pSQL($columnName);
+        }
+        $stmt = 'ALTER TABLE `' . bqSQL($this->table->getName()) . "`\n" . implode(",\n", $columns);
+        return $connection->execute($stmt);
     }
 }
