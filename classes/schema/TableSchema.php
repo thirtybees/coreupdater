@@ -18,6 +18,7 @@
  */
 
 namespace CoreUpdater;
+
 use \Tools;
 
 if (!defined('_TB_VERSION_')) {

@@ -18,6 +18,7 @@
  */
 
 namespace CoreUpdater;
+
 use \Db;
 
 if (!defined('_TB_VERSION_')) {
