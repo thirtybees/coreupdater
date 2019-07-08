@@ -110,13 +110,18 @@ class DatabaseSchemaComparator
         $differences = [];
         $haveSameColumns = true;
 
-        // 1) detect missing columns
+        // 1) detect extra key
+        foreach ($this->getMissingKeys($targetTable, $currentTable) as $key) {
+            $differences[] = new ExtraKey($currentTable, $key);
+        }
+
+        // 2) detect missing columns
         foreach ($this->getMissingColumns($currentTable, $targetTable) as $column) {
             $differences[] = new MissingColumn($targetTable, $column);
             $haveSameColumns = false;
         }
 
-        // 2) find column differences
+        // 3) find column differences
         foreach ($targetTable->getColumns() as $targetColumn) {
             $currentColumn = $currentTable->getColumn($targetColumn->getName());
             if ($currentColumn) {
@@ -124,7 +129,7 @@ class DatabaseSchemaComparator
             }
         }
 
-        // 3) detect extra columns
+        // 4) detect extra columns
         foreach ($this->getMissingColumns($targetTable, $currentTable) as $column) {
             $differences[] = new ExtraColumn($currentTable, $column);
             $haveSameColumns = false;
@@ -137,12 +142,12 @@ class DatabaseSchemaComparator
             }
         }
 
-        // 4) detect missing key
+        // 5) detect missing key
         foreach ($this->getMissingKeys($currentTable, $targetTable) as $key) {
             $differences[] = new MissingKey($targetTable, $key);
         }
 
-        // 5) find key differences
+        // 6) find key differences
         foreach ($targetTable->getKeys() as $targetKey) {
             $currentKey = $currentTable->getKey($targetKey->getName());
             if ($currentKey) {
@@ -154,11 +159,6 @@ class DatabaseSchemaComparator
                     $differences[] = new DifferentKey($targetTable, $targetKey, $currentKey);
                 }
             }
-        }
-
-        // 6) detect extra key
-        foreach ($this->getMissingKeys($targetTable, $currentTable) as $key) {
-            $differences[] = new ExtraKey($currentTable, $key);
         }
 
         // 7) detect charsets
@@ -193,16 +193,16 @@ class DatabaseSchemaComparator
             $differences[] = new DifferentDataType($table, $target, $current);
         }
 
-        if (($current->hasDefaultValue() !== $target->hasDefaultValue()) || ($current->getDefaultValue() !== $target->getDefaultValue())) {
-            $differences[] = new DifferentDefaultValue($table, $target, $current);
-        }
-
         if ($current->isNullable() !== $target->isNullable()) {
             $differences[] = new DifferentNullable($table, $target, $current);
         }
 
         if ($current->isAutoIncrement() !== $target->isAutoIncrement()) {
             $differences[] = new DifferentAutoIncrement($table, $target, $current);
+        }
+
+        if (($current->hasDefaultValue() !== $target->hasDefaultValue()) || ($current->getDefaultValue() !== $target->getDefaultValue())) {
+            $differences[] = new DifferentDefaultValue($table, $target, $current);
         }
 
         if (! $current->getCharset()->equals($target->getCharset())) {
