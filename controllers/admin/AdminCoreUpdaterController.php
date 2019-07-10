@@ -17,6 +17,11 @@
  * @license   Academic Free License (AFL 3.0)
  */
 
+use CoreUpdater\DatabaseSchemaComparator;
+use CoreUpdater\InformationSchemaBuilder;
+use CoreUpdater\ObjectModelSchemaBuilder;
+use CoreUpdater\SchemaDifference;
+
 if (!defined('_TB_VERSION_')) {
     exit;
 }
@@ -39,6 +44,10 @@ class AdminCoreUpdaterController extends ModuleAdminController
     // $this->l('Bleeding Edge');
     // $this->l('Developer (enter Git hash)');
 
+    const PARAM_TAB = 'tab';
+    const TAB_CODEBASE = 'codebase';
+    const TAB_DB = 'database';
+
     /**
      * Where manually modified files get backed up before they get overwritten
      * by the new version. A directory path, which gets appended by a date of
@@ -51,6 +60,8 @@ class AdminCoreUpdaterController extends ModuleAdminController
      * AdminCoreUpdaterController constructor.
      *
      * @version 1.0.0 Initial version.
+     * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
      */
     public function __construct()
     {
@@ -62,25 +73,17 @@ class AdminCoreUpdaterController extends ModuleAdminController
             $action = Tools::getValue('action');
 
             if ($action === 'UpdateIgnoreTheme') {
-                // Here it gets ugly. There is no simple default processing
-                // implemented in core.
+                die(json_encode($this->updateIgnoreTheme()));
+            }
 
-                $success = Configuration::updateValue(
-                    'CORE_UPDATER_IGNORE_THEME',
-                    Tools::getValue('value'));
+            if ($action === 'GetDatabaseDifferences') {
+                die(json_encode($this->getDatabaseDifferences()));
+            }
 
-                $confirmations = [];
-                $error = false;
-                if ($success) {
-                    $confirmations[] = $this->l('Ignorance setting updated.');
-                } else {
-                    $error = $this->l('Could not update ignorance of the community theme.');
-                }
-
-                die(json_encode([
-                    'confirmations' => $confirmations,
-                    'error'         => $error,
-                ]));
+            if ($action === 'ApplyDatabaseFix') {
+                $value = Tools::getValueRaw('value');
+                $ids = json_decode($value, true);
+                die(json_encode($this->applyDatabaseFix($ids)));
             }
 
             // Else it should be a step processing request.
@@ -88,6 +91,26 @@ class AdminCoreUpdaterController extends ModuleAdminController
             $this->ajaxProcess($action);
         }
 
+        switch ($this->getActiveTab()) {
+            case static::TAB_CODEBASE:
+                $this->initCodebaseTab();
+                break;
+            case static::TAB_DB:
+                $this->initDatabaseTab();
+                break;
+            default:
+                Tools::redirect(Context::getContext()->link->getAdminLink('AdminCoreUpdater'));
+                break;
+        }
+
+        parent::__construct();
+    }
+
+    /**
+     *  Method to set up page for PHP Codebase tab
+     */
+    private function initCodebaseTab()
+    {
         $displayChannelList = [];
         foreach (static::CHANNELS as $channel => $path) {
             $displayChannelList[] = [
@@ -255,7 +278,47 @@ class AdminCoreUpdaterController extends ModuleAdminController
             \CoreUpdater\GitUpdate::deleteStorage(false);
         }
 
-        parent::__construct();
+    }
+
+    /**
+     *  Method to set up page for Database Differences tab
+     *
+     * @throws SmartyException
+     */
+    private function initDatabaseTab()
+    {
+        $this->addCSS(_PS_MODULE_DIR_.'coreupdater/views/css/coreupdater.css');
+        if (defined('TB_OBJECT_MODELS_AUTHORITATIVE') && TB_OBJECT_MODELS_AUTHORITATIVE) {
+            $description = $this->l('This tool helps you discover and fix problems with database schema');
+            $info = Context::getContext()->smarty->fetch(_PS_MODULE_DIR_ .'coreupdater/views/templates/admin/schema-differences.tpl');
+            $this->fields_options = [
+                'database' => [
+                    'title' => $this->l('Database schema'),
+                    'description' => $description,
+                    'icon' => 'icon-beaker',
+                    'info' => $info,
+                    'submit' => [
+                        'id' => 'refresh-btn',
+                        'title'     => $this->l('Refresh'),
+                        'imgclass'  => 'refresh',
+                        'name'      => 'refresh',
+                    ]
+                ]
+            ];
+        } else {
+            $info = (
+                '<div class=\'alert alert-warning\'>' .
+                $this->l('This version of thirtybees does not support database schema comparison and migration') .
+                '</div>'
+            );
+            $this->fields_options = [
+                'database_incompatible' => [
+                    'title' => $this->l('Database schema'),
+                    'icon' => 'icon-beaker',
+                    'info' => $info
+                ]
+            ];
+        }
     }
 
     /**
@@ -263,11 +326,17 @@ class AdminCoreUpdaterController extends ModuleAdminController
      *
      * @return string Page HTML.
      *
+     * @throws PrestaShopException
+     * @throws SmartyException
      * @version 1.0.0 Initial version.
      */
     public function initContent()
     {
         $this->page_header_toolbar_title = $this->l('Core Updater');
+
+        $this->context->smarty->assign('menu_tabs', $this->initNavigation());
+        $this->content .= $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'coreupdater/views/templates/admin/navbar.tpl');
+
 
         parent::initContent();
     }
@@ -375,5 +444,170 @@ class AdminCoreUpdaterController extends ModuleAdminController
                  && time() - $start < 3);
 
         die(json_encode($messages));
+    }
+
+    /**
+     * Initialize navigation
+     *
+     * @return array Navigation items
+     *
+     * @throws PrestaShopException
+     */
+    private function initNavigation()
+    {
+        $tab = $this->getActiveTab();
+        $tabs = [
+            static::TAB_CODEBASE  => [
+                'short'  => static::TAB_CODEBASE,
+                'desc'   => $this->l('PHP Codebase'),
+                'href'   => Context::getContext()->link->getAdminLink('AdminCoreUpdater') . '&' . static::PARAM_TAB . '=' . static::TAB_CODEBASE,
+                'active' => $tab === static::TAB_CODEBASE,
+                'icon'   => 'icon-gears',
+            ],
+            static::TAB_DB => [
+                'short'  => static::TAB_DB,
+                'desc'   => $this->l('Database schema'),
+                'href'   => Context::getContext()->link->getAdminLink('AdminCoreUpdater') . '&' . static::PARAM_TAB . '=' . static::TAB_DB,
+                'active' => $tab === static::TAB_DB,
+                'icon'   => 'icon-database',
+            ],
+        ];
+        return $tabs;
+    }
+
+    /**
+     * Returns currently selected tab
+     *
+     * @return string
+     */
+    private function getActiveTab()
+    {
+        $tab = Tools::getValue(static::PARAM_TAB);
+        return $tab ? $tab : static::TAB_CODEBASE;
+    }
+
+    /**
+     * Method to update Ignore Theme parameter
+     *
+     * @return array
+     * @throws HTMLPurifier_Exception
+     * @throws PrestaShopException
+     */
+    protected function updateIgnoreTheme()
+    {
+        // Here it gets ugly. There is no simple default processing
+        // implemented in core.
+        $success = Configuration::updateValue(
+            'CORE_UPDATER_IGNORE_THEME',
+            Tools::getValue('value'));
+
+        $confirmations = [];
+        $error = false;
+        if ($success) {
+            $confirmations[] = $this->l('Ignorance setting updated.');
+        } else {
+            $error = $this->l('Could not update ignorance of the community theme.');
+        }
+
+        return [
+            'confirmations' => $confirmations,
+            'error' => $error,
+        ];
+    }
+
+    /**
+     * Returns database differences
+     *
+     * @return array
+     */
+    protected function getDatabaseDifferences()
+    {
+        try {
+            require_once(__DIR__ . '/../../classes/schema/autoload.php');
+            $objectModelBuilder = new ObjectModelSchemaBuilder();
+            $informationSchemaBuilder = new InformationSchemaBuilder();
+            $comparator = new DatabaseSchemaComparator();
+            $differences = $comparator->getDifferences($informationSchemaBuilder->getSchema(), $objectModelBuilder->getSchema());
+            $differences = array_filter($differences, function(SchemaDifference $difference) {
+                return $difference->getSeverity() !== SchemaDifference::SEVERITY_NOTICE;
+            });
+            usort($differences, function(SchemaDifference $diff1, SchemaDifference $diff2) {
+                $ret = $diff2->getSeverity() - $diff1->getSeverity();
+                if ($ret === 0) {
+                   $ret = (int)$diff1->isDestructive() - (int)$diff2->isDestructive();
+                }
+                return $ret;
+            });
+
+            return [
+                'success' => true,
+                'differences' => array_map(function(SchemaDifference $difference) {
+                    return [
+                        'id' => $difference->getUniqueId(),
+                        'description' => $difference->describe(),
+                        'severity' => $difference->getSeverity(),
+                        'destructive' =>$difference->isDestructive(),
+                    ];
+                }, $differences)
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Fixes database schema differences
+     *
+     * @param array $ids unique differences ids to be fixed
+     *
+     * @return array new database differences (see getDatabaseDifferences method)
+     */
+    private function applyDatabaseFix($ids)
+    {
+        try {
+            require_once(__DIR__ . '/../../classes/schema/autoload.php');
+            $objectModelBuilder = new ObjectModelSchemaBuilder();
+            $objectModelSchema = $objectModelBuilder->getSchema();
+            foreach (static::getDBServers() as $server) {
+                // we need to create connection from scratch, because DB::getInstance() doesn't provide mechanism to
+                // retrieve connection to specific slave server
+                $connection = new DbPDO($server['server'], $server['user'], $server['password'], $server['database']);
+                $informationSchemaBuilder = new InformationSchemaBuilder($connection);
+                $comparator = new DatabaseSchemaComparator();
+                $differences = $comparator->getDifferences($informationSchemaBuilder->getSchema(), $objectModelSchema);
+                $indexed = [];
+                foreach ($differences as $diff) {
+                    $indexed[$diff->getUniqueId()] = $diff;
+                }
+                foreach ($ids as $id) {
+                    if (isset($indexed[$id])) {
+                        /** @var SchemaDifference $diff */
+                        $diff = $indexed[$id];
+                        $diff->applyFix($connection);
+                    }
+                }
+            }
+            return $this->getDatabaseDifferences();
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Returns list of all database servers (both master and slaves)
+     *
+     * @return array
+     */
+    private static function getDBServers()
+    {
+        // ensure slave server settings are loaded
+        Db::getInstance(_PS_USE_SQL_SLAVE_);
+        return Db::$_servers;
     }
 }

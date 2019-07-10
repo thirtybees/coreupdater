@@ -22,30 +22,39 @@
 var coreUpdaterParameters;
 
 $(document).ready(function () {
-  coreUpdaterParameters = JSON.parse($('input[name=CORE_UPDATER_PARAMETERS]').val());
-  coreUpdaterParameters.ignoreTheme
-    = $('input[name=CORE_UPDATER_IGNORE_THEME]:checked').val();
+  if ($('input[name=CORE_UPDATER_PARAMETERS]').length) {
+      coreUpdaterParameters = JSON.parse($('input[name=CORE_UPDATER_PARAMETERS]').val());
+      coreUpdaterParameters.ignoreTheme
+          = $('input[name=CORE_UPDATER_IGNORE_THEME]:checked').val();
 
-  channelChange(true);
-  $('#CORE_UPDATER_CHANNEL').on('change', channelChange);
+      channelChange(true);
+      $('#CORE_UPDATER_CHANNEL').on('change', channelChange);
 
-  $('#CORE_UPDATER_VERSION').on('change', versionChange);
+      $('#CORE_UPDATER_VERSION').on('change', versionChange);
 
-  $('input[name=CORE_UPDATER_IGNORE_THEME]').on('change', ignoranceChange);
+      $('input[name=CORE_UPDATER_IGNORE_THEME]').on('change', ignoranceChange);
 
-  $('button[name=coreUpdaterUpdate]').on('click', collectSelectedObsolete);
+      $('button[name=coreUpdaterUpdate]').on('click', collectSelectedObsolete);
 
-  addBootstrapCollapser('CORE_UPDATER_PROCESSING', false);
+      addBootstrapCollapser('CORE_UPDATER_PROCESSING', false);
 
-  if (document.getElementById('configuration_fieldset_comparepanel')) {
-    $('button[name=coreUpdaterUpdate]').prop('disabled', true);
-    processAction('processCompare');
+      if (document.getElementById('configuration_fieldset_comparepanel')) {
+          $('button[name=coreUpdaterUpdate]').prop('disabled', true);
+          processAction('processCompare');
+      }
+      if (document.getElementById('configuration_fieldset_processpanel')) {
+          $('#configuration_fieldset_updatepanel').find('select, button')
+              .prop('disabled', true);
+          $('button[name=coreUpdaterFinalize]').prop('disabled', true);
+          processAction('processUpdate');
+      }
   }
-  if (document.getElementById('configuration_fieldset_processpanel')) {
-    $('#configuration_fieldset_updatepanel').find('select, button')
-                                            .prop('disabled', true);
-    $('button[name=coreUpdaterFinalize]').prop('disabled', true);
-    processAction('processUpdate');
+  if (document.getElementById('configuration_fieldset_database')) {
+      $('#refresh-btn').on('click', function(e) {
+          e.preventDefault();
+          getDatabaseDifferences();
+      });
+      setTimeout(getDatabaseDifferences, 100);
   }
 });
 
@@ -320,4 +329,142 @@ function addBootstrapCollapser(field, initiallyCollapsed) {
   collapsible.on("show.bs.collapse", function(){
     $(this).siblings('label').find('i').attr('class', 'icon-collapse-alt');
   });
+}
+
+function getDatabaseDifferences() {
+    var element = document.getElementById('db-changes');
+    element.className = 'status-running';
+    $('#refresh-btn').attr('disabled', 'disabled');
+    doAdminAjax(
+        {
+            'ajax': true,
+            'tab': 'AdminCoreUpdater',
+            'action': 'GetDatabaseDifferences',
+        },
+        function(body) {
+            var data;
+            try {
+                data = JSON.parse(body);
+            } catch (e) {
+                data = {
+                  error: e.toString()
+                };
+            }
+            if (data && data.success) {
+                getDatabaseDifferencesSuccess(data.differences);
+            } else {
+                getDatabaseDifferenceFailed(data.error || 'Unknown error');
+            }
+        },
+        function(response) {
+            getDatabaseDifferenceFailed('ajax call failed with error code ' + response.status)
+        }
+    );
+}
+
+function getDatabaseDifferenceFailed(error) {
+    document.getElementById('db-changes').className = 'status-error';
+    document.getElementById('db-error').innerText = error;
+    $('#refresh-btn').removeAttr('disabled');
+}
+
+function getDatabaseDifferencesSuccess(differences) {
+    if (differences && differences.length > 0) {
+        var $list = $('#db-changes-list');
+        $list.empty();
+        differences.forEach(function(diff) {
+            var severityInfo = getSeverityInfo(diff.severity);
+            $list.append($(
+                '<tr class="db-change">' +
+                '  <td>' +
+                '    <span class="badge '+severityInfo.badge+'" title="'+severityInfo.tooltip+'">'+severityInfo.title+'</span>' +
+                '  </td>' +
+                '  <td>' +
+                '    '+ (diff.destructive ? '<span class="badge badge-danger" title="Fix is potentially dangerous operation that may result in data loss">dangerous</span>' : '') +
+                '  </td>' +
+                '  <td>' +
+                '    '+ replaceTags(diff.description) +
+                '  </td>' +
+                '  <td class="text-right">' +
+                '    '+'<a href="#" data-id="'+diff.id+'" class="btn btn-default"><i class="icon icon-gears"></i> Apply fix</a>'+
+                '  </td>' +
+                '</tr>'
+            ));
+        });
+        $('#db-changes-list .badge').tooltip();
+        $('#db-changes-list .btn').on('click', function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            applyDatabaseFix([ id ]);
+
+        });
+        document.getElementById('db-changes').className = 'status-changes';
+    } else {
+        document.getElementById('db-changes').className = 'status-no-changes';
+    }
+    $('#refresh-btn').removeAttr('disabled');
+}
+
+function applyDatabaseFix(ids) {
+    $('.changes .table').addClass('loading');
+    doAdminAjax(
+        {
+            'ajax': true,
+            'tab': 'AdminCoreUpdater',
+            'action': 'ApplyDatabaseFix',
+            'value': JSON.stringify(ids),
+        },
+        function(body) {
+            $('.changes .table').removeClass('loading');
+            var data;
+            try {
+                data = JSON.parse(body);
+            } catch (e) {
+                data = {
+                    error: e.toString()
+                };
+            }
+            if (data && data.success) {
+                getDatabaseDifferencesSuccess(data.differences);
+            } else {
+                getDatabaseDifferenceFailed(data.error || 'Unknown error');
+            }
+        },
+        function(response) {
+            $('.changes .table').removeClass('loading');
+            getDatabaseDifferenceFailed('ajax call failed with error code ' + response.status)
+        }
+    );
+}
+
+function getSeverityInfo(severity) {
+    switch (severity) {
+        case 0:
+            return {
+                badge: 'module-badge-bought',
+                title: 'informational',
+                tooltip: 'You should ignore this difference'
+            };
+        case 1:
+            return {
+                badge: 'badge-info',
+                title: 'recommended',
+                tooltip: 'This is not a critical issue, but we still recommend you to fix this',
+            };
+        case 2:
+            return {
+                badge: 'badge-danger',
+                title: 'critical',
+                tooltip: 'This is critical issue and you should fix it immediately. Failure to do so might result in system not working correctly',
+            };
+    }
+}
+
+function replaceTags(str) {
+    var output = str;
+    var open = new RegExp('\\[[0-9]+\\]', 'g');
+    var close = new RegExp('\\[\\/[0-9]+\\]', 'g');
+    output = output.replace(open, "<strong>");
+    output = output.replace(close, "</strong>");
+    return output;
 }
