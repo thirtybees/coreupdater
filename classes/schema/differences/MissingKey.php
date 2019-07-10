@@ -70,7 +70,7 @@ class MissingKey implements SchemaDifference
     function describe()
     {
         return sprintf(
-            Translate::getModuleTranslation('coreupdater', 'Missing %1$s in table `%2$s`', 'coreupdater', 'coreupdater'),
+            Translate::getModuleTranslation('coreupdater', 'Missing [1]%1$s[/1] in table [2]%2$s[/2]', 'coreupdater', 'coreupdater'),
             $this->key->describeKey(),
             $this->table->getName()
         );

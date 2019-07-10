@@ -67,8 +67,8 @@ class DifferentNullable implements SchemaDifference
         $table = $this->table->getName();
         $col = $this->column->getName();
         return $this->column->isNullable()
-            ? sprintf(Translate::getModuleTranslation('coreupdater', 'Column `%1$s`.`%2$s` should be marked as NULL', 'coreupdater'), $table, $col)
-            : sprintf(Translate::getModuleTranslation('coreupdater', 'Column `%1$s`.`%2$s` should be marked as NOT NULL', 'coreupdater'), $table, $col);
+            ? sprintf(Translate::getModuleTranslation('coreupdater', 'Column [1]%1$s.%2$s[/1] should be marked as [2]NULL[/2]', 'coreupdater'), $table, $col)
+            : sprintf(Translate::getModuleTranslation('coreupdater', 'Column [1]%1$s.%2$s[/1] should be marked as [2]NOT NULL[/2]', 'coreupdater'), $table, $col);
     }
 
     /**

@@ -62,7 +62,7 @@ class DifferentTableCharset implements SchemaDifference
     public function describe()
     {
         return sprintf(
-            Translate::getModuleTranslation('coreupdater', 'Table `%1$s` should use character set %2$s instead of %3$s', 'coreupdater'),
+            Translate::getModuleTranslation('coreupdater', 'Table [1]%1$s[/1] should use character set [2]%2$s[/2] instead of [3]%3$s[/3]', 'coreupdater'),
             $this->table->getName(),
             $this->table->getCharset()->describe(),
             $this->currentTable->getCharset()->describe()

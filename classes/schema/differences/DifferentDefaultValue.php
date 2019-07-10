@@ -71,8 +71,8 @@ class DifferentDefaultValue implements SchemaDifference
         $currentValue = $this->currentColumn->getDefaultValue();
 
         return is_null($value)
-            ? sprintf(Translate::getModuleTranslation('coreupdater', 'Column `%1$s`.`%2$s` should NOT have default value `%3$s`', 'coreupdater'), $table, $col, $currentValue)
-            : sprintf(Translate::getModuleTranslation('coreupdater', 'Column `%1$s`.`%2$s` should have DEFAULT value `%3$s` instead of `%4$s`', 'coreupdater'), $table, $col, $value, $currentValue);
+            ? sprintf(Translate::getModuleTranslation('coreupdater', 'Column [1]%1$s.%2$s[/1] should NOT have default value [2]\'%3$s\'[/2]', 'coreupdater'), $table, $col, $currentValue)
+            : sprintf(Translate::getModuleTranslation('coreupdater', 'Column [1]%1$s.%2$s[/1] should have DEFAULT value [2]\'%3$s\'[2] instead of [3]\'%4$s\'[/3]', 'coreupdater'), $table, $col, $value, $currentValue);
     }
 
     /**

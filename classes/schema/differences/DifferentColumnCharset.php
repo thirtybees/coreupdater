@@ -65,7 +65,7 @@ class DifferentColumnCharset implements SchemaDifference
     public function describe()
     {
         return sprintf(
-            Translate::getModuleTranslation('coreupdater', 'Column `%1$s`.`%2$s` should use character set %3$s instead of %4$s', 'coreupdater'),
+            Translate::getModuleTranslation('coreupdater', 'Column [1]%1$s.%2$s[/1] should use character set [2]%3$s[/2] instead of [3]%4$s[/3]', 'coreupdater'),
             $this->table->getName(),
             $this->column->getName(),
             $this->column->getCharset()->describe(),

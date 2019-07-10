@@ -68,8 +68,8 @@ class DifferentAutoIncrement implements SchemaDifference
         $col = $this->column->getName();
 
         return $this->column->isAutoIncrement()
-            ? sprintf(Translate::getModuleTranslation('coreupdater', 'Column `%1$s`.`%2$s` should be marked as AUTO_INCREMENT', 'coreupdater'), $table, $col)
-            : sprintf(Translate::getModuleTranslation('coreupdater', 'Column `%1$s`.`%2$s` should NOT be marked as AUTO_INCREMENT', 'coreupdater'), $table, $col);
+            ? sprintf(Translate::getModuleTranslation('coreupdater', 'Column [1]%1$s.%2$s[/1] should be marked as [2]AUTO_INCREMENT[/2]', 'coreupdater'), $table, $col)
+            : sprintf(Translate::getModuleTranslation('coreupdater', 'Column [1]%1$s.%2$s[1] should [2]not[/2] be marked as [3]AUTO_INCREMENT[/3]', 'coreupdater'), $table, $col);
     }
 
     /**

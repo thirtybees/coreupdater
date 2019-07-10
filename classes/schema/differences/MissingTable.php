@@ -58,7 +58,7 @@ class MissingTable implements SchemaDifference
      */
     function describe()
     {
-        return sprintf(Translate::getModuleTranslation('coreupdater', 'Table `%1$s` does not exist', 'coreupdater'), $this->table->getName());
+        return sprintf(Translate::getModuleTranslation('coreupdater', 'Table [1]%1$s[/1] does not exist', 'coreupdater'), $this->table->getName());
     }
 
     /**

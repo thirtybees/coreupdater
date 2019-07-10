@@ -62,7 +62,7 @@ class DifferentEngine implements SchemaDifference
     function describe()
     {
         return sprintf(
-            Translate::getModuleTranslation('coreupdater', 'Table `%1$s` use `%2$s` database engine instead of `%3$s`', 'coreupdater'),
+            Translate::getModuleTranslation('coreupdater', 'Table [1]%1$s[/1] use [2]%2$s[/2] database engine instead of [3]%3$s[/3]', 'coreupdater'),
             $this->table->getName(),
             $this->currentEngine,
             $this->table->getEngine()

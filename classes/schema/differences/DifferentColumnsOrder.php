@@ -63,10 +63,8 @@ class DifferentColumnsOrder implements SchemaDifference
     public function describe()
     {
         return sprintf(
-            Translate::getModuleTranslation('coreupdater', 'Columns in table `%1$s` are in wrong order.%2$s %3$s', 'coreupdater'),
-            $this->table->getName(),
-            "\n      expected: [" . implode(', ', $this->table->getColumnNames()) . "]",
-            "\n      current:  [" . implode(', ', $this->currentTable->getColumnNames()) . "]"
+            Translate::getModuleTranslation('coreupdater', 'Columns in table [1]%1$s[/1] are in wrong order', 'coreupdater'),
+            $this->table->getName()
         );
     }
 

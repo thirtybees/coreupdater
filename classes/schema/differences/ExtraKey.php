@@ -69,7 +69,7 @@ class ExtraKey implements SchemaDifference
     function describe()
     {
         return sprintf(
-            Translate::getModuleTranslation('coreupdater', 'Extra %1$s in table `%2$s`', 'coreupdater'),
+            Translate::getModuleTranslation('coreupdater', 'Extra [1]%1$s[/1] in table [2]%2$s[/2]', 'coreupdater'),
             $this->key->describeKey(),
             $this->table->getName()
         );

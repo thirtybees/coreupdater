@@ -62,7 +62,7 @@ class MissingColumn implements SchemaDifference
     function describe()
     {
         return sprintf(
-            Translate::getModuleTranslation('coreupdater', 'Column `%1$s` is missing in table `%2$s`', 'coreupdater'),
+            Translate::getModuleTranslation('coreupdater', 'Column [1]%1$s[/1] is missing in table [2]%2$s[/2]', 'coreupdater'),
             $this->column->getName(),
             $this->table->getName()
         );

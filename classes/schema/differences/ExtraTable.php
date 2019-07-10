@@ -58,7 +58,7 @@ class ExtraTable implements SchemaDifference
      */
     function describe()
     {
-        return sprintf(Translate::getModuleTranslation('coreupdater', 'Extra table `%1$s`', 'coreupdater'), $this->table->getName());
+        return sprintf(Translate::getModuleTranslation('coreupdater', 'Extra table [1]%1$s[/1]', 'coreupdater'), $this->table->getName());
     }
 
     /**
