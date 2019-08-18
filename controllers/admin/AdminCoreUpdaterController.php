@@ -187,7 +187,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
                         'type'        => 'textarea',
                         'title'       => $this->l('Processing log:'),
                         'cols'        => 2000,
-                        'rows'        => 3,
+                        'rows'        => 10,
                         'value'       => $this->l('Starting...'),
                         'auto_value'  => false,
                     ],
