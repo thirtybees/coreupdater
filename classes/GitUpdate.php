@@ -428,7 +428,7 @@ class GitUpdate
         $guzzle = $this->getGuzzle();
         $response = false;
         try {
-            $response = $guzzle->post('installationmaster.php', [
+            $response = $guzzle->post(basename(MyController::API_URL), [
                 'form_params' => [
                     'listrev' => $version,
                 ],
@@ -889,7 +889,7 @@ class GitUpdate
 
         $guzzle = $this->getGuzzle();
         try {
-            $guzzle->post('installationmaster.php', [
+            $guzzle->post(basename(MyController::API_URL), [
                 'form_params' => [
                     'revision'  => $this->storage['versionTarget'],
                     'archive'   => $pathList,
