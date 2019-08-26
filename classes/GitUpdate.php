@@ -1044,7 +1044,10 @@ class GitUpdate
             }
         }
 
-        $script .= sprintf($removeFormat, _PS_CACHE_DIR_.'/class_index.php');
+        $script .= sprintf(
+            $removeFormat,
+            _PS_ROOT_DIR_.'/'.\PrestaShopAutoload::INDEX_FILE
+        );
         $script .= 'if (function_exists(\'opcache_reset\')) {'."\n";
         $script .= '    opcache_reset();'."\n";
         $script .= '}'."\n";
