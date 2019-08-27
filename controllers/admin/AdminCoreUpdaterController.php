@@ -459,14 +459,14 @@ class AdminCoreUpdaterController extends ModuleAdminController
         $tabs = [
             static::TAB_CODEBASE  => [
                 'short'  => static::TAB_CODEBASE,
-                'desc'   => $this->l('PHP Codebase'),
+                'desc'   => $this->l('Update'),
                 'href'   => Context::getContext()->link->getAdminLink('AdminCoreUpdater') . '&' . static::PARAM_TAB . '=' . static::TAB_CODEBASE,
                 'active' => $tab === static::TAB_CODEBASE,
                 'icon'   => 'icon-gears',
             ],
             static::TAB_DB => [
                 'short'  => static::TAB_DB,
-                'desc'   => $this->l('Database schema'),
+                'desc'   => $this->l('Database schema (for developers)'),
                 'href'   => Context::getContext()->link->getAdminLink('AdminCoreUpdater') . '&' . static::PARAM_TAB . '=' . static::TAB_DB,
                 'active' => $tab === static::TAB_DB,
                 'icon'   => 'icon-database',
