@@ -288,7 +288,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
     private function initDatabaseTab()
     {
         $this->addCSS(_PS_MODULE_DIR_.'coreupdater/views/css/coreupdater.css');
-        if (defined('TB_OBJECT_MODELS_AUTHORITATIVE') && TB_OBJECT_MODELS_AUTHORITATIVE) {
+        if (class_exists('CoreModels')) {
             $description = $this->l('This tool helps you discover and fix problems with database schema');
             $info = Context::getContext()->smarty->fetch(_PS_MODULE_DIR_ .'coreupdater/views/templates/admin/schema-differences.tpl');
             $this->fields_options = [
