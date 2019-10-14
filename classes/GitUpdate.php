@@ -872,6 +872,7 @@ class GitUpdate
         $adminDir = false;
         if (defined('_PS_ADMIN_DIR_')) {
             $adminDir = str_replace(_PS_ROOT_DIR_, '', _PS_ADMIN_DIR_);
+            $adminDir = str_replace('\\', '/', $adminDir);
             $adminDir = trim($adminDir, '/').'/';
         }
 
