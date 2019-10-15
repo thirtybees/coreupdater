@@ -1212,6 +1212,10 @@ class GitUpdate
         if ( ! $memoryLimit) {
             $memoryLimit = \Tools::getMemoryLimit();
         }
+        // Retrocompatibility with thirty bees <= 1.1.0.
+        if ((int) $memoryLimit <= 0) {
+            $memoryLimit = PHP_INT_MAX;
+        }
 
         // Predict memory exhaution.
         // 2x file size + already used memory + 1 MiB was tested to be safe.
