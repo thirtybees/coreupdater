@@ -874,12 +874,13 @@ class GitUpdate
             $adminDir = str_replace(_PS_ROOT_DIR_, '', _PS_ADMIN_DIR_);
             $adminDir = str_replace('\\', '/', $adminDir); // Windows
             $adminDir = trim($adminDir, '/').'/';
+            $pregAdminDir = preg_quote($adminDir);
         }
 
         $pathList = array_slice(array_keys($this->storage['downloads']), 0, 100);
         foreach ($pathList as &$path) {
             if ($adminDir) {
-                $path = preg_replace('#^'.$adminDir.'#', 'admin/', $path);
+                $path = preg_replace('#^'.$pregAdminDir.'#', 'admin/', $path);
             }
         }
 
