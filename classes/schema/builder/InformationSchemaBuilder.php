@@ -261,9 +261,12 @@ class InformationSchemaBuilder
         $columnName = $row['COLUMN_NAME'];
         $autoIncrement = strpos($row['EXTRA'], 'auto_increment') !== false;
         $isNullable = strtoupper($row['IS_NULLABLE']) === 'YES';
-        $defaultValue = $row['COLUMN_DEFAULT'];
-        if (is_null($defaultValue) && $isNullable) {
+        $defaultValue = $this->unquote($row['COLUMN_DEFAULT']);
+        if ((is_null($defaultValue) || $defaultValue === 'NULL') && $isNullable) {
             $defaultValue = ObjectModel::DEFAULT_NULL;
+        }
+        if (strtolower($defaultValue) === 'current_timestamp()') {
+            $defaultValue = ObjectModel::DEFAULT_CURRENT_TIMESTAMP;
         }
         $column = new ColumnSchema($columnName);;
         $column->setDataType($row['COLUMN_TYPE']);
@@ -286,5 +289,18 @@ class InformationSchemaBuilder
             return ' AND ' . $alias . ".TABLE_NAME IN ('" . implode("', '", $this->tables) . "') ";
         }
         return '';
+    }
+
+    /**
+     * Helper method to remove quotes from around the text
+     * @param string $value
+     * @return string
+     */
+    protected function unquote($value)
+    {
+	    if ($value) {
+		    return preg_replace("/^['\"](.*)['\"]$/", "\\1", $value);
+	    }
+	    return $value;
     }
 }
