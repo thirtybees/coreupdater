@@ -140,8 +140,7 @@ function processAction(action) {
     dataType: 'json',
     success: function(data, status, xhr) {
       if ( ! data) {
-        ajaxError('Request to '+url+' succeeded, but returned an empty response.');
-
+        ajaxError('Request to '+url+' succeeded, but returned an empty response.', null);
         return;
       }
 
@@ -206,17 +205,20 @@ function processAction(action) {
       }
     },
     error: function(xhr, status, error) {
-      ajaxError('Request to '+url+' failed with status \''+xhr.state()+'\'.');
+      ajaxError('Request to '+url+' failed with status \''+xhr.state()+'\'.', xhr.responseText);
     }
   });
 
-  function ajaxError(message) {
+  function ajaxError(message, responseText) {
     addCompletedText('CORE_UPDATER_PROCESSING',
                      coreUpdaterParameters.errorRetrieval);
     $('#conf_id_CORE_UPDATER_PROCESSING')
       .find('label')
       .css('color', 'red')
     console.log(message);
+    if (responseText) {
+      console.log('Response: ' + responseText);
+    }
   }
 }
 
