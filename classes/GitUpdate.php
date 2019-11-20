@@ -20,6 +20,11 @@
 namespace CoreUpdater;
 
 use \AdminCoreUpdaterController as MyController;
+use Db;
+use DbPDO;
+use PrestaShopDatabaseException;
+use PrestaShopException;
+use ReflectionException;
 
 if (!defined('_TB_VERSION_')) {
     exit;
@@ -847,6 +852,20 @@ class GitUpdate
 
             $messages['informations'][] = $me->l('All caches cleared.');
             $messages['done'] = false;
+        } elseif ( ! array_key_exists('databaseMigration', $me->storage)) {
+            $me->storage['databaseMigration'] = true;
+            if (class_exists('CoreModels')) {
+                try {
+                    $messages['informations'][] = static::migrateDatabase();
+                } catch (\Exception $e) {
+                    $messages['informations'][] = $me->l('Failed to migrate database');
+                    $messages['informations'][] = sprintf($me->l('Error: %s'), $e->getMessage());
+                    $messages['error'] = true;
+                }
+            } else {
+                $messages['informations'][] = $me->l('Skipping database migration: this version of thirty bees does not support it');
+            }
+            $messages['done'] = false;
         } else {
             $messages['informations'][] = '...completed.';
             $messages['done'] = true;
@@ -1281,5 +1300,65 @@ class GitUpdate
         }
 
         return $pathList;
+    }
+
+    /**
+     * @return string
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws ReflectionException
+     */
+    protected static function migrateDatabase()
+    {
+        $me = static::getInstance();
+        require_once(__DIR__ . '/schema/autoload.php');
+        $objectModelBuilder = new ObjectModelSchemaBuilder();
+        $informationSchemaBuilder = new InformationSchemaBuilder();
+        $comparator = new DatabaseSchemaComparator();
+        $differences = $comparator->getDifferences($informationSchemaBuilder->getSchema(), $objectModelBuilder->getSchema());
+        $differences = array_filter($differences, function(SchemaDifference $difference) {
+            // At the moment we automatically fix only MissingColumn and MissingTable differences. These are the most
+            // important ones - system won't work correctly without it. Also, adding these database objects to database
+            // does not pose any threat or issues.
+            // In the future, we will probably allow all safe differences to be automatically fixed
+            return (
+                ($difference instanceof MissingColumn) ||
+                ($difference instanceof MissingTable)
+            );
+        });
+        if ($differences) {
+            foreach ($differences as $difference) {
+                static::applyDatabaseFix($difference);
+            }
+            return sprintf($me->l('Database successfully migrated, %s fixes applied'), count($differences));
+        }
+        return $me->l('No database difference found');
+    }
+
+    /**
+     * @param SchemaDifference $difference
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
+    protected static function applyDatabaseFix(SchemaDifference $difference)
+    {
+        foreach (static::getDBServers() as $server) {
+            // we need to create connection from scratch, because DB::getInstance() doesn't provide mechanism to
+            // retrieve connection to specific slave server
+            $connection = new DbPDO($server['server'], $server['user'], $server['password'], $server['database']);
+            $difference->applyFix($connection);
+        }
+    }
+
+    /**
+     * Returns list of all database servers (both master and slaves)
+     *
+     * @return array
+     */
+    protected static function getDBServers()
+    {
+        // ensure slave server settings are loaded
+        Db::getInstance(_PS_USE_SQL_SLAVE_);
+        return Db::$_servers;
     }
 }
