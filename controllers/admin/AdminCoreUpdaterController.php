@@ -62,6 +62,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
      * @version 1.0.0 Initial version.
      * @throws PrestaShopException
      * @throws HTMLPurifier_Exception
+     * @throws SmartyException
      */
     public function __construct()
     {
@@ -157,6 +158,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
                             'errorProcessing' => $this->l('Processing failed.'),
                         ])),
                         'auto_value' => false,
+                        'no_multishop_checkbox' => true,
                     ],
                     'CORE_UPDATER_CHANNEL' => [
                         'type'        => 'select',
@@ -164,6 +166,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
                         'desc'        => $this->l('This is the Git channel to update from. "Stable" lists releases, "Bleeding Edge" lists development branches.'),
                         'identifier'  => 'channel',
                         'list'        => $displayChannelList,
+                        'no_multishop_checkbox' => true,
                     ],
                     'CORE_UPDATER_VERSION' => [
                         'type'        => 'select',
@@ -176,12 +179,14 @@ class AdminCoreUpdaterController extends ModuleAdminController
                                 'name'    => '',
                             ],
                         ],
+                        'no_multishop_checkbox' => true,
                     ],
                     'CORE_UPDATER_IGNORE_THEME' => [
                         'type'       => 'bool',
                         'title'      => $this->l('Ignore community themes'),
                         'desc'       => $this->l('When enabled, the updater ignores themes coming with thirty bees. While this prohibits bugs from getting fixed, it can make sense for those who customized this theme for their needs, without making a copy before.'),
                         'default'    => false,
+                        'no_multishop_checkbox' => true,
                     ],
                 ],
             ],
@@ -284,6 +289,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
      *  Method to set up page for Database Differences tab
      *
      * @throws SmartyException
+     * @throws PrestaShopException
      */
     private function initDatabaseTab()
     {
@@ -323,8 +329,6 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
     /**
      * Get back office page HTML.
-     *
-     * @return string Page HTML.
      *
      * @throws PrestaShopException
      * @throws SmartyException
