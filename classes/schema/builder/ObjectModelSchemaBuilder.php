@@ -109,7 +109,14 @@ class ObjectModelSchemaBuilder
     {
         $directory = new RecursiveDirectoryIterator(_PS_ROOT_DIR_ . DIRECTORY_SEPARATOR . 'classes');
         $iterator = new RecursiveIteratorIterator($directory);
+
+        $list = [];
         foreach ($iterator as $path) {
+            $list[] = "$path";
+        }
+        sort($list);
+
+        foreach ($list as $path) {
             $file = basename($path);
             if (preg_match("/^.+\.php$/i", $file)) {
                 $className = str_replace(".php", "", $file);
