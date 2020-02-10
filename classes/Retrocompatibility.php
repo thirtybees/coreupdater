@@ -435,7 +435,7 @@ class Retrocompatibility
         if (is_dir($moduleDir)) {
             $success = \Tools::deleteDirectory($moduleDir);
             if ( ! $success) {
-                $errors[] = sprintf($this->l('Could not delete directory %s.'), $moduleDir);
+                $errors[] = sprintf($me->l('Could not delete directory %s.'), $moduleDir);
             }
         }
 
