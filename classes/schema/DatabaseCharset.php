@@ -145,7 +145,7 @@ class DatabaseCharset
     public function isDefaultCollate()
     {
         if (! static::$charsets) {
-            static::loadCharsets();
+            static::loadCharsets(Db::getInstance(_PS_USE_SQL_SLAVE_));
         }
         if (isset(static::$charsets[$this->getCharset()])) {
             return static::$charsets[$this->getCharset()] === $this->getCollate();
@@ -157,12 +157,14 @@ class DatabaseCharset
     /**
      * Loads available character sets from database information schema
      *
+     * @param Db $conn database connection
+     *
      * @version 1.1.0 Initial version.
      */
-    protected static function loadCharsets()
+    public static function loadCharsets(Db $conn)
     {
         try {
-            $results = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT * FROM information_schema.CHARACTER_SETS');
+            $results = $conn->executeS('SELECT * FROM information_schema.CHARACTER_SETS');
             static::$charsets = [];
             foreach ($results as $row) {
                 static::$charsets[$row['CHARACTER_SET_NAME']] = $row['DEFAULT_COLLATE_NAME'];
