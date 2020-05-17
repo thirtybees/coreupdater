@@ -144,7 +144,7 @@ class GitUpdate
      * Here all the collected data about an update gets stored. It gets saved
      * on disk between invocations.
      *
-     * @var Array
+     * @var array
      */
     protected $storage = [];
     /**
@@ -215,7 +215,7 @@ class GitUpdate
     /**
      * Get Guzzle instance. Same basic parameters for all usages.
      *
-     * @return GuzzleHttp Singleton instance of class GuzzleHttp\Client.
+     * @return \GuzzleHttp\Client Singleton instance of class GuzzleHttp\Client.
      *
      * @version 1.0.0 Initial version.
      */
@@ -242,6 +242,7 @@ class GitUpdate
      * @param string $version Version to compare the installation on disk to.
      *
      * @version 1.0.0 Initial version.
+     * @throws PrestaShopException
      */
     public static function compareStep(&$messages, $version)
     {
@@ -512,7 +513,7 @@ class GitUpdate
      * On return, $this->storage['topLevel-'.$version] is set to the list of
      * paths. No failure expected.
      *
-     * @param array $version Version of the file path list.
+     * @param string $version Version of the file path list.
      *
      * @version 1.0.0 Initial version.
      */
@@ -750,6 +751,7 @@ class GitUpdate
      *                        compareStep().
      *
      * @version 1.0.0 Initial version.
+     * @throws PrestaShopException
      */
     public static function updateStep(&$messages, $version)
     {
@@ -1010,8 +1012,6 @@ class GitUpdate
      */
     protected function createUpdateScript()
     {
-        $success = true;
-
         $script = "<?php\n\n";
         $renameFormat = '@rename(\'%s\', \'%s\');'."\n";
         $removeFormat = '@unlink(\'%s\');'."\n";
@@ -1155,6 +1155,7 @@ class GitUpdate
      * No failure expected.
      *
      * @version 1.0.0 Initial version.
+     * @throws PrestaShopException
      */
     protected function clearCaches()
     {
