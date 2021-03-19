@@ -17,10 +17,6 @@
  *}
 
 <div id="db-changes">
-    <div id="db-error" class="alert alert-danger db-error">
-        {* populated dynamically by javascript *}
-    </div>
-
     <div class="running">
         {l s='Please wait, looking for database changes' mod='coreupdater'}
         <i class="icon icon-spin icon-spinner"></i>
@@ -47,3 +43,15 @@
     </div>
 
 </div>
+
+<script type="application/javascript">
+    $(document).ready(function() {
+        window.coreUpdater = initializeCoreUpdater({});
+        coreUpdater.checkDatabase();
+        $("#refresh-btn").click(function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            coreUpdater.checkDatabase();
+        });
+    })
+</script>

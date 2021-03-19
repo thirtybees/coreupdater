@@ -1,5 +1,5 @@
-{**
- * Copyright (C) 2019 thirty bees
+/**
+ * Copyright (C) 2021 - 2021 thirty bees
  *
  * NOTICE OF LICENSE
  *
@@ -12,22 +12,12 @@
  * to license@thirtybees.com so we can send you a copy immediately.
  *
  * @author    thirty bees <modules@thirtybees.com>
- * @copyright 2019 thirty bees
+ * @copyright 2021 - 2021 thirty bees
  * @license   Academic Free License (AFL 3.0)
- *}
-
-<nav class="navbar navbar-default" role="navigation">
-	<ul class="nav navbar-nav">
-		{if isset($menu_tabs)}
-			{foreach from=$menu_tabs item=tab}
-				<li class="{if $tab.active}active{/if}">
-					<a id="{$tab.short|escape:'htmlall'}" href="{$tab.href|escape:'htmlall'}">
-						<span class="icon {$tab.icon|escape:'htmlall'}"></span>
-						{$tab.desc|escape:'htmlall'}
-					</a>
-				</li>
-			{/foreach}
-		{/if}
-	</ul>
-</nav>
-
+ */
+CREATE TABLE IF NOT EXISTS `PREFIX_coreupdater_cache` (
+  `name`        VARCHAR(80) NOT NULL,
+  `expiration`  INT(11) UNSIGNED NOT NULL,
+  `content`     MEDIUMTEXT,
+  PRIMARY KEY (`name`)
+) ENGINE=ENGINE_TYPE DEFAULT CHARSET=CHARSET_TYPE COLLATE=COLLATE_TYPE;

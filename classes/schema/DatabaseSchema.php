@@ -19,9 +19,7 @@
 
 namespace CoreUpdater;
 
-if (!defined('_TB_VERSION_')) {
-    exit;
-}
+
 
 /**
  * Class DatabaseSchema

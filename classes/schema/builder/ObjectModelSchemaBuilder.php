@@ -28,9 +28,7 @@ use \RecursiveDirectoryIterator;
 use \RecursiveIteratorIterator;
 use \Shop;
 
-if (!defined('_TB_VERSION_')) {
-    exit;
-}
+
 
 /**
  * Class ObjectModelSchemaBuilder

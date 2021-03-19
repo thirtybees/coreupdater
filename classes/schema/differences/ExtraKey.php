@@ -22,9 +22,7 @@ namespace CoreUpdater;
 use \Translate;
 use \Db;
 
-if (!defined('_TB_VERSION_')) {
-    exit;
-}
+
 
 /**
  * Class ExtraKey

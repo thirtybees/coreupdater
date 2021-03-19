@@ -24,9 +24,7 @@ use \PrestaShopException;
 use \PrestaShopDatabaseException;
 
 
-if (!defined('_TB_VERSION_')) {
-    exit;
-}
+
 
 /**
  * Interface SchemaDifference

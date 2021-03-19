@@ -21,10 +21,6 @@ namespace CoreUpdater;
 
 use \ObjectModel;
 
-if (!defined('_TB_VERSION_')) {
-    exit;
-}
-
 /**
  * Class ColumnSchema
  *

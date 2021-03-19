@@ -19,9 +19,15 @@
 
 namespace CoreUpdater;
 
-if (!defined('_TB_VERSION_')) {
-    exit;
-}
+use Adapter_Exception;
+use Configuration;
+use HTMLPurifier_Exception;
+use Language;
+use Module;
+use PrestaShopDatabaseException;
+use PrestaShopException;
+use Tab;
+use Tools;
 
 /**
  * Class Retrocompatibility.
@@ -97,6 +103,10 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
+     * @throws Adapter_Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
      * @version 1.0.0 Initial version.
      */
     public static function doAllDatabaseUpgrades() {
@@ -134,6 +144,7 @@ class Retrocompatibility
      *               failure.
      *
      * @version 1.0.0 Initial version.
+     * @throws PrestaShopException
      */
     protected function doSqlUpgrades() {
         $errors = [];
@@ -170,6 +181,8 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
+     * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
      * @version 1.0.0 Initial version.
      */
     protected function handleSingleLangConfigs() {
@@ -178,11 +191,11 @@ class Retrocompatibility
         foreach ([
             'TB_MAIL_SUBJECT_TEMPLATE'  => '[{shop_name}] {subject}',
         ] as $key => $value) {
-            $currentValue = \Configuration::get($key);
+            $currentValue = Configuration::get($key);
             if ( ! $currentValue) {
-                $result = \Configuration::updateValue($key, $value);
+                $result = Configuration::updateValue($key, $value);
                 if ( ! $result) {
-                    $errors[] = sprintf($this->l('Could not set default value for configuration "%s".', $key));
+                    $errors[] = sprintf($this->l('Could not set default value for configuration "%s".'), $key);
                 }
             }
         }
@@ -199,6 +212,9 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
+     * @throws HTMLPurifier_Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      * @version 1.0.0 Initial version.
      */
     protected function handleMultiLangConfigs() {
@@ -217,14 +233,14 @@ class Retrocompatibility
             $needsWrite = false;
 
             // If there is a single language value already, use this.
-            $currentValue = \Configuration::get($key);
+            $currentValue = Configuration::get($key);
             if ($currentValue) {
                 $needsWrite = true;
                 $value = $currentValue;
             }
 
-            foreach (\Language::getIDs(false) as $idLang) {
-                $currentValue = \Configuration::get($key, $idLang);
+            foreach (Language::getIDs(false) as $idLang) {
+                $currentValue = Configuration::get($key, $idLang);
                 if ($currentValue) {
                     $values[$idLang] = $currentValue;
                 } else {
@@ -235,12 +251,12 @@ class Retrocompatibility
 
             if ($needsWrite) {
                 // Delete eventual single language value.
-                \Configuration::deleteByName($key);
+                Configuration::deleteByName($key);
 
                 // Write multi language values.
-                $result = \Configuration::updateValue($key, $values);
+                $result = Configuration::updateValue($key, $values);
                 if ( ! $result) {
-                    $errors[] = sprintf($this->l('Could not set default value for configuration "%s".', $key));
+                    $errors[] = sprintf($this->l('Could not set default value for configuration "%s".'), $key);
                 }
             }
         }
@@ -256,6 +272,9 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
+     * @throws Adapter_Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      * @version 1.0.0 Initial version.
      */
     protected function deleteObsoleteTabs() {
@@ -264,10 +283,10 @@ class Retrocompatibility
         foreach ([
             'AdminMarketing',
         ] as $tabClassName) {
-            while ($idTab = \Tab::getIdFromClassName($tabClassName)) {
-                $result = (new \Tab($idTab))->delete();
+            while ($idTab = Tab::getIdFromClassName($tabClassName)) {
+                $result = (new Tab($idTab))->delete();
                 if ( ! $result) {
-                    $errors[] = sprintf($this->l('Could delete back office menu item for controller "%s".', $tabClassName));
+                    $errors[] = sprintf($this->l('Could delete back office menu item for controller "%s".'), $tabClassName);
                 }
             }
         }
@@ -284,6 +303,9 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
+     * @throws Adapter_Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      * @version 1.0.0 Initial version.
      */
     protected function addMissingTabs() {
@@ -309,21 +331,21 @@ class Retrocompatibility
                 'aboveClassName'  => 'AdminModules',
             ],
         ] as $tabSet) {
-            if (\Tab::getIdFromClassName($tabSet['tabClassName'])) {
+            if (Tab::getIdFromClassName($tabSet['tabClassName'])) {
                 continue;
             }
 
             try {
-                $tab = new \Tab();
+                $tab = new Tab();
 
                 $tab->class_name  = $tabSet['tabClassName'];
                 if ($tabSet['parentClassName']
-                    && $idParent = \Tab::getIdFromClassName($tabSet['parentClassName'])) {
+                    && $idParent = Tab::getIdFromClassName($tabSet['parentClassName'])) {
                     $tab->id_parent = $idParent;
                 }
 
                 if ($tabSet['tabName']) {
-                    $langs = \Language::getLanguages();
+                    $langs = Language::getLanguages();
                     foreach ($langs as $lang) {
                         $translation = \Translate::getAdminTranslation(
                             $tabSet['tabName'], 'AdminTab', false, false);
@@ -340,7 +362,7 @@ class Retrocompatibility
             // Move the new tab to just under the tab with class
             // $tabSet['aboveClassName'].
             if ($tabSet['aboveClassName']) {
-                $tabList = \Tab::getTabs(0, $tab->id_parent);
+                $tabList = Tab::getTabs(0, $tab->id_parent);
 
                 // Find positions of relevant tabs.
                 $posMe = false;
@@ -391,8 +413,7 @@ class Retrocompatibility
         }
 
         $installedIncompatibles = [];
-        $modules = \Module::getModulesInstalled();
-        foreach ($modules as $module) {
+        foreach (static::getModulesInstalled() as $module) {
             $name = $module['name'];
             if (in_array($name, $incompatibles)) {
                 $installedIncompatibles[] = $name;
@@ -403,42 +424,16 @@ class Retrocompatibility
     }
 
     /**
-     * Uninstall the named module and delete its directory.
-     *
-     * @param string $moduleName Module name.
-     *
-     * @return array Empty array on success, array with error messages on
-     *               failure.
-     *
-     * @version 1.0.0 Initial version.
+     * @return array
      */
-    public static function removeModule($moduleName) {
-        $errors = [];
-        $me = new Retrocompatibility;
-
-        // Uninstall the module.
-        if (\Module::isInstalled($moduleName)) {
-            $module = \Module::getInstanceByName($moduleName);
-            if ($module) {
-                $success = $module->uninstall();
-                if ( ! $success) {
-                    $errors[] = sprintf($me->l('Could find, but not uninstall module %s.'), $moduleName);
-                }
-            } else {
-                $errors[] = sprintf($me->l('System considers module %s to be installed, but could not create an instance.'), $moduleName);
+    public static function getModulesInstalled()
+    {
+        try {
+            $modules = Module::getModulesInstalled();
+            if (is_array($modules)) {
+                return $modules;
             }
-        }
-
-        // Delete the module directory. Do this in case of failure to
-        // uninstall it as well.
-        $moduleDir = _PS_MODULE_DIR_.$moduleName;
-        if (is_dir($moduleDir)) {
-            $success = \Tools::deleteDirectory($moduleDir);
-            if ( ! $success) {
-                $errors[] = sprintf($me->l('Could not delete directory %s.'), $moduleDir);
-            }
-        }
-
-        return $errors;
+        } catch (\Exception $ignored) {}
+        return [];
     }
 }

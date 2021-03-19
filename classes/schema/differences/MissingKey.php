@@ -23,9 +23,7 @@ use \Translate;
 use \Db;
 use \ObjectModel;
 
-if (!defined('_TB_VERSION_')) {
-    exit;
-}
+
 
 /**
  * Class MissingKey

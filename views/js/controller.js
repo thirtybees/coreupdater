@@ -16,457 +16,262 @@
  * @license   Academic Free License (AFL 3.0)
  */
 
-/*
- * Upgrade panel.
- */
-var coreUpdaterParameters;
+window.initializeCoreUpdater = function(translations) {
 
-$(document).ready(function () {
-  if ($('input[name=CORE_UPDATER_PARAMETERS]').length) {
-      coreUpdaterParameters = JSON.parse($('input[name=CORE_UPDATER_PARAMETERS]').val());
-      coreUpdaterParameters.ignoreTheme
-          = $('input[name=CORE_UPDATER_IGNORE_THEME]:checked').val();
-
-      channelChange(true);
-      $('#CORE_UPDATER_CHANNEL').on('change', channelChange);
-
-      $('#CORE_UPDATER_VERSION').on('change', versionChange);
-
-      $('input[name=CORE_UPDATER_IGNORE_THEME]').on('change', ignoranceChange);
-
-      $('button[name=coreUpdaterUpdate]').on('click', collectSelectedObsolete);
-
-      addBootstrapCollapser('CORE_UPDATER_PROCESSING', false);
-
-      if (document.getElementById('configuration_fieldset_comparepanel')) {
-          $('button[name=coreUpdaterUpdate]').prop('disabled', true);
-          processAction('processCompare');
-      }
-      if (document.getElementById('configuration_fieldset_processpanel')) {
-          $('#configuration_fieldset_updatepanel').find('select, button')
-              .prop('disabled', true);
-          $('button[name=coreUpdaterFinalize]').prop('disabled', true);
-          processAction('processUpdate');
-      }
-  }
-  if (document.getElementById('configuration_fieldset_database')) {
-      $('#refresh-btn').on('click', function(e) {
-          e.preventDefault();
-          getDatabaseDifferences();
+  var executeAjax = function(url, payload) {
+      return new Promise(function (resolve, reject) {
+          $.ajax({
+              url: url,
+              type: 'POST',
+              data: payload,
+              dataType: 'json'
+          }).then(
+              function (response) {
+                  if (!response) {
+                      reject(createError("Empty response", ""));
+                  } else {
+                      if (response.success) {
+                          resolve(response.data);
+                      } else {
+                          if (response.error && response.error.message && response.error.details) {
+                              reject(createError(response.error.message, response.error.details));
+                          } else {
+                              reject(createError("Unknown error", ""));
+                          }
+                      }
+                  }
+              },
+              function(response, error, details) {
+                  if (response) {
+                      console.error(error, details);
+                      console.error('Response: ', response);
+                      if (response.responseText) {
+                          details = details + "\nResponse:\n" + response.responseText;
+                      }
+                  }
+                  if (error) {
+                      reject(createError("Ajax request failed: " + error, details));
+                  } else {
+                      reject(createError("Ajax request failed", details));
+                  }
+              }
+          );
       });
-      setTimeout(getDatabaseDifferences, 100);
-  }
-});
+  };
 
-function channelChange(firstRun) {
-  var channelSelect = $('#CORE_UPDATER_CHANNEL');
-  var versionSelect = $('#CORE_UPDATER_VERSION');
-
-  if ( ! channelSelect || ! versionSelect.length) {
-    return;
-  }
-
-  if (firstRun === true) {
-    if ( ! /^[0-9\.]*$/.exec(coreUpdaterParameters.selectedVersion)) {
-      channelSelect.val('branches');
-    }
-  }
-
-  versionSelect.empty();
-  channel = channelSelect.val();
-  $.ajax({
-    url: coreUpdaterParameters.apiUrl,
-    type: 'POST',
-    data: {'list': channel},
-    dataType: 'json',
-    success: function(data, status, xhr) {
-      if (channel === 'tags') {
-        data.reverse();
+  /**
+   * @return Promise
+   * @param action
+   * @param params
+   */
+  var executeAction = function(action, params={}) {
+    var payload = {
+      ajax: 1,
+      action: action,
+      token: window.token
+    };
+    for (var property in params) {
+      if (params.hasOwnProperty(property)) {
+        payload[property] = params[property];
       }
-      data.forEach(function(version) {
-          versionSelect.append('<option>'+version+'</option>');
-          if (version === coreUpdaterParameters.selectedVersion) {
-            versionSelect.val(coreUpdaterParameters.selectedVersion);
+    }
+    return executeAjax(window.currentIndex, payload);
+  };
+
+  var createError = function(error, details) {
+    var e = new Error(error);
+    // noinspection JSUndefinedPropertyAssignment
+    e.details = details;
+    return e;
+  };
+
+  var displayError = function(error) {
+    console.error(error);
+    var message = error.message || error;
+    var details = error.details || '';
+    $('#panel-progress').hide();
+    $('#error-block #error-message').text(message);
+    $('#error-block #error-details').text(details);
+    $('#error-block').show();
+  };
+
+  var hideError = function() {
+    $('#error-block').hide();
+  };
+
+  var setProgressBar = function(progress, text) {
+    var percentage = (Math.round(progress * 10000) / 100) + "%";
+    var $compareProgressBar = $('#progress-bar');
+    $compareProgressBar.text(percentage);
+    $compareProgressBar.css("width", percentage);
+    $('#progress-bar-text').text(text);
+  };
+
+  var incrementProcess = function(action, process, onSuccess) {
+    setProgressBar(process.progress, process.step);
+    executeAction(action, { processId: process.id })
+      .then(function(newProcess) {
+          if (newProcess.ajax) {
+              return executeAjax(newProcess.ajax, { processId: process.id })
+                  .then(_ => newProcess);
+          } else {
+              return newProcess;
           }
-      });
-      $('#conf_id_CORE_UPDATER_VERSION')
-        .find('.help-block')
-        .parent()
-        .slideUp(200);
-      versionSelect.trigger('change');
-    },
-    error: function(xhr, status, error) {
-      var helpText = $('#conf_id_CORE_UPDATER_VERSION').find('.help-block');
-      helpText.html(coreUpdaterParameters.errorRetrieval);
-      helpText.css('color', 'red');
-      console.log('Request to '+coreUpdaterParameters.apiUrl
-                  +' failed with status \''+xhr.state()+'\'.');
-    },
-  });
-}
-
-function versionChange() {
-  comparePanelSlide();
-}
-
-function ignoranceChange(event) {
-  comparePanelSlide();
-  doAdminAjax({
-    'ajax': true,
-    'tab': 'AdminCoreUpdater',
-    'action': 'UpdateIgnoreTheme',
-    'value': $(this).val()
-  });
-};
-
-function comparePanelSlide() {
-  if ($('#CORE_UPDATER_VERSION').val()
-      === coreUpdaterParameters.selectedVersion
-      && $('input[name=CORE_UPDATER_IGNORE_THEME]:checked').val()
-         === coreUpdaterParameters.ignoreTheme) {
-    $('#configuration_fieldset_comparepanel').slideDown(1000);
-  } else {
-    $('#configuration_fieldset_comparepanel').slideUp(1000);
-  }
-}
-
-function processAction(action) {
-  var url = document.URL+'&action='+action+'&ajax=1';
-
-  $.ajax({
-    url: url,
-    type: 'POST',
-    data: {'compareVersion': coreUpdaterParameters.selectedVersion},
-    dataType: 'json',
-    success: function(data, status, xhr) {
-      if ( ! data) {
-        ajaxError('Request to '+url+' succeeded, but returned an empty response.', null);
-        return;
-      }
-
-      logField = $('textarea[name=CORE_UPDATER_PROCESSING]')[0];
-      infoList = data['informations'];
-      infoListLength = infoList.length;
-
-      for (i = 0; i < infoListLength; i++) {
-        logField.value += "\n";
-        if (data['error'] && i === infoListLength - 1) {
-          logField.value += "ERROR: ";
-          $('#conf_id_CORE_UPDATER_PROCESSING')
-            .find('label')
-            .css('color', 'red')
-            .find('*')
-            .contents()
-            .filter(function() {
-              return this.nodeType === 3 && this.nodeValue.trim !== '';
-            })
-            [0].data = ' '+coreUpdaterParameters.errorProcessing;
+      })
+      .then(function(newProcess) {
+        switch (newProcess.status) {
+          case 'IN_PROGRESS':
+            incrementProcess(action, newProcess, onSuccess);
+            return;
+          case 'DONE':
+            setProgressBar(1.0, newProcess.step);
+            onSuccess(newProcess.result);
+            return;
+          case 'FAILED':
+            throw createError(newProcess.error, newProcess.details);
         }
-        logField.value += data['informations'][i];
-      }
+      })
+      .catch(displayError);
+  };
 
-      logField.scrollTop = logField.scrollHeight;
+  var initProgress = function(header, description) {
+    var $progress = $('#panel-progress');
+    var $result = $('#result');
+    var $header = $('#progress-header');
+    var $description = $('#progress-description');
+    hideError();
+    setProgressBar(0, translations.INITIALIZING);
+    $result.hide();
+    $header.html(header);
+    $description.html(description);
+    $progress.show();
+  };
 
-      if (action === 'processCompare' && data['changeset']) {
-        changesets = data['changeset'];
-        if (changesets['incompatible']) {
-          appendChangeset(changesets['incompatible'], 'CORE_UPDATER_INCOMPATIBLE');
-          addBootstrapCollapser('CORE_UPDATER_INCOMPATIBLE', true);
-        }
-        if (changesets['change']) {
-          appendChangeset(changesets['change'], 'CORE_UPDATER_UPDATE');
-          addBootstrapCollapser('CORE_UPDATER_UPDATE', true);
-        }
-        if (changesets['add']) {
-          appendChangeset(changesets['add'], 'CORE_UPDATER_ADD');
-          addBootstrapCollapser('CORE_UPDATER_ADD', true);
-        }
-        if (changesets['remove']) {
-          appendChangeset(changesets['remove'], 'CORE_UPDATER_REMOVE');
-          addBootstrapCollapser('CORE_UPDATER_REMOVE', true);
-        }
-        if (changesets['obsolete']) {
-          appendChangeset(changesets['obsolete'], 'CORE_UPDATER_REMOVE_OBSOLETE');
-          addBootstrapCollapser('CORE_UPDATER_REMOVE_OBSOLETE', true);
-        }
-      }
+  var endProgress = function(result) {
+    var $progress = $('#panel-progress');
+    var $result = $('#result');
+    $progress.hide();
+    $result.html(result.html);
+    $result.show();
+  };
 
-      if (data['done'] === false) {
-        processAction(action);
-      } else if ( ! data['error']) {
-        if (action === 'processCompare') {
-          $('#collapsible_CORE_UPDATER_PROCESSING').collapse('hide');
-          $('button[name=coreUpdaterUpdate]').prop('disabled', false);
-        } else if (action === 'processUpdate') {
-          $('button[name=coreUpdaterFinalize]').prop('disabled', false);
-        }
-        addCompletedText('CORE_UPDATER_PROCESSING',
-                         coreUpdaterParameters.completedLog);
-      }
-    },
-    error: function(xhr, status, error) {
-      ajaxError('Request to '+url+' failed with status \''+xhr.state()+'\'.', xhr.responseText);
-    }
-  });
+  var compare = function(process) {
+    initProgress(translations.CHECKING_YOUR_INSTALLATION, translations.CHECKING_DESCRIPTION);
+    incrementProcess('COMPARE', process, endProgress);
+  };
 
-  function ajaxError(message, responseText) {
-    addCompletedText('CORE_UPDATER_PROCESSING',
-                     coreUpdaterParameters.errorRetrieval);
-    $('#conf_id_CORE_UPDATER_PROCESSING')
-      .find('label')
-      .css('color', 'red')
-    console.log(message);
-    if (responseText) {
-      console.log('Response: ' + responseText);
-    }
-  }
-}
+  var runUpdate = function(process) {
+    incrementProcess('UPDATE', process, endProgress);
+  };
 
-function appendChangeset(changeset, field) {
-  var node = $('#conf_id_'+field);
+  var update = function(compareProcessId) {
+    initProgress(translations.UPDATE, translations.UPDATE_DESCRIPTION);
+    executeAction('INIT_UPDATE', { compareProcessId: compareProcessId })
+        .then(runUpdate)
+        .catch(displayError);
+  };
 
-  var html = '<table class="table"><tbody>';
+  var checkDatabase = function() {
+    document.getElementById('db-changes').className = 'status-running';
+    executeAction('GET_DATABASE_DIFFERENCES')
+      .then(getDatabaseDifferencesSuccess)
+      .catch(checkDatabaseError);
+  };
 
-  var count = 0;
-  for (line in changeset) {
-    count++;
-    html += '<tr>'
-    if (field !== 'CORE_UPDATER_REMOVE_OBSOLETE') {
-      if (changeset[line]) {
-        html += '<td>M</td>';
-      } else {
-        html += '<td>&nbsp;</td>';
-      }
-    } else {
-      html += '<td><input type="checkbox"></td>'
-    }
-    html += '<td>'+line+'</td>';
-    html += '</tr>'
-  }
-  if ( ! count) {
-    html += '<tr><td>-- none --</td></tr>';
-  }
-
-  html += '</tbody></table>';
-
-  node.append(html);
-
-  addCompletedText(field, coreUpdaterParameters.completedList, count);
-}
-
-function collectSelectedObsolete() {
-  var selectedObsolete = [];
-
-  $('#conf_id_CORE_UPDATER_REMOVE_OBSOLETE')
-  .find('table')
-  .find('tr')
-  .filter(function(index, element) {
-    if ($(element).find('input').prop('checked')) {
-      selectedObsolete.push($(element).find('td:last').html());
-    }
-  })
-
-  $('input[name=CORE_UPDATER_PARAMETERS]').val(
-    JSON.stringify({selectedObsolete: selectedObsolete})
-  );
-
-  // Save bandwidth.
-  $('textarea[name=CORE_UPDATER_PROCESSING]').val('');
-}
-
-function addCompletedText(field, text, number) {
-  var element = $('#conf_id_'+field).children('label');
-  if (element.children('a').length) {
-    element = element.children('a');
-  }
-
-  if (number !== undefined) {
-    text = text.replace('%d', number);
-  }
-
-  var string = element[0].innerHTML.trim();
-  var colon = string.slice(-1);
-  if (colon === ':') {
-    string = string.slice(0, -1);
-  }
-  string += ' ('+text+')';
-  if (colon === ':') {
-    string += ':';
-  }
-
-  element[0].innerHTML = string;
-}
-
-function addBootstrapCollapser(field, initiallyCollapsed) {
-  var trigger = $('#conf_id_'+field).children('label');
-  if ( ! trigger.length) {
-    return;
-  }
-
-  var collapsible = $('#conf_id_'+field).children(':last');
-  var collapsibleName = 'collapsible_'+field;
-
-  var iconClass = 'icon-collapse-alt';
-  if (initiallyCollapsed) {
-    iconClass = 'icon-expand-alt';
-  }
-  trigger.html('<a data-toggle="collapse"'
-               +'  data-target="#'+collapsibleName+'"'
-               +'  style="color: inherit; text-decoration: inherit;">'
-               +'<i class="'+iconClass+'"></i>'
-               +' '
-               +trigger.html().trim()
-               +'</a>'
-  );
-
-  collapsible.attr('id', collapsibleName)
-             .addClass('collapse');
-  if ( ! initiallyCollapsed) {
-    collapsible.addClass('in');
-  }
-
-  collapsible.on("hide.bs.collapse", function(){
-    $(this).siblings('label').find('i').attr('class', 'icon-expand-alt');
-  });
-  collapsible.on("show.bs.collapse", function(){
-    $(this).siblings('label').find('i').attr('class', 'icon-collapse-alt');
-  });
-}
-
-function getDatabaseDifferences() {
-    var element = document.getElementById('db-changes');
-    element.className = 'status-running';
-    $('#refresh-btn').attr('disabled', 'disabled');
-    doAdminAjax(
-        {
-            'ajax': true,
-            'tab': 'AdminCoreUpdater',
-            'action': 'GetDatabaseDifferences',
-        },
-        function(body) {
-            var data;
-            try {
-                data = JSON.parse(body);
-            } catch (e) {
-                data = {
-                  error: e.toString()
-                };
-            }
-            if (data && data.success) {
-                getDatabaseDifferencesSuccess(data.differences);
-            } else {
-                getDatabaseDifferenceFailed(data.error || 'Unknown error');
-            }
-        },
-        function(response) {
-            getDatabaseDifferenceFailed('ajax call failed with error code ' + response.status)
-        }
-    );
-}
-
-function getDatabaseDifferenceFailed(error) {
+  var checkDatabaseError = function(error) {
     document.getElementById('db-changes').className = 'status-error';
-    document.getElementById('db-error').innerText = error;
-    $('#refresh-btn').removeAttr('disabled');
-}
+    displayError(error);
+  };
 
-function getDatabaseDifferencesSuccess(differences) {
+  var getDatabaseDifferencesSuccess = function(differences) {
     if (differences && differences.length > 0) {
-        var $list = $('#db-changes-list');
-        $list.empty();
-        differences.forEach(function(diff) {
-            var severityInfo = getSeverityInfo(diff.severity);
-            $list.append($(
-                '<tr class="db-change">' +
-                '  <td>' +
-                '    <span class="badge '+severityInfo.badge+'" title="'+severityInfo.tooltip+'">'+severityInfo.title+'</span>' +
-                '  </td>' +
-                '  <td>' +
-                '    '+ (diff.destructive ? '<span class="badge badge-danger" title="Fix is potentially dangerous operation that may result in data loss">dangerous</span>' : '') +
-                '  </td>' +
-                '  <td>' +
-                '    '+ replaceTags(diff.description) +
-                '  </td>' +
-                '  <td class="text-right">' +
-                '    '+'<a href="#" data-id="'+diff.id+'" class="btn btn-default"><i class="icon icon-gears"></i> Apply fix</a>'+
-                '  </td>' +
-                '</tr>'
-            ));
-        });
-        $('#db-changes-list .badge').tooltip();
-        $('#db-changes-list .btn').on('click', function(e) {
-            e.preventDefault();
-            var id = $(this).data('id');
-            applyDatabaseFix([ id ]);
-
-        });
-        document.getElementById('db-changes').className = 'status-changes';
+      var $list = $('#db-changes-list');
+      $list.empty();
+      differences.forEach(function(diff) {
+        var severityInfo = getSeverityInfo(diff.severity);
+        $list.append($(
+          '<tr class="db-change">' +
+          '  <td>' +
+          '    <span class="badge '+severityInfo.badge+'" title="'+severityInfo.tooltip+'">'+severityInfo.title+'</span>' +
+          '  </td>' +
+          '  <td>' +
+          '    '+ (diff.destructive ? '<span class="badge badge-danger" title="Fix is potentially dangerous operation that may result in data loss">dangerous</span>' : '') +
+          '  </td>' +
+          '  <td>' +
+          '    '+ replaceTags(diff.description) +
+          '  </td>' +
+          '  <td class="text-right">' +
+          '    '+'<a href="#" data-id="'+diff.id+'" class="btn btn-default"><i class="icon icon-gears"></i> Apply fix</a>'+
+          '  </td>' +
+          '</tr>'
+        ));
+      });
+      $('#db-changes-list .badge').tooltip();
+      $('#db-changes-list .btn').on('click', applyFixHandler);
+      document.getElementById('db-changes').className = 'status-changes';
     } else {
-        document.getElementById('db-changes').className = 'status-no-changes';
+      document.getElementById('db-changes').className = 'status-no-changes';
     }
-    $('#refresh-btn').removeAttr('disabled');
-}
+  };
 
-function applyDatabaseFix(ids) {
+  var applyFixHandler = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var id = $(this).data('id');
+    if (id) {
+      applyDatabaseFix([ id ]);
+    }
+  };
+
+  var applyDatabaseFix = function(ids) {
     $('.changes .table').addClass('loading');
-    doAdminAjax(
-        {
-            'ajax': true,
-            'tab': 'AdminCoreUpdater',
-            'action': 'ApplyDatabaseFix',
-            'value': JSON.stringify(ids),
-        },
-        function(body) {
-            $('.changes .table').removeClass('loading');
-            var data;
-            try {
-                data = JSON.parse(body);
-            } catch (e) {
-                data = {
-                    error: e.toString()
-                };
-            }
-            if (data && data.success) {
-                getDatabaseDifferencesSuccess(data.differences);
-            } else {
-                getDatabaseDifferenceFailed(data.error || 'Unknown error');
-            }
-        },
-        function(response) {
-            $('.changes .table').removeClass('loading');
-            getDatabaseDifferenceFailed('ajax call failed with error code ' + response.status)
-        }
-    );
-}
+    executeAction('APPLY_DATABASE_FIX', { ids: ids })
+      .then(getDatabaseDifferencesSuccess)
+      .then(function() {
+        $('.changes .table').removeClass('loading');
+      })
+      .catch(checkDatabaseError);
+  };
 
-function getSeverityInfo(severity) {
+  var getSeverityInfo = function(severity) {
     switch (severity) {
-        case 0:
-            return {
-                badge: 'module-badge-bought',
-                title: 'informational',
-                tooltip: 'You should ignore this difference'
-            };
-        case 1:
-            return {
-                badge: 'badge-info',
-                title: 'recommended',
-                tooltip: 'This is not a critical issue, but we still recommend you to fix this',
-            };
-        case 2:
-            return {
-                badge: 'badge-danger',
-                title: 'critical',
-                tooltip: 'This is critical issue and you should fix it immediately. Failure to do so might result in system not working correctly',
-            };
+      case 0:
+        return {
+          badge: 'module-badge-bought',
+          title: 'informational',
+          tooltip: 'You should ignore this difference'
+        };
+      case 1:
+        return {
+          badge: 'badge-info',
+          title: 'recommended',
+          tooltip: 'This is not a critical issue, but we still recommend you to fix this',
+        };
+      case 2:
+        return {
+          badge: 'badge-danger',
+          title: 'critical',
+          tooltip: 'This is critical issue and you should fix it immediately. Failure to do so might result in system not working correctly',
+        };
     }
-}
+  };
 
-function replaceTags(str) {
+  var replaceTags = function(str) {
     var output = str;
     var open = new RegExp('\\[[0-9]+\\]', 'g');
     var close = new RegExp('\\[\\/[0-9]+\\]', 'g');
     output = output.replace(open, "<strong>");
     output = output.replace(close, "</strong>");
     return output;
-}
+  };
+
+  /**
+   * Public API
+   */
+  return {
+    compare: compare,
+    update: update,
+    checkDatabase: checkDatabase,
+  }
+};
+

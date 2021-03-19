@@ -17,13 +17,7 @@
  * @license   Academic Free License (AFL 3.0)
  */
 
-if (!defined('_TB_VERSION_')) {
-    exit;
-}
-
-if (version_compare(phpversion(), '5.6', '>=')) {
-    require_once __DIR__.'/classes/GitUpdate.php';
-}
+require_once __DIR__ . '/classes/Settings.php';
 
 /**
  * Class CoreUpdater
@@ -36,6 +30,7 @@ class CoreUpdater extends Module
      * CoreUpdater constructor.
      *
      * @version 1.0.0 Initial version.
+     * @throws PrestaShopException
      */
     public function __construct()
     {
@@ -55,105 +50,181 @@ class CoreUpdater extends Module
     }
 
     /**
-     * Install this module.
-     *
-     * @return bool Whether this module was successfully installed.
-     *
-     * @version 1.0.0 Initial version.
+     * @param bool $createTables
+     * @return bool
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws Adapter_Exception
      */
-    public function install()
+    public function install($createTables = true)
     {
-        if (version_compare(phpversion(), '5.6', '<')) {
-            $this->_errors[] = $this->l('This module requires PHP 5.6 or later.');
-
-            return false;
-        }
-
         Shop::setContext(Shop::CONTEXT_ALL);
-
-        $success = parent::install();
-
-        $tabSuccess = false;
-        if ($success) {
-            try {
-                $tab = new Tab();
-
-                $tab->module      = $this->name;
-                $tab->class_name  = static::MAIN_CONTROLLER;
-                $tab->id_parent   = Tab::getIdFromClassName('AdminPreferences');
-
-                $langs = Language::getLanguages();
-                foreach ($langs as $lang) {
-                    $tab->name[$lang['id_lang']] = $this->l('Core Updater');
-                }
-
-                $tabSuccess = $tab->save();
-            } catch (Exception $e) {
-            }
-        }
-        if ( ! $tabSuccess) {
-            // Unfortunately, warnings are not supported ...
-            $this->_errors[] = sprintf($this->l('Module installation successful, but installation of the menu item failed. Please add an item for class %s manually.'), static::MAIN_CONTROLLER);
-            // ... and errors appear only when returning false.
-            $success = false;
-        }
-
-        return $success;
+        return (
+            parent::install() &&
+            CoreUpdater\Settings::install() &&
+            $this->installDb($createTables) &&
+            $tabSuccess = $this->installTab()
+        );
     }
 
     /**
-     * Uninstall this module.
-     *
-     * @return bool Whether this module was successfully uninstalled.
-     *
-     * @version 1.0.0 Initial version.
+     * @param bool $dropTables
+     * @return bool
+     * @throws PrestaShopException
+     * @throws Adapter_Exception
      */
-    public function uninstall()
+    public function uninstall($dropTables = true)
     {
         Shop::setContext(Shop::CONTEXT_ALL);
-
-        $success = true;
-        $success = $success && CoreUpdater\GitUpdate::uninstall();
-
-        $tabs = Tab::getCollectionFromModule($this->name);
-        foreach ($tabs as $tab) {
-            $success = $success && $tab->delete();
-        }
-
-        Configuration::deleteByName('CORE_UPDATER_IGNORE_THEME');
-
-        return $success && parent::uninstall();
+        return (
+            $this->uninstallDb($dropTables) &&
+            CoreUpdater\Settings::cleanup() &&
+            $this->removeTab() &&
+            parent::uninstall()
+        );
     }
 
+    /**
+     * @return bool
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws Adapter_Exception
+     */
+    public function reset()
+    {
+        return (
+            $this->uninstall(false) &&
+            $this->install(false)
+        );
+    }
+
+
+    /**
+     * Created databases tables
+     *
+     * @param boolean $create
+     * @return bool
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws Adapter_Exception
+     */
+    private function installDb($create)
+    {
+        if (!$create) {
+            return true;
+        }
+        return $this->executeSqlScript('install');
+    }
+
+    /**
+     * Removes database tables
+     *
+     * @param boolean $drop
+     * @return bool
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws Adapter_Exception
+     */
+    private function uninstallDb($drop)
+    {
+        if (!$drop) {
+            return true;
+        }
+        return $this->executeSqlScript('uninstall', false);
+    }
+
+    /**
+     * Executes sql script
+     * @param string $script
+     * @param bool $check
+     * @return bool
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws Adapter_Exception
+     */
+    public function executeSqlScript($script, $check = true)
+    {
+        $file = dirname(__FILE__) . '/sql/' . $script . '.sql';
+        if (!file_exists($file)) {
+            return false;
+        }
+        $sql = file_get_contents($file);
+        if (!$sql) {
+            return false;
+        }
+        $sql = str_replace(['PREFIX_', 'ENGINE_TYPE', 'CHARSET_TYPE', 'COLLATE_TYPE'], [_DB_PREFIX_, _MYSQL_ENGINE_, 'utf8mb4', 'utf8mb4_unicode_ci'], $sql);
+        $sql = preg_split("/;\s*[\r\n]+/", $sql);
+        foreach ($sql as $statement) {
+            $stmt = trim($statement);
+            if ($stmt) {
+                try {
+                    if (!Db::getInstance()->execute($stmt)) {
+                        PrestaShopLogger::addLog("coreupdater: sql script $script: $stmt: error");
+                        if ($check) {
+                            return false;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    PrestaShopLogger::addLog("coreupdater: sql script $script: $stmt: exception: $e");
+                    if ($check) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
     /**
      * Get module configuration page.
      *
-     * @return string Configuration page HTML.
+     * Redirects to AdminCoreUpdaterController
      *
+     * @throws PrestaShopException
      * @version 1.0.0 Initial version.
      */
     public function getContent()
     {
-        $enabledModules = [];
-        $warn = false;
-        foreach ([
-            //'tbupdater', // Still needed by core.
-            'autoupgrade',
-            'psonefivemigrator',
-            'psonesixmigrator',
-            'psonesevenmigrator',
-        ] as $moduleName) {
-            if (Module::isInstalled($moduleName)) {
-                $enabledModules[] = $moduleName;
-                $warn = true;
+        require_once(__DIR__ . '/controllers/admin/AdminCoreUpdaterController.php');
+        Tools::redirectAdmin(AdminCoreUpdaterController::tabLink(AdminCoreUpdaterController::TAB_SETTINGS));
+    }
+
+    /**
+     * Adds menu item
+     *
+     * @return bool
+     */
+    private function installTab()
+    {
+        try {
+            $tab = new Tab();
+            $tab->module = $this->name;
+            $tab->class_name = static::MAIN_CONTROLLER;
+            $tab->id_parent = Tab::getIdFromClassName('AdminPreferences');
+            foreach (Language::getLanguages() as $lang) {
+                $tab->name[$lang['id_lang']] = $this->l('Core Updater');
+            }
+
+            return $tab->save();
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Removes menu items
+     *
+     * @return boolean
+     * @throws PrestaShopException
+     */
+    private function removeTab()
+    {
+        $tabs = Tab::getCollectionFromModule($this->name);
+        foreach ($tabs as $tab) {
+            if (! $tab->delete()) {
+                return false;
             }
         }
-
-        $this->context->smarty->assign([
-            'enabledModules'  => $enabledModules,
-            'warn'            => $warn,
-        ]);
-
-        return $this->display(__FILE__, 'views/templates/admin/competition.tpl');
+        return true;
     }
 }

@@ -22,9 +22,7 @@ namespace CoreUpdater;
 use \ObjectModel;
 use \Translate;
 
-if (!defined('_TB_VERSION_')) {
-    exit;
-}
+
 
 /**
  * Class TableKey

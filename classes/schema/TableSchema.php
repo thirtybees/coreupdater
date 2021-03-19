@@ -21,9 +21,7 @@ namespace CoreUpdater;
 
 use \Tools;
 
-if (!defined('_TB_VERSION_')) {
-    exit;
-}
+
 
 /**
  * Class TableSchema

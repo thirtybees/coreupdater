@@ -24,9 +24,7 @@ use \ObjectModel;
 use \PrestaShopException;
 use \PrestaShopDatabaseException;
 
-if (!defined('_TB_VERSION_')) {
-    exit;
-}
+
 /**
  * Class InformationSchemaBuilder
  *
@@ -207,10 +205,23 @@ class InformationSchemaBuilder
      */
     protected function loadKeys($connection)
     {
+        $constraintResult = $connection->executeS('
+            SELECT t.TABLE_NAME, t.CONSTRAINT_TYPE, t.CONSTRAINT_NAME
+            FROM information_schema.TABLE_CONSTRAINTS t
+            WHERE t.TABLE_SCHEMA = ' . $this->database . $this->addTablesRestriction('t')
+        );
+        $constraints = [];
+        foreach ($constraintResult as $row) {
+            $key = $row['TABLE_NAME'] .'|' . $row['CONSTRAINT_NAME'];
+            if (isset($constraints[$key])) {
+                throw new PrestaShopException('Duplicate constraint ' . $key);
+            }
+            $constraints[$key] = $row['CONSTRAINT_TYPE'];
+        }
+
         $keys = $connection->executeS('
-            SELECT s.TABLE_NAME, s.INDEX_NAME, t.CONSTRAINT_TYPE, s.COLUMN_NAME, s.SUB_PART
+            SELECT s.TABLE_NAME, s.INDEX_NAME, s.COLUMN_NAME, s.SUB_PART
             FROM information_schema.STATISTICS s
-            LEFT JOIN information_schema.TABLE_CONSTRAINTS t ON (t.TABLE_SCHEMA = s.TABLE_SCHEMA AND t.TABLE_NAME = s.TABLE_NAME and t.CONSTRAINT_NAME = s.INDEX_NAME)
             WHERE s.TABLE_SCHEMA = ' . $this->database . $this->addTablesRestriction('s') . '
             ORDER BY s.TABLE_NAME, s.INDEX_NAME, s.SEQ_IN_INDEX'
         );
@@ -219,8 +230,10 @@ class InformationSchemaBuilder
             $keyName = $row['INDEX_NAME'];
             $table = $this->schema->getTable($tableName);
             $key = $table->getKey($keyName);
-            if (!$key) {
-                $key = new TableKey($this->getKeyType($row['CONSTRAINT_TYPE']), $keyName);
+            if (! $key) {
+                $constraintKey = $tableName . '|' . $keyName;
+                $constraintType = isset($constraints[$constraintKey]) ? $constraints[$constraintKey] : null;
+                $key = new TableKey($this->getKeyType($constraintType), $keyName);
                 $table->addKey($key);
             }
             $key->addColumn($row['COLUMN_NAME'], $row['SUB_PART']);

@@ -16,6 +16,31 @@
  * @license   Academic Free License (AFL 3.0)
  */
 
+#compare-progress .progress {
+    height: 25px;
+    line-height: 25px;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+#compare-progress .progress-bar {
+    line-height: 25px;
+}
+
+#process-result h2 {
+    margin-top: -5px;
+    margin-bottom: 20px;
+}
+
+.file-list li {
+    line-height: 18px;
+}
+
+.file-list li .badge {
+    line-height: 12px;
+    font-size: 10px;
+}
+
 #db-changes .running,
 #db-changes .no-changes,
 #db-changes .db-error,
