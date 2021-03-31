@@ -189,7 +189,7 @@ class DatabaseSchemaComparator
     {
         $differences = [];
 
-        if ($current->getDataType() !== $target->getDataType()) {
+        if (DifferentDataType::differentColumnTypes($current, $target)) {
             $differences[] = new DifferentDataType($table, $target, $current);
         }
 

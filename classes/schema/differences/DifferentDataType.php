@@ -67,6 +67,35 @@ class DifferentDataType implements SchemaDifference
     }
 
     /**
+     * Returns true, if data types of two columns are different
+     *
+     * @param ColumnSchema $col1
+     * @param ColumnSchema $col2
+     * @return bool
+     */
+    public static function differentColumnTypes(ColumnSchema $col1, ColumnSchema $col2)
+    {
+        $type1 = $col1->getDataType();
+        $type2 = $col2->getDataType();
+
+        if ($type1 === $type2) {
+            return false;
+        }
+
+        // for integer family, size is not important, as int(11) is the same as int(1) or int
+        $typeFamily1 = static::getFamilyType($col1->getBaseType());
+        $typeFamily2 = static::getFamilyType($col2->getBaseType());
+        if ($typeFamily1 === 'integer' && $typeFamily2 === 'integer') {
+            $adjustedType1 = strtolower(preg_replace("/\(\s*[0-9]+\s*\)/", "", $type1));
+            $adjustedType2 = strtolower(preg_replace("/\(\s*[0-9]+\s*\)/", "", $type2));
+            if ($adjustedType1 === $adjustedType2) {
+                return false;
+            }
+        };
+        return true;
+    }
+
+    /**
      * Return description of the difference.
      *
      * @return string

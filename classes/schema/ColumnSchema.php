@@ -321,7 +321,7 @@ class ColumnSchema
             $parts = explode('(', $type);
             $type = $parts[0];
         }
-        return $type;
+        return trim($type);
     }
 
     /**
