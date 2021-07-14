@@ -32,6 +32,7 @@ if (!defined('_TB_VERSION_')) {
 
 require_once __DIR__.'/Requirements.php';
 require_once __DIR__.'/Retrocompatibility.php';
+require_once __DIR__.'/CodeCallback.php';
 
 /**
  * Class GitUpdate.
@@ -868,6 +869,17 @@ class GitUpdate
                 $messages['informations'][] = $me->l('Skipping database migration: this version of thirty bees does not support it');
             }
             $messages['done'] = false;
+        } elseif ( !array_key_exists('initializationCallback', $me->storage)) {
+            $me->storage['initializationCallback'] = true;
+            try {
+                $codeCallback = new CodeCallback();
+                $codeCallback->execute(\Db::getInstance());
+                $messages['informations'][] = $me->l('Code callbacks executed');
+            } catch (\Exception $e) {
+                $messages['informations'][] = $me->l('Failed to execute initialization callbacks');
+                $messages['informations'][] = sprintf($me->l('Error: %s'), $e->getMessage());
+                $messages['error'] = true;
+            }
         } else {
             $messages['informations'][] = '...completed.';
             $messages['done'] = true;
