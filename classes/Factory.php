@@ -40,6 +40,7 @@ require_once __DIR__.'/Utils.php';
 require_once __DIR__.'/Settings.php';
 require_once __DIR__.'/Retrocompatibility.php';
 require_once __DIR__.'/CodeCallback.php';
+require_once __DIR__.'/ErrorHandler.php';
 require_once __DIR__.'/schema/autoload.php';
 
 class Factory
@@ -93,6 +94,11 @@ class Factory
      * @var Comparator
      */
     private $comparator;
+
+    /**
+     * @var ErrorHandler
+     */
+    private $errorHandler;
 
     /**
      * Factory constructor.
@@ -186,5 +192,15 @@ class Factory
         return $this->logger;
     }
 
+    /**
+     * @return ErrorHandler
+     */
+    public function getErrorHandler()
+    {
+        if (is_null($this->errorHandler)) {
+            $this->errorHandler = new ErrorHandler($this->getLogger());
+        }
+        return $this->errorHandler;
+    }
 
 }

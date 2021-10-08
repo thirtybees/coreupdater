@@ -298,7 +298,15 @@ class AdminCoreUpdaterController extends ModuleAdminController
         $this->addCSS(_PS_MODULE_DIR_.'coreupdater/views/css/coreupdater.css');
         Shop::setContext(Shop::CONTEXT_ALL);
         $this->page_header_toolbar_title = $this->l('Core Updater');
+        $this->factory->getErrorHandler()->handleErrors([$this, 'performInitContent']);
+        parent::initContent();
+    }
 
+    /**
+     * @throws SmartyException
+     */
+    public function performInitContent()
+    {
         try {
             if ($this->checkModuleVersion()) {
                 $currentVersion = $this->module->version;
@@ -327,7 +335,6 @@ class AdminCoreUpdaterController extends ModuleAdminController
                 'errorDetails' => $e->__toString()
             ]);
         }
-        parent::initContent();
     }
 
     /**
@@ -415,9 +422,18 @@ class AdminCoreUpdaterController extends ModuleAdminController
      * Post processing. All custom code, no default processing used.
      *
      * @version 1.0.0 Initial version.
-     * @throws PrestaShopException
      */
     public function postProcess()
+    {
+        $this->factory->getErrorHandler()->handleErrors([$this, 'performPostProcess']);
+        // Intentionally not calling parent, there's nothing to do.
+    }
+
+    /**
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
+    public function performPostProcess()
     {
 
         if (Tools::getValue('ajax') && Tools::getValue('action')) {
@@ -440,7 +456,6 @@ class AdminCoreUpdaterController extends ModuleAdminController
             $this->setRedirectAfter(static::tabLink(static::TAB_SETTINGS));
             $this->redirect();
         }
-        // Intentionally not calling parent, there's nothing to do.
     }
 
     /**

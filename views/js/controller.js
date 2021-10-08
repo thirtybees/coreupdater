@@ -49,12 +49,22 @@ window.initializeCoreUpdater = function(translations) {
                           details = details + "\nResponse:\n" + response.responseText;
                       }
                   }
-                  if (error) {
-                      reject(createError("Ajax request failed: " + error, details));
+                  if (response &&
+                      response.responseJSON &&
+                      (typeof response.responseJSON.success !== 'undefined') &&
+                      ! response.responseJSON.success &&
+                      (typeof response.responseJSON.error !== 'undefined')
+                  ) {
+                    var err = response.responseJSON.error;
+                    reject(createError(err.message, err.details));
                   } else {
+                    if (error) {
+                      reject(createError("Ajax request failed: " + error, details));
+                    } else {
                       reject(createError("Ajax request failed", details));
+                    }
                   }
-              }
+                }
           );
       });
   };
