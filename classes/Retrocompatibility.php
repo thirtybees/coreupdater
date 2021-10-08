@@ -415,7 +415,8 @@ class Retrocompatibility
         $installedIncompatibles = [];
         foreach (static::getModulesInstalled() as $module) {
             $name = $module['name'];
-            if (in_array($name, $incompatibles)) {
+            $path = rtrim(_PS_ROOT_DIR_, '/\\') . '/modules/' . $name . '/' . $name . '.php';
+            if (in_array($name, $incompatibles) && @file_exists($path)) {
                 $installedIncompatibles[] = $name;
             }
         }
