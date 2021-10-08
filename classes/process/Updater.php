@@ -604,11 +604,15 @@ class Updater extends Processor
             'define(\'_TB_VERSION_\', \''.$targetVersion.'\')',
             $settings
         );
-        $settings = preg_replace(
-            '/define\s*\(\s*\'_TB_REVISION_\'\s*,\s*\'[\w.-]+\'\s*\)/',
-            'define(\'_TB_REVISION_\', \''.$targetRevision.'\')',
-            $settings
-        );
+        if (preg_match('/define\s*\(\s*\'_TB_REVISION_\'/', $settings)) {
+            $settings = preg_replace(
+                '/define\s*\(\s*\'_TB_REVISION_\'\s*,\s*\'[\w.-]+\'\s*\)/',
+                'define(\'_TB_REVISION_\', \'' . $targetRevision . '\')',
+                $settings
+            );
+        } else {
+            $settings = rtrim($settings, "\n") . "\n" . 'define(\'_TB_REVISION_\', \'' . $targetRevision . '\');' . "\n";
+        }
 
         @copy($settingsPath, _PS_ROOT_DIR_.'/config/settings.old.php');
         if (! @file_put_contents($settingsPath, $settings)) {
