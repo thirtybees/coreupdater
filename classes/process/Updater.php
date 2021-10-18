@@ -144,7 +144,6 @@ class Updater extends Processor
         Tools::deleteDirectory($stagingDirectory);
         mkdir($stagingDirectory, 0777, true);
         Tools::deleteDirectory($this->backupDir);
-        mkdir($this->backupDir, 0777, true);
 
         $toDownload = $this->getFilesToDownload($changeSet, $targetFileList);
         $sources = [];
@@ -469,6 +468,9 @@ class Updater extends Processor
      */
     protected function backupFiles($files, $backupDir)
     {
+        if (! file_exists($backupDir)) {
+            mkdir($backupDir, 0777, true);
+        }
         foreach ($files as $file) {
             $source = $this->rootDir . $file;
             if (file_exists($source)) {

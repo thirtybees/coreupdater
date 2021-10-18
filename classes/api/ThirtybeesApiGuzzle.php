@@ -70,10 +70,16 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
     private $storageFactory;
 
     /**
+     * @var string
+     */
+    private $token;
+
+    /**
      * ThirtybeesApiGuzzle constructor.
      *
      * @param Logger $logger
      * @param string $baseUri Uri to thirty bees API server, such as https://api.thirtybees.com
+     * @param string $token API token to be used for communication with API server
      * @param string $truststore Path to pem file containing trusted root certificate authorities
      * @param string $rootDir Full path to thirty bees root directory
      * @param string $adminDir Full path to admin directory
@@ -82,6 +88,7 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
     public function __construct(
         Logger $logger,
         $baseUri,
+        $token,
         $truststore,
         $rootDir,
         $adminDir,
@@ -95,6 +102,7 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
         ]);
         $this->rootDir = $rootDir;
         $this->adminDir = $adminDir;
+        $this->token = $token;
         $this->storageFactory = $storageFactory;
     }
 
@@ -162,6 +170,9 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
             'revision' => $revision,
             'paths' => $files
         ];
+        if ($this->token) {
+            $request['token'] = $this->token;
+        }
         try {
             $this->logger->log("API request: " . json_encode($request));
             $this->guzzle->post(static::CORE_UPDATER_PATH, [
@@ -219,6 +230,9 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
             'action' => $action,
             'php' => phpversion()
         ]);
+        if ($this->token) {
+            $request['token'] = $this->token;
+        }
 
         $this->logger->log("API request: " . json_encode($request));
 

@@ -127,6 +127,7 @@ class Factory
             $this->api = new ThirtybeesApiGuzzle(
                 $this->getLogger(),
                 $this->baseApiUri,
+                Settings::getApiToken(),
                 $this->truststore,
                 $this->rootDir,
                 $this->adminDir,

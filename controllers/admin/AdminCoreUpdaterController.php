@@ -243,6 +243,23 @@ class AdminCoreUpdaterController extends ModuleAdminController
                 'fields' => [
                 ],
             ],
+            'advanced' => [
+                'title'       => $this->l('Advanced settings'),
+                'icon'        => 'icon-cogs',
+                'submit'      => [
+                    'title'     => $this->l('Save'),
+                    'imgclass'  => 'save',
+                    'name'      => static::ACTION_SAVE_SETTINGS,
+                ],
+                'fields' => [
+                    Settings::SETTINGS_API_TOKEN => [
+                        'type'       => 'text',
+                        'title'      => $this->l('Token'),
+                        'desc'       => $this->l('Secret token for communication with thirtybees api. Optional'),
+                        'no_multishop_checkbox' => true,
+                    ],
+                ]
+            ],
         ];
     }
 
@@ -445,6 +462,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
             Settings::setUpdateMode(Tools::getValue(Settings::SETTINGS_UPDATE_MODE));
             Settings::setSyncThemes(!!Tools::getValue(Settings::SETTINGS_SYNC_THEMES));
             Settings::setServerPerformance(Tools::getValue(Settings::SETTINGS_SERVER_PERFORMANCE));
+            Settings::setApiToken(Tools::getValue(Settings::SETTINGS_API_TOKEN));
             $this->context->controller->confirmations[] = $this->l('Settings saved');
             $this->setRedirectAfter(static::tabLink(static::TAB_SETTINGS));
             $this->redirect();

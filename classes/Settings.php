@@ -33,6 +33,7 @@ class Settings
     const SETTINGS_SERVER_PERFORMANCE = 'CORE_UPDATER_SERVER_PERFORMANCE';
     const SETTINGS_VERSION_CHECK = 'CORE_UPDATER_VERSION_CHECK';
     const SETTINGS_LATEST_MODULE_VERSION = 'CORE_UPDATER_LATEST_MODULE_VERSION';
+    const SETTINGS_API_TOKEN = 'CORE_UPDATER_TOKEN';
 
     // values
     const API_SERVER = 'https://api.thirtybees.com';
@@ -114,6 +115,30 @@ class Settings
         }
         Configuration::updateGlobalValue(static::SETTINGS_UPDATE_MODE, $updateMode);
         return $updateMode;
+    }
+
+    /**
+     * Sets API token
+     * @param string $token
+     * @throws PrestaShopException
+     */
+    public static function setApiToken($token)
+    {
+        if ($token) {
+            Configuration::updateGlobalValue(static::SETTINGS_API_TOKEN, $token);
+        } else {
+            Configuration::deleteByName(static::SETTINGS_API_TOKEN);
+        }
+    }
+
+    /**
+     * Returns API token
+     *
+     * @return string
+     */
+    public static function getApiToken()
+    {
+        return Configuration::getGlobalValue(static::SETTINGS_API_TOKEN);
     }
 
     /**
@@ -218,5 +243,6 @@ class Settings
         } catch (Exception $ignored) {}
         return true;
     }
+
 
 }
