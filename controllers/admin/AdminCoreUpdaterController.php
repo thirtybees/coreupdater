@@ -227,6 +227,23 @@ class AdminCoreUpdaterController extends ModuleAdminController
                             ],
                         ]
                     ],
+                    Settings::SETTINGS_CACHE_SYSTEM => [
+                        'type' => 'select',
+                        'title' => $this->l('Caching system'),
+                        'desc' => $this->l('Choose caching system. This may have impact on performance'),
+                        'identifier'  => 'key',
+                        'no_multishop_checkbox' => true,
+                        'list' => [
+                            [
+                                'key' => Settings::CACHE_FS,
+                                'name' => $this->l('Cache on filesystem')
+                            ],
+                            [
+                                'key' => Settings::CACHE_DB,
+                                'name' => $this->l('Cache in database')
+                            ],
+                        ]
+                    ]
                 ],
             ],
             'cache' => [
@@ -463,6 +480,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
             Settings::setSyncThemes(!!Tools::getValue(Settings::SETTINGS_SYNC_THEMES));
             Settings::setServerPerformance(Tools::getValue(Settings::SETTINGS_SERVER_PERFORMANCE));
             Settings::setApiToken(Tools::getValue(Settings::SETTINGS_API_TOKEN));
+            Settings::setCacheSystem(Tools::getValue(Settings::SETTINGS_CACHE_SYSTEM));
             $this->context->controller->confirmations[] = $this->l('Settings saved');
             $this->setRedirectAfter(static::tabLink(static::TAB_SETTINGS));
             $this->redirect();

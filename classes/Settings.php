@@ -35,12 +35,16 @@ class Settings
     const SETTINGS_LATEST_MODULE_VERSION = 'CORE_UPDATER_LATEST_MODULE_VERSION';
     const SETTINGS_API_TOKEN = 'CORE_UPDATER_TOKEN';
     const SETTINGS_INSTALLATION_VERIFIED = 'CORE_UPDATER_INSTALLATION_VERIFIED';
+    const SETTINGS_CACHE_SYSTEM = 'CORE_UPDATER_CACHE_SYSTEM';
 
     // values
     const API_SERVER = 'https://api.thirtybees.com';
 
     const UPDATE_MODE_STABLE = "STABLE";
     const UPDATE_MODE_BLEEDING_EDGE = "BLEEDING_EDGE";
+
+    const CACHE_DB = 'DB';
+    const CACHE_FS = 'FS';
 
     const PERFORMANCE_LOW = 'LOW';
     const PERFORMANCE_NORMAL = 'NORMAL';
@@ -69,6 +73,33 @@ class Settings
         if (! $value) {
             $value = static::setUpdateMode(static::UPDATE_MODE_STABLE);
         }
+        return $value;
+    }
+
+    /**
+     * @return string
+     * @throws PrestaShopException
+     */
+    public static function getCacheSystem()
+    {
+        $value = Configuration::getGlobalValue(static::SETTINGS_CACHE_SYSTEM);
+        if (! in_array($value, [static::CACHE_DB, static::CACHE_FS])) {
+            $value = static::setCacheSystem(static::CACHE_FS);
+        }
+        return $value;
+    }
+
+    /**
+     * @param string $value
+     * @return string
+     * @throws PrestaShopException
+     */
+    public static function setCacheSystem($value)
+    {
+        if (! in_array($value, [static::CACHE_DB, static::CACHE_FS])) {
+            $value = static::CACHE_FS;
+        }
+        Configuration::updateGlobalValue(static::SETTINGS_CACHE_SYSTEM, $value);
         return $value;
     }
 
@@ -244,8 +275,10 @@ class Settings
      */
     public static function install()
     {
-        static::setUpdateMode(self::UPDATE_MODE_STABLE);
+        static::setUpdateMode(static::UPDATE_MODE_STABLE);
         static::setSyncThemes(true);
+        static::setCacheSystem(static::CACHE_FS);
+        static::setServerPerformance(self::PERFORMANCE_NORMAL);
         return true;
     }
 

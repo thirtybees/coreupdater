@@ -36,6 +36,7 @@ require_once __DIR__.'/process/Updater.php';
 require_once __DIR__.'/storage/Storage.php';
 require_once __DIR__.'/storage/StorageFactory.php';
 require_once __DIR__.'/storage/StorageDb.php';
+require_once __DIR__.'/storage/StorageFilesystem.php';
 require_once __DIR__.'/Utils.php';
 require_once __DIR__.'/Settings.php';
 require_once __DIR__.'/Retrocompatibility.php';
@@ -143,7 +144,7 @@ class Factory
     public function getStorageFactory()
     {
         if (is_null($this->storageFactory)) {
-            $this->storageFactory = new StorageFactory(Utils::normalizeDirectory($this->rootDir . 'cache/'));
+            $this->storageFactory = new StorageFactory(Utils::normalizeDirectory($this->rootDir . 'cache/coreupdater/'));
         }
         return $this->storageFactory;
     }

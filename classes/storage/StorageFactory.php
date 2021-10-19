@@ -20,6 +20,7 @@
 namespace CoreUpdater\Storage;
 
 
+use CoreUpdater\Settings;
 use PrestaShopDatabaseException;
 use PrestaShopException;
 
@@ -38,6 +39,9 @@ class StorageFactory
     public function __construct($directory)
     {
         $this->directory = $directory;
+        if (! file_exists($directory)) {
+            mkdir($directory);
+        }
     }
 
 
@@ -50,7 +54,12 @@ class StorageFactory
      */
     public function getStorage($name, $ttl = 3600)
     {
-        return new StorageDb($name, $ttl);
+        switch (Settings::getCacheSystem()) {
+            case Settings::CACHE_DB:
+                return new StorageDb($name, $ttl);
+            case Settings::CACHE_FS:
+                return new StorageFilesystem($this->directory, $name, $ttl);
+        }
     }
 
     /**
@@ -59,7 +68,8 @@ class StorageFactory
      */
     public function flush()
     {
-        return StorageDb::flush();
+        StorageDb::flush();
+        StorageFilesystem::flush($this->directory);
     }
 
 }
