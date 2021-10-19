@@ -64,7 +64,6 @@ abstract class Processor
         if (! $steps || ! is_array($steps) || count($steps) == 0) {
             throw new Exception("Empty steps");
         }
-        $this->logger->log("Process $processId steps: " . json_encode($steps));
         $storage = $this->getStorage($processId);
         $storage->put('processId', $processId);
         $storage->put('steps', $steps);
@@ -93,9 +92,10 @@ abstract class Processor
         if ($step < $totalSteps) {
             $currentStep = $steps[$step];
             try {
-                $this->logger->log("Process $processId: processing step " . json_encode($currentStep));
+                $action = $currentStep['action'];
+                $this->logger->log("Step " . $action);
                 $stepState = $this->processStep($processId, $currentStep, $storage);
-                $this->logger->log("Process $processId: step " . $currentStep['action'] . " finished with state " . json_encode($stepState->toArray()));
+                $this->logger->log("Step " . $action . " finished with state " . json_encode($stepState->toArray()));
                 switch ($stepState->getState()) {
                     case ProcessingState::DONE:
                         $step++;

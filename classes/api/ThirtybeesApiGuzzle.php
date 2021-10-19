@@ -174,7 +174,13 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
             $request['token'] = $this->token;
         }
         try {
-            $this->logger->log("API request: " . json_encode($request));
+            $debugRequest = [
+                'action' => 'download-archive',
+                'php' => phpversion(),
+                'revision' => $revision,
+                'paths' => count($files) . ' files'
+            ];
+            $this->logger->log("API request: " . json_encode($debugRequest));
             $this->guzzle->post(static::CORE_UPDATER_PATH, [
                 'form_params' => $request,
                 'http_errors' => false,
@@ -274,14 +280,23 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
         $body = static::getBody($response);
         $json = static::parseBody($body);
         if ($json) {
-            $this->logger->log("API response: " . $body);
             if ($json['success']) {
                 if (array_key_exists('data', $json)) {
-                    return $json['data'];
+                    $data = $json['data'];
+                    $debugData = $body;
+                    if (is_array($data) && count($data) > 15) {
+                        $debugData = $json;
+                        $debugData['data'] = 'Array with ' . count($data) . ' items';
+                        $debugData = json_encode($debugData);
+                    }
+                    $this->logger->log("API response: " . $debugData);
+                    return $data;
                 } else {
+                    $this->logger->log("API response: " . $body);
                     return true;
                 }
             } else {
+                $this->logger->log("API response: " . $body);
                 if (array_key_exists('error', $json)) {
                     $error = $json['error'];
                     $this->logger->error("Server responded with error " . $error['code'] . ": " . $error['message']);

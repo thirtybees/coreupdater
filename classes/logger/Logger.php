@@ -28,6 +28,7 @@ class Logger
 
     /**
      * Logger constructor.
+     * @param string $logFile
      */
     public function __construct($logFile)
     {

@@ -154,7 +154,7 @@ class Updater extends Processor
         foreach ($chunks as $index => $files) {
             $chunk = $index+1;
             $chunkName = 'chunk-'. str_pad($chunk, 4, '0', STR_PAD_LEFT);
-            $archive = $stagingDirectory . '/' . $chunkName . 'tar.gz';
+            $archive = rtrim($stagingDirectory, '/') . '/' . $chunkName . '.tar.gz';
             $dir = Utils::normalizeDirectory($stagingDirectory . $chunkName . '/');
             $filesWithHash = [];
             $admin = false;
