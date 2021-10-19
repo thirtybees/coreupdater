@@ -34,6 +34,7 @@ class Settings
     const SETTINGS_VERSION_CHECK = 'CORE_UPDATER_VERSION_CHECK';
     const SETTINGS_LATEST_MODULE_VERSION = 'CORE_UPDATER_LATEST_MODULE_VERSION';
     const SETTINGS_API_TOKEN = 'CORE_UPDATER_TOKEN';
+    const SETTINGS_INSTALLATION_VERIFIED = 'CORE_UPDATER_INSTALLATION_VERIFIED';
 
     // values
     const API_SERVER = 'https://api.thirtybees.com';
@@ -90,6 +91,27 @@ class Settings
             $value = static::setServerPerformance(static::PERFORMANCE_NORMAL);
         }
         return $value;
+    }
+
+    /**
+     * Return true, if installation is marked as verified
+     *
+     * @param string $version
+     * @return bool
+     */
+    public static function isInstallationVerified($version)
+    {
+        $value = Configuration::getGlobalValue(static::SETTINGS_INSTALLATION_VERIFIED);
+        return $value === $version;
+    }
+
+    /**
+     * @param string $version
+     * @throws PrestaShopException
+     */
+    public static function setInstallationVerified($version)
+    {
+        Configuration::updateGlobalValue(static::SETTINGS_INSTALLATION_VERIFIED, $version);
     }
 
     /**

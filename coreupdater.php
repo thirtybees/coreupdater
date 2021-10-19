@@ -31,6 +31,7 @@ class CoreUpdater extends Module
      *
      * @version 1.0.0 Initial version.
      * @throws PrestaShopException
+     * @throws Adapter_Exception
      */
     public function __construct()
     {
@@ -47,6 +48,8 @@ class CoreUpdater extends Module
         $this->description = $this->l('This module brings the tools for keeping your shop installation up to date.');
         $this->tb_versions_compliancy = '>= 1.0.0';
         $this->tb_min_version = '1.0.0';
+
+        $this->verifyInstallation();
     }
 
     /**
@@ -226,5 +229,32 @@ class CoreUpdater extends Module
             }
         }
         return true;
+    }
+
+    /**
+     * Verifies that the module is properly installed
+     *
+     * @throws PrestaShopException
+     * @throws Adapter_Exception
+     */
+    public function verifyInstallation()
+    {
+        if (Module::isInstalled($this->name) && ! \CoreUpdater\Settings::isInstallationVerified($this->version)) {
+            // verify that database table exists
+            $conn = Db::getInstance();
+            $result = $conn->getValue("SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA=database() AND TABLE_NAME='" . _DB_PREFIX_ ."coreupdater_cache'");
+            if (! $result) {
+                $this->installDb(true);
+            }
+
+            // verify that tab exits
+            $tabs = Tab::getCollectionFromModule($this->name)->count();
+            if (! $tabs) {
+                $this->installTab();
+            }
+
+            // mark module as verified
+            \CoreUpdater\Settings::setInstallationVerified($this->version);
+        }
     }
 }
