@@ -114,7 +114,7 @@ class Updater extends Processor
         $this->api = $api;
         $this->adminDir = $adminDir;
         $this->rootDir = Utils::normalizeDirectory($rootDir);
-        $this->stagingDir = $this->rootDir . 'cache/coreupdater/';
+        $this->stagingDir = $this->rootDir . 'cache/coreupdater/staging/';
         $this->backupDir = $this->rootDir . $adminDir . '/backups/coreupdater/' .date('YmdHis');
         $this->baseUrl = $baseUrl;
     }

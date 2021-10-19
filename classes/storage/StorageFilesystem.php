@@ -197,7 +197,7 @@ class StorageFilesystem implements Storage
                 }
                 $files = scandir($directory);
                 foreach ($files as $item) {
-                    if ($item !== '.' && $item !== '..' && $item != 'index.json' && is_file($directory . $item)) {
+                    if ($item != 'index.json' && preg_match('/\.json$/', $item)) {
                         $name = str_replace('.json', '', $item);
                         if (! isset($json[$name])) {
                             unlink($directory . $item);
