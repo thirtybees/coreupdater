@@ -112,7 +112,7 @@ class Comparator extends Processor
     ];
 
     const ACTION_CHECK_INCOMPATIBLE_MODULES = 'CHECK_INCOMPATIBLE_MODULES';
-    const ACTION_DOWNLOAD_FILES = 'DOWNLOAD_FILES';
+    const ACTION_DOWNLOAD_FILE_LIST = 'DOWNLOAD_FILE_LIST';
     const ACTION_SEARCH_INSTALLATION = 'SEARCH_INSTALLATION';
     const ACTION_RESOLVE_TOP_DIRS = 'RESOLVE_TOP_DIRS';
     const ACTION_INCLUDE_DIST_FILESET = 'INCLUDE_DIST_FILESET';
@@ -208,14 +208,14 @@ class Comparator extends Processor
         ];
 
         $steps[] = [
-            'action' => static::ACTION_DOWNLOAD_FILES,
+            'action' => static::ACTION_DOWNLOAD_FILE_LIST,
             'revision' => $targetRevision,
             'ignoreTheme' => $ignoreTheme
         ];
 
         if ($installedRevision !== $targetRevision) {
             $steps[] = [
-                'action' => static::ACTION_DOWNLOAD_FILES,
+                'action' => static::ACTION_DOWNLOAD_FILE_LIST,
                 'revision' => $installedRevision,
                 'ignoreTheme' => $ignoreTheme
             ];
@@ -264,7 +264,7 @@ class Comparator extends Processor
         switch ($action) {
             case static::ACTION_CHECK_INCOMPATIBLE_MODULES:
                 return $this->checkModules($this->getParameter('version', $step));
-            case static::ACTION_DOWNLOAD_FILES:
+            case static::ACTION_DOWNLOAD_FILE_LIST:
                 return $this->downloadFileList(
                     $this->getParameter('revision', $step),
                     $this->getParameter('ignoreTheme', $step),
@@ -311,7 +311,7 @@ class Comparator extends Processor
         switch ($action) {
             case static::ACTION_CHECK_INCOMPATIBLE_MODULES:
                 return $this->l("Checking modules compatibility");
-            case static::ACTION_DOWNLOAD_FILES:
+            case static::ACTION_DOWNLOAD_FILE_LIST:
                 return sprintf($this->l("Retrieving list of files for version %s"), $this->getParameter('revision', $step));
             case static::ACTION_RESOLVE_TOP_DIRS:
                 return $this->l("Resolving top level directories");
