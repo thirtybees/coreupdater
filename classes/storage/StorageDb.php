@@ -82,7 +82,9 @@ class StorageDb implements Storage
                 "VALUES ('$name', '$content', $expiration) " .
                 "ON DUPLICATE KEY UPDATE content=VALUES(content), expiration=VALUES(expiration)"
             );
-            $connection->execute($updateSql);
+            if (! $connection->execute($updateSql)) {
+                $connection->displayError();
+            }
             $this->dirty = false;
         }
     }
