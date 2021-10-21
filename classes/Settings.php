@@ -36,6 +36,7 @@ class Settings
     const SETTINGS_API_TOKEN = 'CORE_UPDATER_TOKEN';
     const SETTINGS_INSTALLATION_VERIFIED = 'CORE_UPDATER_INSTALLATION_VERIFIED';
     const SETTINGS_CACHE_SYSTEM = 'CORE_UPDATER_CACHE_SYSTEM';
+    const SETTINGS_VERIFY_SSL = 'CORE_UPDATER_VERIFY_SSL';
 
     // values
     const API_SERVER = 'https://api.thirtybees.com';
@@ -50,6 +51,9 @@ class Settings
     const PERFORMANCE_NORMAL = 'NORMAL';
     const PERFORMANCE_HIGH = 'HIGH';
 
+    const VERIFY_SSL_DISABLED = 'DISABLED';
+    const VERIFY_SSL_SYSTEM = 'SYSTEM';
+    const VERIFY_SSL_THIRTY_BEES = 'THIRTY_BEES';
 
     /**
      * @return string
@@ -209,6 +213,33 @@ class Settings
     }
 
     /**
+     * @return string
+     * @throws PrestaShopException
+     */
+    public static function getVerifySsl()
+    {
+        $value = Configuration::getGlobalValue(static::SETTINGS_VERIFY_SSL);
+        if (! in_array($value, [static::VERIFY_SSL_DISABLED, static::VERIFY_SSL_SYSTEM, static::VERIFY_SSL_THIRTY_BEES])) {
+            $value = static::setVerifySsl(static::VERIFY_SSL_THIRTY_BEES);
+        }
+        return $value;
+    }
+
+    /**
+     * @param string $value
+     * @return string
+     * @throws PrestaShopException
+     */
+    public static function setVerifySsl($value)
+    {
+        if (! in_array($value, [static::VERIFY_SSL_DISABLED, static::VERIFY_SSL_SYSTEM, static::VERIFY_SSL_THIRTY_BEES])) {
+            $value = static::VERIFY_SSL_THIRTY_BEES;
+        }
+        Configuration::updateGlobalValue(static::SETTINGS_VERIFY_SSL, $value);
+        return $value;
+    }
+
+    /**
      * Returns latest module version
      * @return string
      */
@@ -278,7 +309,8 @@ class Settings
         static::setUpdateMode(static::UPDATE_MODE_STABLE);
         static::setSyncThemes(true);
         static::setCacheSystem(static::CACHE_FS);
-        static::setServerPerformance(self::PERFORMANCE_NORMAL);
+        static::setServerPerformance(static::PERFORMANCE_NORMAL);
+        static::setVerifySsl(static::VERIFY_SSL_THIRTY_BEES);
         return true;
     }
 

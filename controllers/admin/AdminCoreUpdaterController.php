@@ -76,9 +76,29 @@ class AdminCoreUpdaterController extends ModuleAdminController
             $baseLink,
             _PS_ROOT_DIR_,
             _PS_ADMIN_DIR_,
-            _PS_TOOL_DIR_ . '/cacert.pem'
+            static::resolveTrustStore()
         );
         parent::__construct();
+    }
+
+    /**
+     * Returns trust store for guzzle communication
+     *
+     * @return bool|string
+     * @throws PrestaShopException
+     */
+    private static function resolveTrustStore()
+    {
+        switch (Settings::getVerifySsl()) {
+            case Settings::VERIFY_SSL_DISABLED:
+                return false;
+            case Settings::VERIFY_SSL_SYSTEM:
+                return true;
+            case Settings::VERIFY_SSL_THIRTY_BEES:
+                return _PS_TOOL_DIR_ . '/cacert.pem';
+            default:
+                return false;
+        }
     }
 
     /**
@@ -242,7 +262,29 @@ class AdminCoreUpdaterController extends ModuleAdminController
                                 'name' => $this->l('Cache in database')
                             ],
                         ]
-                    ]
+                    ],
+                    Settings::SETTINGS_VERIFY_SSL => [
+                        'type' => 'select',
+                        'title' => $this->l('Verify SSL certificates'),
+                        'desc' => $this->l('Select if module should verify SSL certificate when communicating with api server'),
+                        'hint' => $this->l('For security reasons SSL certificates should be always verified. Turn this option off only if both your system truststore and thirty bees truststore are outdated.'),
+                        'identifier'  => 'key',
+                        'no_multishop_checkbox' => true,
+                        'list' => [
+                            [
+                                'key' => Settings::VERIFY_SSL_DISABLED,
+                                'name' => $this->l('Disable SSL verification')
+                            ],
+                            [
+                                'key' => Settings::VERIFY_SSL_SYSTEM,
+                                'name' => $this->l('Verify SSL using operation system trust store')
+                            ],
+                            [
+                                'key' => Settings::VERIFY_SSL_THIRTY_BEES,
+                                'name' => $this->l('Verify SSL using thirty bees trust store')
+                            ],
+                        ]
+                    ],
                 ],
             ],
             'cache' => [
@@ -480,6 +522,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
             Settings::setServerPerformance(Tools::getValue(Settings::SETTINGS_SERVER_PERFORMANCE));
             Settings::setApiToken(Tools::getValue(Settings::SETTINGS_API_TOKEN));
             Settings::setCacheSystem(Tools::getValue(Settings::SETTINGS_CACHE_SYSTEM));
+            Settings::setVerifySsl(Tools::getValue(Settings::SETTINGS_VERIFY_SSL));
             $this->context->controller->confirmations[] = $this->l('Settings saved');
             $this->setRedirectAfter(static::tabLink(static::TAB_SETTINGS));
             $this->redirect();
