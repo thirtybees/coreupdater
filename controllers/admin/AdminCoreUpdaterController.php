@@ -70,8 +70,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
     public function __construct()
     {
         $this->bootstrap = true;
-        $link = Context::getContext()->link;
-        $baseLink = $link->getBaseLink();
+        $baseLink = Context::getContext()->shop->getBaseURL(true);
         $this->factory = new Factory(
             Settings::getApiServer(),
             $baseLink,
