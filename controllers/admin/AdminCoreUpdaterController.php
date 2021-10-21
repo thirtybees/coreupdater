@@ -833,40 +833,43 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
     /**
      * Checks that module version is supported by API server
+     *
      * @return boolean
-     * @throws SmartyException
-     * @throws PrestaShopException
      */
     protected function checkModuleVersion()
     {
-        $currentVersion = $this->module->version;
         $logger = $this->factory->getLogger();
-        if (Settings::versionCheckNeeded($currentVersion)) {
-            $logger->log('Checking if module version ' . $currentVersion . ' is supported');
-            $result = $this->factory->getApi()->checkModuleVersion($currentVersion);
+        try {
+            $currentVersion = $this->module->version;
+            if (Settings::versionCheckNeeded($currentVersion)) {
+                $logger->log('Checking if module version ' . $currentVersion . ' is supported');
+                $result = $this->factory->getApi()->checkModuleVersion($currentVersion);
 
-            if (! is_array($result) || !isset($result['supported']) || !isset($result['latest'])) {
-                $this->content = $this->render('error', ['errorMessage' => 'Invalid check module version response']);
-                $logger->error('Invalid check module version response');
+                if (!is_array($result) || !isset($result['supported']) || !isset($result['latest'])) {
+                    $this->content = $this->render('error', ['errorMessage' => 'Invalid check module version response']);
+                    $logger->error('Invalid check module version response');
+                    return false;
+                }
+                $supported = !!$result['supported'];
+                $latestVersion = $result['latest'];
+                if ($supported) {
+                    Settings::updateVersionCheck($currentVersion, $latestVersion, true);
+                    $logger->log('Module version is supported');
+                    return true;
+                }
+
+                $logger->error('Module version ' . $currentVersion . ' is NOT supported');
+                Settings::updateVersionCheck($currentVersion, $latestVersion, false);
+                $this->content .= $this->render('unsupported-version', [
+                    'currentVersion' => $currentVersion,
+                    'latestVersion' => $latestVersion,
+                ]);
                 return false;
+            } else {
+                $logger->log('Skipping module version check, last checked ' . Settings::getSecondsSinceLastCheck($currentVersion) . ' seconds ago');
             }
-            $supported = !!$result['supported'];
-            $latestVersion = $result['latest'];
-            if ($supported) {
-                Settings::updateVersionCheck($currentVersion, $latestVersion, true);
-                $logger->log('Module version is supported');
-                return true;
-            }
-
-            $logger->error('Module version ' . $currentVersion . ' is NOT supported');
-            Settings::updateVersionCheck($currentVersion, $latestVersion, false);
-            $this->content .= $this->render('unsupported-version', [
-                'currentVersion' => $currentVersion,
-                'latestVersion' => $latestVersion,
-            ]);
-            return false;
-        } else {
-            $logger->log('Skipping module version check, last checked ' . Settings::getSecondsSinceLastCheck($currentVersion) . ' seconds ago');
+        } catch (Exception $e) {
+            $logger->error("Failed to check module version: " . $e);
         }
 
         return true;
