@@ -327,8 +327,10 @@ class TableSchema
         $ddl .= implode(",\n", $lines);
         $ddl .= "\n)";
         $ddl .= " ENGINE=" . $this->getEngine();
-        $ddl .= " DEFAULT CHARSET=" . $charset->getCharset();
-        if (! $charset->isDefaultCollate()) {
+        if ($charset->getCharset()) {
+            $ddl .= " DEFAULT CHARSET=" . $charset->getCharset();
+        }
+        if ($charset->getCollate()) {
             $ddl .= " COLLATE=" . $charset->getCollate();
         }
 

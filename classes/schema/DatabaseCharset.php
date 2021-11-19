@@ -30,8 +30,6 @@ use \Db;
  */
 class DatabaseCharset
 {
-    protected static $charsets = null;
-
     /**
      * @var string charset
      */
@@ -132,25 +130,6 @@ class DatabaseCharset
     }
 
     /**
-     * Returns true, if collate is default collate for this charset
-     *
-     * @return bool
-     *
-     * @version 1.1.0 Initial version.
-     */
-    public function isDefaultCollate()
-    {
-        if (! static::$charsets) {
-            static::loadCharsets(Db::getInstance(_PS_USE_SQL_SLAVE_));
-        }
-        if (isset(static::$charsets[$this->getCharset()])) {
-            return static::$charsets[$this->getCharset()] === $this->getCollate();
-        }
-
-        return false;
-    }
-
-    /**
      * Loads available character sets from database information schema
      *
      * @param Db $conn database connection
@@ -161,12 +140,13 @@ class DatabaseCharset
     {
         try {
             $results = $conn->executeS('SELECT * FROM information_schema.CHARACTER_SETS');
-            static::$charsets = [];
+            $charsets = [];
             foreach ($results as $row) {
-                static::$charsets[$row['CHARACTER_SET_NAME']] = $row['DEFAULT_COLLATE_NAME'];
+                $charsets[$row['CHARACTER_SET_NAME']] = $row['DEFAULT_COLLATE_NAME'];
             }
+            return $charsets;
         } catch (\Exception $e) {
-            static::$charsets = [];
+            return [];
         }
     }
 }

@@ -275,11 +275,10 @@ class ColumnSchema
         $col =  '`' . $this->getName() . '` ' . $this->getDataType();
         $charset = $this->getCharset()->getCharset();
         $collate = $this->getCharset()->getCollate();
-        if ($charset && $collate && $this->getCharset()->isDefaultCollate()) {
-            if ($table->getCharset()->getCharset() !== $charset) {
-                $col .= ' CHARACTER SET ' . $charset;
-            }
-        } else if ($collate) {
+        if ($charset) {
+            $col .= ' CHARACTER SET ' . $charset;
+        }
+        if ($collate) {
             $col .= ' COLLATE ' . $collate;
         }
         if (! $this->isNullable()) {
