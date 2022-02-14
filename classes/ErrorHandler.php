@@ -39,14 +39,28 @@ class ErrorHandler
      */
     private $logger;
 
+    /**
+     * Constructor
+     *
+     * @param Logger $logger
+     */
     public function __construct(Logger $logger)
     {
         $this->logger = $logger;
+
+        // initialize error reporting
+        @ini_set('display_errors', 'off');
+        @error_reporting(E_ALL | E_STRICT);
     }
 
     /**
-     * @param callable $callable
-     * @param array $parameters
+     * Main method
+     *
+     * This method registers error handler and calls $callable($parameters). Any error or uncaught exception
+     * thrown by $callable will be handled
+     *
+     * @param callable $callable callable to be called in error handler context
+     * @param array $parameters callable parameters
      * @return mixed
      */
     public function handleErrors($callable, $parameters=[])
@@ -63,7 +77,7 @@ class ErrorHandler
     }
 
     /**
-     * @param string $name
+     * Registers error handler
      */
     private function setUp()
     {
@@ -79,7 +93,7 @@ class ErrorHandler
     }
 
     /**
-     *
+     * Unregisters error handler
      */
     private function tearDown()
     {
@@ -91,10 +105,12 @@ class ErrorHandler
     }
 
     /**
-     * @param $message
-     * @param $file
-     * @param $line
-     * @param null $stacktrace
+     * Logging method
+     *
+     * @param string $message
+     * @param string $file
+     * @param int $line
+     * @param string|null $stacktrace
      */
     private function logError($message, $file, $line, $stacktrace=null)
     {
@@ -106,22 +122,22 @@ class ErrorHandler
     }
 
     /**
-     * @param $errno
-     * @param $errstr
-     * @param $file
-     * @param $line
+     * Error handler method
+     *
+     * @param int $errno
+     * @param string $errstr
+     * @param string $file
+     * @param int $line
      * @return bool
      */
     public function errorHandler($errno, $errstr, $file, $line)
     {
-        if (static::isFatalError($errno)) {
-            $this->logError($errstr, $file, $line);
-        }
+        $this->logError($errstr, $file, $line);
         return false;
     }
 
     /**
-     *
+     * Called on php script shutdown
      */
     public function onShutdown()
     {
@@ -140,6 +156,12 @@ class ErrorHandler
         }
     }
 
+    /**
+     * Returns true, if $errno is fatal error
+     *
+     * @param int $errno
+     * @return bool
+     */
     public static function isFatalError($errno)
     {
         return (
