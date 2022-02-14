@@ -110,12 +110,19 @@
       <h4>{l s='Changed files' mod='coreupdater'}</h4>
       <ul class="file-list">
         {foreach from=$changeSet['change'] key='file' item='modified'}
-          <li>
-            <code>{$file|escape:'html'}</code>
-            {if $modified}
+          {if $modified}
+            <li>
+              <code>{$file|escape:'html'}</code>
               <span class="badge badge-warning">{l s='modified' mod='coreupdater'}</span>
-            {/if}
-          </li>
+            </li>
+          {/if}
+        {/foreach}
+        {foreach from=$changeSet['change'] key='file' item='modified'}
+          {if !$modified}
+            <li>
+              <code>{$file|escape:'html'}</code>
+            </li>
+          {/if}
         {/foreach}
       </ul>
     </p>
