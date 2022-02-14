@@ -109,7 +109,7 @@
     <p>
       <h4>{l s='Changed files' mod='coreupdater'}</h4>
       <ul class="file-list">
-        {foreach from=$changeSet['change'] key=$file item=$modified}
+        {foreach from=$changeSet['change'] key='file' item='modified'}
           <li>
             <code>{$file|escape:'html'}</code>
             {if $modified}
@@ -125,7 +125,7 @@
     <p>
       <h4>{l s='Missing files' mod='coreupdater'}</h4>
       <ul class="file-list">
-        {foreach from=$changeSet['add'] key=$file item=$modified}
+        {foreach from=$changeSet['add'] key='file' item='modified'}
           <li>
             <code>{$file|escape:'html'}</code>
             {if $modified}
@@ -141,7 +141,7 @@
     <p>
       <h4>{l s='Extra files' mod='coreupdater'}</h4>
       <ul class="file-list">
-        {foreach from=$changeSet['remove'] key=$file item=$modified}
+        {foreach from=$changeSet['remove'] key='file' item='modified'}
           <li>
             <code>{$file|escape:'html'}</code>
             {if $modified}
