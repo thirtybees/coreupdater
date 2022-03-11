@@ -60,7 +60,7 @@ class ExtraColumn implements SchemaDifference
     function describe()
     {
         return sprintf(
-            Translate::getModuleTranslation('coreupdater', 'Extra column [1]%1$s[/1] in table [2]%2$s[/2]', 'coreupdater'),
+            Translate::getModuleTranslation('coreupdater', 'Extra column [1]%1$s[/1] in table [2]%2$s[/2]. Please ensure that this column is not used by any module before removing it', 'coreupdater'),
             $this->column->getName(),
             $this->table->getName()
         );
@@ -93,7 +93,7 @@ class ExtraColumn implements SchemaDifference
      */
     function getSeverity()
     {
-        return self::SEVERITY_NOTICE;
+        return self::SEVERITY_NORMAL;
     }
 
     /**
