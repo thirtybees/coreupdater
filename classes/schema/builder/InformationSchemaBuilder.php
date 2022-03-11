@@ -184,7 +184,8 @@ class InformationSchemaBuilder
             SELECT *
             FROM information_schema.COLUMNS c
             WHERE TABLE_SCHEMA = ' . $this->database .
-            $this->addTablesRestriction('c')
+            $this->addTablesRestriction('c') .'
+            ORDER BY TABLE_NAME, ORDINAL_POSITION'
         );
         foreach ($columns as $row) {
             $tableName = $row['TABLE_NAME'];
