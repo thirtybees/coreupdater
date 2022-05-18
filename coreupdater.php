@@ -38,7 +38,7 @@ class CoreUpdater extends Module
     {
         $this->name = 'coreupdater';
         $this->tab = 'administration';
-        $this->version = '1.4.5';
+        $this->version = '1.4.6';
         $this->author = 'thirty bees';
         $this->bootstrap = true;
         $this->need_instance = 0;
