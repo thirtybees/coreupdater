@@ -22,7 +22,6 @@
  * @return bool
  * @throws PrestaShopDatabaseException
  * @throws PrestaShopException
- * @throws Adapter_Exception
  */
 function upgrade_module_1_4_0($module)
 {

@@ -19,7 +19,6 @@
 
 namespace CoreUpdater;
 
-use Adapter_Exception;
 use Configuration;
 use HTMLPurifier_Exception;
 use Language;
@@ -27,7 +26,6 @@ use Module;
 use PrestaShopDatabaseException;
 use PrestaShopException;
 use Tab;
-use Tools;
 
 /**
  * Class Retrocompatibility.
@@ -103,7 +101,6 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
-     * @throws Adapter_Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @throws HTMLPurifier_Exception
@@ -272,7 +269,6 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
-     * @throws Adapter_Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @version 1.0.0 Initial version.
@@ -303,7 +299,6 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
-     * @throws Adapter_Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @version 1.0.0 Initial version.

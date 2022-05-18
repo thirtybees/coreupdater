@@ -31,7 +31,6 @@ class CoreUpdater extends Module
      *
      * @version 1.0.0 Initial version.
      * @throws PrestaShopException
-     * @throws Adapter_Exception
      */
     public function __construct()
     {
@@ -57,7 +56,6 @@ class CoreUpdater extends Module
      * @return bool
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws Adapter_Exception
      */
     public function install($createTables = true)
     {
@@ -74,7 +72,6 @@ class CoreUpdater extends Module
      * @param bool $dropTables
      * @return bool
      * @throws PrestaShopException
-     * @throws Adapter_Exception
      */
     public function uninstall($dropTables = true)
     {
@@ -91,7 +88,6 @@ class CoreUpdater extends Module
      * @return bool
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws Adapter_Exception
      */
     public function reset()
     {
@@ -109,7 +105,6 @@ class CoreUpdater extends Module
      * @return bool
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws Adapter_Exception
      */
     private function installDb($create)
     {
@@ -126,7 +121,6 @@ class CoreUpdater extends Module
      * @return bool
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws Adapter_Exception
      */
     private function uninstallDb($drop)
     {
@@ -144,7 +138,6 @@ class CoreUpdater extends Module
      *
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws Adapter_Exception
      */
     public function executeSqlScript($script, $check = true)
     {
@@ -235,7 +228,6 @@ class CoreUpdater extends Module
      * Verifies that the module is properly installed
      *
      * @throws PrestaShopException
-     * @throws Adapter_Exception
      */
     public function verifyInstallation()
     {

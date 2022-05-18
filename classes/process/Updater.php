@@ -19,7 +19,6 @@
 
 namespace CoreUpdater;
 
-use Adapter_Exception;
 use CoreUpdater\Api\ThirtybeesApi;
 use CoreUpdater\Log\Logger;
 use CoreUpdater\Process\ProcessingState;
@@ -646,7 +645,6 @@ class Updater extends Processor
      * @return ProcessingState
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws Adapter_Exception
      * @throws HTMLPurifier_Exception
      * @throws ReflectionException
      */
