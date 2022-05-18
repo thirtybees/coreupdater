@@ -503,9 +503,28 @@ class Updater extends Processor
 
         $script = "<?php\n\n";
 
+
+        $script .= "function result(\$success, \$errorMessage = null, \$errorDetails = null) {\n";
+        $script .= "  header('Content-Type: application/json');\n";
+        $script .= "  \$data = [ 'success' => \$success ];\n";
+        $script .= "  if (\$errorMessage) {\n";
+        $script .= "    \$data['error'] = [\n";
+        $script .= "      'message' => \$errorMessage,\n";
+        $script .= "      'details' => \$errorDetails,\n";
+        $script .= "    ];\n";
+        $script .= "  }\n";
+        $script .= "  die(json_encode(\$data, JSON_PRETTY_PRINT));\n";
+        $script .= "}\n\n";
+
+        // check HTTP method
+        $script .= "\$method = strtoupper(\$_SERVER['REQUEST_METHOD']);\n";
+        $script .= "if (\$method !== 'POST') {\n";
+        $script .= '  result(false, "Invalid request METHOD", "HTTP method $method is not supported");'."\n";
+        $script .= "}\n\n";
+
         // check parameter processId
         $script .= "if (\$_POST['processId'] !== '$processId') {\n";
-        $script .= '  die(\'{"success": false, "error": {"message": "Invalid process ID", "details": "Invalid process ID"}}\');'."\n";
+        $script .= '  result(false, "Invalid process ID", "Invalid process ID");'."\n";
         $script .= "}\n\n";
 
         // create directories
@@ -576,7 +595,7 @@ class Updater extends Processor
 
         // Die with a minimum response.
         $script .= "\n\n// Generate response\n";
-        $script .= 'die(\'{"success": true}\');'."\n";
+        $script .= 'result(true);'."\n";
 
         $success = (bool) file_put_contents($scriptFile, $script);
 
