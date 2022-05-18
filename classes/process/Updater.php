@@ -762,7 +762,7 @@ class Updater extends Processor
                 throw new Exception("File $path not found in file list");
             }
             $file = preg_replace('#^' . preg_quote($this->adminDir . '/') . '#', 'admin/', $path);
-            $files[$file] = isset($targetFileList[$path]) ? $targetFileList[$path] : 'n/a';
+            $files[$file] = $targetFileList[$path];
         }
         return $files;
     }
