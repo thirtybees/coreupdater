@@ -24,6 +24,7 @@ use CoreUpdater\Api\ThirtybeesApi;
 use CoreUpdater\Api\ThirtybeesApiGuzzle;
 use CoreUpdater\Log\Logger;
 use CoreUpdater\Storage\StorageFactory;
+use PrestaShopException;
 
 require_once __DIR__.'/logger/Logger.php';
 require_once __DIR__.'/api/ThirtybeesApi.php';
@@ -121,6 +122,7 @@ class Factory
 
     /**
      * @return ThirtybeesApi
+     * @throws PrestaShopException
      */
     public function getApi()
     {
@@ -130,7 +132,6 @@ class Factory
                 $this->baseApiUri,
                 Settings::getApiToken(),
                 $this->truststore,
-                $this->rootDir,
                 $this->adminDir,
                 $this->getStorageFactory()
             );
@@ -151,6 +152,7 @@ class Factory
 
     /**
      * @return Updater
+     * @throws PrestaShopException
      */
     public function getUpdater()
     {
@@ -169,6 +171,7 @@ class Factory
 
     /**
      * @return Comparator
+     * @throws PrestaShopException
      */
     public function getComparator()
     {

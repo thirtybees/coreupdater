@@ -133,10 +133,10 @@ class DatabaseSchemaComparator
             $haveSameColumns = false;
         }
 
-        // test columns order only when both tables contains the same columns
+        // test columns order only when both tables contain the same columns
         if ($haveSameColumns) {
             if ($targetTable->getColumnNames() !== $currentTable->getColumnNames()) {
-                $differences[] = new DifferentColumnsOrder($targetTable, $currentTable);
+                $differences[] = new DifferentColumnsOrder($targetTable);
             }
         }
 
@@ -192,11 +192,11 @@ class DatabaseSchemaComparator
         }
 
         if ($current->isNullable() !== $target->isNullable()) {
-            $differences[] = new DifferentNullable($table, $target, $current);
+            $differences[] = new DifferentNullable($table, $target);
         }
 
         if ($current->isAutoIncrement() !== $target->isAutoIncrement()) {
-            $differences[] = new DifferentAutoIncrement($table, $target, $current);
+            $differences[] = new DifferentAutoIncrement($table, $target);
         }
 
         if (($current->hasDefaultValue() !== $target->hasDefaultValue()) || ($current->getDefaultValue() !== $target->getDefaultValue())) {

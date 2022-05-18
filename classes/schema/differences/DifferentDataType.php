@@ -19,9 +19,9 @@
 
 namespace CoreUpdater;
 
-use \Translate;
-use \Db;
-use \ObjectModel;
+use Translate;
+use Db;
+use ObjectModel;
 
 
 
@@ -89,7 +89,7 @@ class DifferentDataType implements SchemaDifference
             if ($adjustedType1 === $adjustedType2) {
                 return false;
             }
-        };
+        }
         return true;
     }
 
@@ -119,9 +119,7 @@ class DifferentDataType implements SchemaDifference
      */
     public function getDataType(ColumnSchema $column)
     {
-        $output = $column->getDataType();
-
-        return $output;
+        return $column->getDataType();
     }
 
     /**
@@ -266,7 +264,7 @@ class DifferentDataType implements SchemaDifference
     public static function getFamilyType($baseType)
     {
         foreach (static::TYPE_FAMILIES as $family => $types) {
-            if (array_search($baseType, $types) !== false) {
+            if (in_array($baseType, $types)) {
                 return $family;
             }
         }

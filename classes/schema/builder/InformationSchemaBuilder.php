@@ -19,10 +19,10 @@
 
 namespace CoreUpdater;
 
-use \Db;
-use \ObjectModel;
-use \PrestaShopException;
-use \PrestaShopDatabaseException;
+use Db;
+use ObjectModel;
+use PrestaShopException;
+use PrestaShopDatabaseException;
 
 
 /**
@@ -282,7 +282,7 @@ class InformationSchemaBuilder
         if (strtolower($defaultValue) === 'current_timestamp()') {
             $defaultValue = ObjectModel::DEFAULT_CURRENT_TIMESTAMP;
         }
-        $column = new ColumnSchema($columnName);;
+        $column = new ColumnSchema($columnName);
         $column->setDataType($row['COLUMN_TYPE']);
         $column->setAutoIncrement($autoIncrement);
         $column->setNullable($isNullable);

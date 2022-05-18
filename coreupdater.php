@@ -29,8 +29,10 @@ class CoreUpdater extends Module
     /**
      * CoreUpdater constructor.
      *
-     * @version 1.0.0 Initial version.
      * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
+     * @version 1.0.0 Initial version.
+     *
      */
     public function __construct()
     {
@@ -56,6 +58,7 @@ class CoreUpdater extends Module
      * @return bool
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
      */
     public function install($createTables = true)
     {
@@ -64,7 +67,7 @@ class CoreUpdater extends Module
             parent::install() &&
             CoreUpdater\Settings::install() &&
             $this->installDb($createTables) &&
-            $tabSuccess = $this->installTab()
+            $this->installTab()
         );
     }
 
@@ -88,6 +91,7 @@ class CoreUpdater extends Module
      * @return bool
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
      */
     public function reset()
     {
@@ -161,7 +165,7 @@ class CoreUpdater extends Module
                             return false;
                         }
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     PrestaShopLogger::addLog("coreupdater: sql script $script: $stmt: exception: $e");
                     if ($check) {
                         return false;
@@ -228,6 +232,7 @@ class CoreUpdater extends Module
      * Verifies that the module is properly installed
      *
      * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
      */
     public function verifyInstallation()
     {

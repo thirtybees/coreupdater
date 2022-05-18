@@ -19,9 +19,9 @@
 
 namespace CoreUpdater;
 
-use \Db;
-use \PrestaShopException;
-use \PrestaShopDatabaseException;
+use Db;
+use PrestaShopException;
+use PrestaShopDatabaseException;
 
 
 

@@ -98,7 +98,7 @@ class Utils
 
             $keep = true;
             foreach ($filter as $regexp) {
-                if (preg_match($regexp, $path, $matches)) {
+                if (preg_match($regexp, $path)) {
                     $keep = false;
                     break;
                 }

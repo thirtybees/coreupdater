@@ -25,6 +25,7 @@ use CoreUpdater\Storage\Storage;
 use CoreUpdater\Storage\StorageFactory;
 use CoreUpdater\Utils;
 use Exception;
+use HTMLPurifier_Exception;
 use PrestaShopDatabaseException;
 use PrestaShopException;
 
@@ -154,6 +155,7 @@ abstract class Processor
      * @return Storage
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
      */
     protected function getStorage($processId)
     {

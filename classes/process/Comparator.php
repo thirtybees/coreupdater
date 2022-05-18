@@ -26,6 +26,7 @@ use CoreUpdater\Process\Processor;
 use CoreUpdater\Storage\Storage;
 use CoreUpdater\Storage\StorageFactory;
 use Exception;
+use HTMLPurifier_Exception;
 use PrestaShopDatabaseException;
 use PrestaShopException;
 
@@ -706,13 +707,13 @@ class Comparator extends Processor
     }
 
 
-
     /**
      * @param string $processId
      * @param string $revision
      * @return array
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
      */
     public function getFileList($processId, $revision)
     {
@@ -725,6 +726,7 @@ class Comparator extends Processor
      * @return array
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
      */
     public function getResult($processId)
     {

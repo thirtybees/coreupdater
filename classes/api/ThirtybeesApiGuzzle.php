@@ -22,9 +22,12 @@ namespace CoreUpdater\Api;
 use CoreUpdater\Log\Logger;
 use CoreUpdater\Storage\StorageFactory;
 use Exception;
+use GuzzleHttp\Client;
+use HTMLPurifier_Exception;
 use PrestaShopDatabaseException;
 use PrestaShopException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 
 class ThirtybeesApiGuzzle implements ThirtybeesApi
 {
@@ -50,14 +53,9 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
     private $logger;
 
     /**
-     * @var GuzzleHttp
+     * @var Client
      */
     private $guzzle;
-
-    /**
-     * @var string Full path to thirty bees root directory, using linux slashes
-     */
-    private $rootDir;
 
     /**
      * @var string Name of admin directory
@@ -81,7 +79,6 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
      * @param string $baseUri Uri to thirty bees API server, such as https://api.thirtybees.com
      * @param string $token API token to be used for communication with API server
      * @param string $truststore Path to pem file containing trusted root certificate authorities
-     * @param string $rootDir Full path to thirty bees root directory
      * @param string $adminDir Full path to admin directory
      * @param StorageFactory $storageFactory
      */
@@ -90,17 +87,15 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
         $baseUri,
         $token,
         $truststore,
-        $rootDir,
         $adminDir,
         StorageFactory $storageFactory
     ) {
         $this->logger = $logger;
-        $this->guzzle = new \GuzzleHttp\Client([
+        $this->guzzle = new Client([
             'base_uri'    => rtrim($baseUri, '/'),
             'verify'      => $truststore,
             'timeout'     => 20,
         ]);
-        $this->rootDir = $rootDir;
         $this->adminDir = $adminDir;
         $this->token = $token;
         $this->storageFactory = $storageFactory;
@@ -112,6 +107,7 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
      * @throws ThirtybeesApiException
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
      */
     public function downloadFileList($revision)
     {
@@ -135,6 +131,7 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
      * @throws ThirtybeesApiException
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
      */
     public function getVersions()
     {
@@ -313,7 +310,7 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
 
     /**
      * @param ResponseInterface $response
-     * @return string | null
+     * @return StreamInterface|null
      */
     private static function getBody($response)
     {

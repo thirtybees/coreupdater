@@ -19,7 +19,7 @@
 
 namespace CoreUpdater;
 
-use \Db;
+use Db;
 
 /**
  * Class DatabaseCharset

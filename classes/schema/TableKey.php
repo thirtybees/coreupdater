@@ -19,8 +19,8 @@
 
 namespace CoreUpdater;
 
-use \ObjectModel;
-use \Translate;
+use ObjectModel;
+use Translate;
 
 
 

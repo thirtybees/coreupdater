@@ -19,7 +19,7 @@
 
 namespace CoreUpdater;
 
-use \Tools;
+use Tools;
 
 
 
@@ -205,7 +205,7 @@ class TableSchema
     /**
      * Returns column names
      *
-     * @return ColumnSchema[]
+     * @return string[]
      *
      * @version 1.1.0 Initial version.
      */

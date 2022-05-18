@@ -21,6 +21,7 @@ namespace CoreUpdater\Storage;
 
 
 use CoreUpdater\Settings;
+use HTMLPurifier_Exception;
 use PrestaShopDatabaseException;
 use PrestaShopException;
 
@@ -51,6 +52,7 @@ class StorageFactory
      * @return Storage
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
      */
     public function getStorage($name, $ttl = 3600)
     {
@@ -60,6 +62,7 @@ class StorageFactory
             case Settings::CACHE_FS:
                 return new StorageFilesystem($this->directory, $name, $ttl);
         }
+        throw new PrestaShopException("Invariant exception: cache storage system");
     }
 
     /**

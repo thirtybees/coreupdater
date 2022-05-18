@@ -19,8 +19,8 @@
 
 namespace CoreUpdater;
 
-use \Translate;
-use \Db;
+use Translate;
+use Db;
 
 
 
@@ -34,21 +34,21 @@ use \Db;
  */
 class DifferentColumnsOrder implements SchemaDifference
 {
+    /**
+     * @var TableSchema
+     */
     private $table;
-    private $currentTable;
 
     /**
      * DifferentColumnsOrder constructor.
      *
      * @param TableSchema $table
-     * @param TableSchema $currentTable
      *
      * @version 1.1.0 Initial version.
      */
-    public function __construct(TableSchema $table, TableSchema $currentTable)
+    public function __construct(TableSchema $table)
     {
         $this->table = $table;
-        $this->currentTable = $currentTable;
     }
 
     /**

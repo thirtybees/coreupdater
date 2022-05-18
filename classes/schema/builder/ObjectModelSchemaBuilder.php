@@ -19,14 +19,14 @@
 
 namespace CoreUpdater;
 
-use \CoreModels;
-use \ObjectModel;
-use \PrestaShopException;
-use \ReflectionClass;
-use \ReflectionException;
-use \RecursiveDirectoryIterator;
-use \RecursiveIteratorIterator;
-use \Shop;
+use CoreModels;
+use ObjectModel;
+use PrestaShopException;
+use ReflectionClass;
+use ReflectionException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use Shop;
 
 
 
@@ -152,8 +152,7 @@ class ObjectModelSchemaBuilder
         $lines = explode("\n", $content);
         foreach ($lines as $line) {
             if (preg_match('#^\s*namespace\s+([^\s;]+)\s*;\s*$#', $line, $matches)) {
-                $fileNamespace = trim($matches[1], '\\') . '\\';
-                return $fileNamespace;
+                return trim($matches[1], '\\') . '\\';
             }
         }
         return "";

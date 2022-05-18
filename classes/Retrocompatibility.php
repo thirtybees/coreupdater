@@ -20,6 +20,7 @@
 namespace CoreUpdater;
 
 use Configuration;
+use Exception;
 use HTMLPurifier_Exception;
 use Language;
 use Module;
@@ -114,9 +115,7 @@ class Retrocompatibility
         $errors = array_merge($errors, $me->handleSingleLangConfigs());
         $errors = array_merge($errors, $me->handleMultiLangConfigs());
         $errors = array_merge($errors, $me->deleteObsoleteTabs());
-        $errors = array_merge($errors, $me->addMissingTabs());
-
-        return $errors;
+        return array_merge($errors, $me->addMissingTabs());
     }
 
     /**
@@ -429,7 +428,7 @@ class Retrocompatibility
             if (is_array($modules)) {
                 return $modules;
             }
-        } catch (\Exception $ignored) {}
+        } catch (Exception $ignored) {}
         return [];
     }
 }

@@ -19,8 +19,8 @@
 
 namespace CoreUpdater;
 
-use \Translate;
-use \Db;
+use Translate;
+use Db;
 
 
 
@@ -33,24 +33,28 @@ use \Db;
  */
 class DifferentNullable implements SchemaDifference
 {
+    /**
+     * @var TableSchema
+     */
     private $table;
+
+    /**
+     * @var ColumnSchema
+     */
     private $column;
-    private $currentColumn;
 
     /**
      * DifferentNullable constructor.
      *
      * @param TableSchema $table
      * @param ColumnSchema $column
-     * @param ColumnSchema $currentColumn
      *
      * @version 1.1.0 Initial version.
      */
-    public function __construct(TableSchema $table, ColumnSchema $column, ColumnSchema $currentColumn)
+    public function __construct(TableSchema $table, ColumnSchema $column)
     {
         $this->table = $table;
         $this->column = $column;
-        $this->currentColumn = $currentColumn;
     }
 
     /**

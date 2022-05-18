@@ -64,8 +64,9 @@ class AdminCoreUpdaterController extends ModuleAdminController
     /**
      * AdminCoreUpdaterController constructor.
      *
-     * @version 1.0.0 Initial version.
      * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
+     * @version 1.0.0 Initial version.
      */
     public function __construct()
     {
@@ -86,6 +87,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
      *
      * @return bool|string
      * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
      */
     private static function resolveTrustStore()
     {
@@ -146,6 +148,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
      * @return array
      * @throws PrestaShopException
      * @throws ThirtybeesApiException
+     * @throws HTMLPurifier_Exception
      */
     private function findVersionToUpdate()
     {
@@ -166,6 +169,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
     /**
      *  Method to set up page for Settings  tab
+     * @throws PrestaShopException
      */
     private function initSettingsTab()
     {
@@ -393,7 +397,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
                     ]);
                 }
                 switch ($this->getActiveTab()) {
-                    case static::TAB_UPDATE:;
+                    case static::TAB_UPDATE:
                         $this->initUpdateTab();
                         break;
                     case static::TAB_SETTINGS:
@@ -507,6 +511,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
     /**
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
      */
     public function performPostProcess()
     {
@@ -561,7 +566,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
     /**
      * @param string $action action to process
-     * @return mixed
+     * @return array
      * @throws Exception
      */
     protected function processAction($action)
@@ -586,7 +591,10 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
     /**
      * @return array
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      * @throws ThirtybeesApiException
+     * @throws HTMLPurifier_Exception
      */
     protected function getVersions()
     {
@@ -687,8 +695,6 @@ class AdminCoreUpdaterController extends ModuleAdminController
                 }
             }
         }
-        // should never happen
-        throw new Exception("Invariant exception");
     }
 
     /**
@@ -698,6 +704,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
      * @return array
      * @throws PrestaShopException
      * @throws SmartyException
+     * @throws HTMLPurifier_Exception
      */
     public function createCompareResult($compareProcessId, $result, $installedRevision)
     {
@@ -707,7 +714,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
         $changes = 0;
         $edits = 0;
         foreach ($changeSet as $arr) {
-            foreach ($arr as $file => $mod) {
+            foreach ($arr as $mod) {
                 if ($mod) {
                     $edits++;
                 } else {

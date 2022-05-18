@@ -20,7 +20,6 @@
 namespace CoreUpdater\Api;
 
 use Exception;
-use Throwable;
 
 class ThirtybeesApiException extends Exception
 {
@@ -33,9 +32,9 @@ class ThirtybeesApiException extends Exception
      * ThirtybeesApiException constructor.
      * @param $message
      * @param array $request
-     * @param Throwable|null $previous
+     * @param Exception | null $previous
      */
-    public function __construct($message, $request, Throwable $previous = null)
+    public function __construct($message, $request, $previous = null)
     {
         parent::__construct($message, 0, $previous);
         $this->request = $request;

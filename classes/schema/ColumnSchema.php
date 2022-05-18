@@ -19,7 +19,7 @@
 
 namespace CoreUpdater;
 
-use \ObjectModel;
+use ObjectModel;
 
 /**
  * Class ColumnSchema

@@ -20,11 +20,6 @@
 namespace CoreUpdater\Storage;
 
 
-use Db;
-use DbQuery;
-use PrestaShopDatabaseException;
-use PrestaShopException;
-
 class StorageFilesystem implements Storage
 {
     /**

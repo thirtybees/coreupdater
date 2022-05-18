@@ -21,11 +21,11 @@ namespace CoreUpdater;
 
 use Db;
 use PrestaShopException;
-use \ReflectionClass;
-use \ReflectionException;
-use \RecursiveDirectoryIterator;
-use \RecursiveIteratorIterator;
-use \AppendIterator;
+use ReflectionClass;
+use ReflectionException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use AppendIterator;
 
 if (!defined('_TB_VERSION_')) {
     exit;
@@ -103,8 +103,7 @@ class CodeCallback
         $lines = explode("\n", $content);
         foreach ($lines as $line) {
             if (preg_match('#^\s*namespace\s+([^\s;]+)\s*;\s*$#', $line, $matches)) {
-                $fileNamespace = trim($matches[1], '\\') . '\\';
-                return $fileNamespace;
+                return trim($matches[1], '\\') . '\\';
             }
         }
         return "";

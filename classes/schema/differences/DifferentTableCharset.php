@@ -19,8 +19,8 @@
 
 namespace CoreUpdater;
 
-use \Translate;
-use \Db;
+use Translate;
+use Db;
 
 
 

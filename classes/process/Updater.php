@@ -756,6 +756,7 @@ class Updater extends Processor
      * @return array
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
      */
     public function getResult($processId)
     {

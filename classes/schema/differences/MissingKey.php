@@ -19,9 +19,9 @@
 
 namespace CoreUpdater;
 
-use \Translate;
-use \Db;
-use \ObjectModel;
+use Translate;
+use Db;
+use ObjectModel;
 
 
 
