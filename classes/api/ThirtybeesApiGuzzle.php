@@ -41,6 +41,7 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
      */
     const ACTION_LIST_REVISION = 'list-revision';
     const ACTION_VERSIONS = 'versions';
+    const ACTION_TARGETS = 'targets';
 
     const MINUTE = 60;
     const MINUTE_10 = 60 * 10;
@@ -150,6 +151,34 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
         $this->logger->log("Available versions = " . json_encode($versions));
         return $versions;
     }
+
+    /**
+     * Returns targets list
+     *
+     * @return array
+     * @throws ThirtybeesApiException
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
+     */
+    public function getTargets()
+    {
+        $this->logger->log("Resolving available targets");
+        $cacheTtl = static::MINUTE_10;
+        $storage = $this->storageFactory->getStorage($this->getCacheFile('targets'), $cacheTtl);
+        if (! $storage->hasKey('targets')) {
+            $this->logger->log("Targets list not found in cache, calling api");
+            $targets = $this->callApi(static::ACTION_TARGETS);
+            $storage->put('targets', $targets);
+            $storage->save();
+        } else {
+            $this->logger->log("Targets list found in cache");
+        }
+        $targets = $storage->get('targets');
+        $this->logger->log("Available targets = " . json_encode($targets));
+        return $targets;
+    }
+
 
     /**
      * Download files

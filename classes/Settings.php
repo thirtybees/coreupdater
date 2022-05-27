@@ -44,6 +44,7 @@ class Settings
 
     const UPDATE_MODE_STABLE = "STABLE";
     const UPDATE_MODE_BLEEDING_EDGE = "BLEEDING_EDGE";
+    const UPDATE_MODE_CUSTOM = "CUSTOM";
 
     const CACHE_DB = 'DB';
     const CACHE_FS = 'FS';
@@ -178,7 +179,11 @@ class Settings
      */
     public static function setUpdateMode($updateMode)
     {
-        if (! in_array($updateMode, [static::UPDATE_MODE_STABLE, static::UPDATE_MODE_BLEEDING_EDGE])) {
+        if (! in_array($updateMode, [
+            static::UPDATE_MODE_STABLE,
+            static::UPDATE_MODE_BLEEDING_EDGE,
+            static::UPDATE_MODE_CUSTOM,
+        ])) {
             $updateMode = static::UPDATE_MODE_STABLE;
         }
         Configuration::updateGlobalValue(static::SETTINGS_UPDATE_MODE, $updateMode);

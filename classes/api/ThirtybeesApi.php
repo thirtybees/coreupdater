@@ -41,6 +41,14 @@ interface ThirtybeesApi
     public function getVersions();
 
     /**
+     * Returns targets list
+     *
+     * @return array
+     * @throws ThirtybeesApiException
+     */
+    public function getTargets();
+
+    /**
      * Downloads files from revision $revision
      *
      * @param string $revision

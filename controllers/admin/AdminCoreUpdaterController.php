@@ -108,15 +108,36 @@ class AdminCoreUpdaterController extends ModuleAdminController
      */
     private function initUpdateTab()
     {
-        $version = $this->findVersionToUpdate();
+        $updateMode = Settings::getUpdateMode();
+        $version = $this->findVersionToUpdate($updateMode);
+        if ($version) {
+            $this->updateProcessView($updateMode, $version);
+        } else {
+            $this->selectTargetVersionView();
+        }
+    }
+
+    /**
+     * @param string $updateMode
+     * @param array $version
+     * @return void
+     * @throws Exception
+     */
+    private function updateProcessView($updateMode, $version)
+    {
         $comparator = $this->factory->getComparator();
 
-        if ($version['stable']) {
-            $versionName = $version['version'];
-            $versionType = $this->l('stable');
-        } else {
+        if ($updateMode === Settings::UPDATE_MODE_CUSTOM) {
             $versionName = $version['revision'];
-            $versionType = $this->l('bleeding edge');
+            $versionType = $version['type'];
+        } else {
+            if ($version['stable']) {
+                $versionName = $version['version'];
+                $versionType = $this->l('stable');
+            } else {
+                $versionName = $version['revision'];
+                $versionType = $this->l('bleeding edge');
+            }
         }
 
         $processId = $comparator->startProcess([
@@ -127,10 +148,9 @@ class AdminCoreUpdaterController extends ModuleAdminController
             'versionType' => $versionType,
         ]);
 
-
         $this->content .= $this->render('error');
         $this->content .= $this->render('tab_update', [
-            'updateMode' => Settings::getUpdateMode(),
+            'updateMode' => $updateMode,
             'targetVersion' => [
                 'version' => $versionName,
                 'type' => $versionType,
@@ -145,26 +165,66 @@ class AdminCoreUpdaterController extends ModuleAdminController
     }
 
     /**
+     * @return void
+     * @throws Exception
+     */
+    private function selectTargetVersionView()
+    {
+        $api = $this->factory->getApi();
+        $this->content = $this->render('select_target_version', [
+            'targets' => $api->getTargets()
+        ]);
+    }
+
+    /**
      * @return array
      * @throws PrestaShopException
      * @throws ThirtybeesApiException
      * @throws HTMLPurifier_Exception
      */
-    private function findVersionToUpdate()
+    private function findVersionToUpdate($updateMode)
     {
         $api = $this->factory->getApi();
-        $versions = $api->getVersions();
-        $stable = Settings::getUpdateMode() === Settings::UPDATE_MODE_STABLE;
         $logger = $this->factory->getLogger();
-        $logger->log("Resolving latest version for " . Settings::getUpdateMode());
-        foreach ($versions as $version) {
-            if ($version['stable'] === $stable) {
-                $logger->log("Latest version = " . json_encode($version, JSON_PRETTY_PRINT));
-                return $version;
+        if ($updateMode === Settings::UPDATE_MODE_CUSTOM) {
+            if (Tools::isSubmit('submitUpdate')) {
+                $type = Tools::getValue('version_type');
+                if ($type === 'release') {
+                    $selectedTarget = Tools::getValue('release');
+                    if ($selectedTarget) {
+                        $targets = $api->getTargets();
+                        foreach ($targets['releases'] as $version) {
+                            if ($version['revision'] === $selectedTarget) {
+                                $version['type'] = sprintf($this->l('release %s'), $version['name']);
+                                return $version;
+                            }
+                        }
+                    }
+                } else {
+                    $selectedTarget = Tools::getValue('branch');
+                    if ($selectedTarget) {
+                        $targets = $api->getTargets();
+                        foreach ($targets['branches'] as $version) {
+                            if ($version['revision'] === $selectedTarget) {
+                                $version['type'] = sprintf($this->l('branch %s'), $version['name']);
+                                return $version;
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            $stable = $updateMode === Settings::UPDATE_MODE_STABLE;
+            $logger->log("Resolving latest version for " . $updateMode);
+            $versions = $api->getVersions();
+            foreach ($versions as $version) {
+                if ($version['stable'] === $stable) {
+                    $logger->log("Latest version = " . json_encode($version, JSON_PRETTY_PRINT));
+                    return $version;
+                }
             }
         }
-        $logger->error("Failed to resolve latest version");
-        throw new PrestaShopException("No version has been found");
+        return [];
     }
 
     /**
@@ -188,6 +248,9 @@ class AdminCoreUpdaterController extends ModuleAdminController
                     .'<li><b>'.$this->l('Bleeding edge').'</b>&nbsp;&mdash;&nbsp;'
                     .$this->l("Your store will be updated to latest build. This will allow you to test new features early. This is recommended settings for testing sites.")
                     .'</li>'
+                    .'<li><b>'.$this->l('Custom target').'</b>&nbsp;&mdash;&nbsp;'
+                    .$this->l("You will be able to update to any official release version, or even development branch.")
+                    .'</li>'
                     .'</ul>'
                 ),
                 'submit'      => [
@@ -208,6 +271,10 @@ class AdminCoreUpdaterController extends ModuleAdminController
                             [
                                 'mode' => Settings::UPDATE_MODE_BLEEDING_EDGE,
                                 'name' => $this->l('Bleeding edge')
+                            ],
+                            [
+                                'mode' => Settings::UPDATE_MODE_CUSTOM,
+                                'name' => $this->l('Custom target')
                             ],
                         ],
                         'no_multishop_checkbox' => true,
@@ -528,6 +595,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
             Settings::setApiToken(Tools::getValue(Settings::SETTINGS_API_TOKEN));
             Settings::setCacheSystem(Tools::getValue(Settings::SETTINGS_CACHE_SYSTEM));
             Settings::setVerifySsl(Tools::getValue(Settings::SETTINGS_VERIFY_SSL));
+            $this->factory->getStorageFactory()->flush();
             $this->context->controller->confirmations[] = $this->l('Settings saved');
             $this->setRedirectAfter(static::tabLink(static::TAB_SETTINGS));
             $this->redirect();
@@ -723,10 +791,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
             }
         }
 
-        $stable = Settings::getUpdateMode() === Settings::UPDATE_MODE_STABLE;
-        $versionType = $stable
-            ? $this->l('stable')
-            : $this->l('bleeding edge');
+        $versionType = $this->getUpdateModeDescription(Settings::getUpdateMode());
 
         $html = $this->render('result', [
             'compareProcessId' => $compareProcessId,
@@ -945,5 +1010,22 @@ class AdminCoreUpdaterController extends ModuleAdminController
     {
         $this->context->smarty->assign($params);
         return $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'coreupdater/views/templates/admin/' . $template .'.tpl');
+    }
+
+    /**
+     * @return string
+     */
+    protected function getUpdateModeDescription($updateMode)
+    {
+        switch ($updateMode) {
+            case Settings::UPDATE_MODE_STABLE:
+                return $this->l('stable');
+            case Settings::UPDATE_MODE_BLEEDING_EDGE:
+                return $this->l('bleeding edge');
+            case Settings::UPDATE_MODE_CUSTOM:
+                return '';
+            default:
+                throw new RuntimeException('Invariant exception');
+        }
     }
 }
