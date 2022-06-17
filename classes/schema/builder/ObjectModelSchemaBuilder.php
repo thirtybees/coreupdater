@@ -179,7 +179,7 @@ class ObjectModelSchemaBuilder
         $primaryTable = $this->addPrimaryTable($definition, $charset);
 
         // register lang table if object model are using this feature
-        $langTable = $this->addLangTable($definition, $charset);
+        $langTable = $this->addLangTable($objectModel, $definition, $charset);
 
         // register shop table if object model are using this feature
         $shopTable = $this->addShopTable($definition, $charset);
@@ -194,7 +194,7 @@ class ObjectModelSchemaBuilder
         // iterate over keys and register database keys / indexes
         if (isset($definition['keys'])) {
              foreach ($definition['keys'] as $tableName => $keys) {
-                 $this->addKey($tableName, $keys);
+                 $this->addTableKeys($tableName, $keys);
              }
         }
 
@@ -235,25 +235,47 @@ class ObjectModelSchemaBuilder
     /**
      * Registers object model's lang table if it is used by this object model
      *
+     * @param string $objectModel object model name
      * @param array $definition object model definition
      * @param DatabaseCharset $charset character set
      *
      * @return TableSchema | null
      *
+     * @throws PrestaShopException
      * @version 1.1.0 Initial version.
      */
-    protected function addLangTable($definition, $charset)
+    protected function addLangTable($objectModel, $definition, $charset)
     {
         if (static::checkOption($definition, 'multilang')) {
-            $langTable = $this->getTable($definition['table'] . '_lang', $charset);
+            $primaryTableName = $definition['table'];
+            $langTableName = $primaryTableName . '_lang';
+            $langTable = $this->getTable($langTableName, $charset);
             $langTableKey = new TableKey(ObjectModel::PRIMARY_KEY, 'PRIMARY');
 
             // lang table must have the foreign key to primary table
-            $foreignKey = new ColumnSchema($definition['primary']);
-            $foreignKey->setDataType('int(11) unsigned');
-            $foreignKey->setNullable(false);
-            $langTable->addColumn($foreignKey);
-            $langTableKey->addColumn($definition['primary']);
+            if (isset($definition['primary'])) {
+                $foreignKey = new ColumnSchema($definition['primary']);
+                $foreignKey->setDataType('int(11) unsigned');
+                $foreignKey->setNullable(false);
+                $langTable->addColumn($foreignKey);
+                $langTableKey->addColumn($definition['primary']);
+            } else {
+                $primaryKeyDef = $this->getPrimaryKeyDefinition($definition);
+                if ($primaryKeyDef) {
+                    foreach ($primaryKeyDef['columns'] as $col) {
+                        $columnDefinition = $definition['fields'][$col];
+                        $primaryCol = new ColumnSchema($col);
+                        $primaryCol->setDataType($this->getColumnDataType($columnDefinition, $objectModel, $col));
+                        if (array_key_exists('required', $columnDefinition)) {
+                            $primaryCol->setNullable(!$columnDefinition['required']);
+                        }
+                        $langTable->addColumn($primaryCol);
+                        $langTableKey->addColumn($col);
+                    }
+                } else {
+                    throw new PrestaShopException('No primary key defined for table ' . $primaryTableName);
+                }
+            }
 
             // lang table must have foreign key to shop table
             $idLangKey = new ColumnSchema('id_lang');
@@ -405,7 +427,7 @@ class ObjectModelSchemaBuilder
      *
      * @version 1.1.0 Initial version.
      */
-    protected function addKey($tableName, $keys)
+    protected function addTableKeys($tableName, $keys)
     {
         $table = $this->schema->getTable(_DB_PREFIX_ . $tableName);
         foreach ($keys as $keyName => $keyDefinition) {
@@ -516,9 +538,6 @@ class ObjectModelSchemaBuilder
                 }
                 return 'longtext';
             case ObjectModel::TYPE_FLOAT:
-                $size = static::getOption($columnDefinition, 'size', 20);
-                $decimals = static::getOption($columnDefinition, 'decimals', 6);
-                return "decimal($size,$decimals)";
             case ObjectModel::TYPE_PRICE:
                 $size = static::getOption($columnDefinition, 'size', 20);
                 $decimals = static::getOption($columnDefinition, 'decimals', 6);
@@ -594,5 +613,21 @@ class ObjectModelSchemaBuilder
         }
 
         return $default;
+    }
+
+    /**
+     * @param array $definition
+     * @return array|null
+     */
+    protected function getPrimaryKeyDefinition($definition)
+    {
+        if (isset($definition['keys'])) {
+            foreach ($definition['keys'][$definition['table']] as $primaryTableKey) {
+                if ($primaryTableKey['type'] === ObjectModel::PRIMARY_KEY) {
+                    return $primaryTableKey;
+                }
+            }
+        }
+        return null;
     }
 }
