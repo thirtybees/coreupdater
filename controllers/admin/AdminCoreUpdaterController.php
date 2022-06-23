@@ -39,14 +39,6 @@ class AdminCoreUpdaterController extends ModuleAdminController
     const TAB_SETTINGS = 'settings';
     const TAB_DB = 'database';
 
-    /**
-     * Where manually modified files get backed up before they get overwritten
-     * by the new version. A directory path, which gets appended by a date of
-     * the format BACKUP_DATE_SUFFIX (should give a unique suffix).
-     */
-    const BACKUP_PATH = _PS_ADMIN_DIR_.'/CoreUpdaterBackup';
-    const BACKUP_DATE_SUFFIX = '-Y-m-d--H-i-s';
-
     const ACTION_GET_VERSIONS = 'GET_VERSIONS';
     const ACTION_SAVE_SETTINGS = 'SAVE_SETTINGS';
     const ACTION_CLEAR_CACHE = 'CLEAR_CACHE';
@@ -127,7 +119,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
     {
         $comparator = $this->factory->getComparator();
 
-        if ($updateMode === Settings::UPDATE_MODE_CUSTOM) {
+        if (isset($version['type'])) {
             $versionName = $version['revision'];
             $versionType = $version['type'];
         } else {
@@ -186,44 +178,48 @@ class AdminCoreUpdaterController extends ModuleAdminController
     {
         $api = $this->factory->getApi();
         $logger = $this->factory->getLogger();
-        if ($updateMode === Settings::UPDATE_MODE_CUSTOM) {
-            if (Tools::isSubmit('submitUpdate')) {
-                $type = Tools::getValue('version_type');
-                if ($type === 'release') {
-                    $selectedTarget = Tools::getValue('release');
-                    if ($selectedTarget) {
-                        $targets = $api->getTargets();
-                        foreach ($targets['releases'] as $version) {
-                            if ($version['revision'] === $selectedTarget) {
-                                $version['type'] = sprintf($this->l('release %s'), $version['name']);
-                                return $version;
-                            }
-                        }
-                    }
-                } else {
-                    $selectedTarget = Tools::getValue('branch');
-                    if ($selectedTarget) {
-                        $targets = $api->getTargets();
-                        foreach ($targets['branches'] as $version) {
-                            if ($version['revision'] === $selectedTarget) {
-                                $version['type'] = sprintf($this->l('branch %s'), $version['name']);
-                                return $version;
-                            }
+
+        if (Tools::isSubmit('submitUpdate')) {
+            $type = Tools::getValue('version_type');
+            if ($type === 'release') {
+                $selectedTarget = Tools::getValue('release');
+                if ($selectedTarget) {
+                    $targets = $api->getTargets();
+                    foreach ($targets['releases'] as $version) {
+                        if ($version['revision'] === $selectedTarget) {
+                            $version['type'] = sprintf($this->l('release %s'), $version['name']);
+                            return $version;
                         }
                     }
                 }
-            }
-        } else {
-            $stable = $updateMode === Settings::UPDATE_MODE_STABLE;
-            $logger->log("Resolving latest version for " . $updateMode);
-            $versions = $api->getVersions();
-            foreach ($versions as $version) {
-                if ($version['stable'] === $stable) {
-                    $logger->log("Latest version = " . json_encode($version, JSON_PRETTY_PRINT));
-                    return $version;
+            } else {
+                $selectedTarget = Tools::getValue('branch');
+                if ($selectedTarget) {
+                    $targets = $api->getTargets();
+                    foreach ($targets['branches'] as $version) {
+                        if ($version['revision'] === $selectedTarget) {
+                            $version['type'] = sprintf($this->l('branch %s'), $version['name']);
+                            return $version;
+                        }
+                    }
                 }
             }
         }
+
+        if ($updateMode === Settings::UPDATE_MODE_CUSTOM) {
+            return [];
+        }
+
+        $stable = $updateMode === Settings::UPDATE_MODE_STABLE;
+        $logger->log("Resolving latest version for " . $updateMode);
+        $versions = $api->getVersions();
+        foreach ($versions as $version) {
+            if ($version['stable'] === $stable) {
+                $logger->log("Latest version = " . json_encode($version, JSON_PRETTY_PRINT));
+                return $version;
+            }
+        }
+
         return [];
     }
 
