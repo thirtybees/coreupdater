@@ -102,6 +102,7 @@ class Comparator extends Processor
         '#^img/t/[0-9]+.jpg$#',
         '#^img/cms/cms-img.jpg$#',
         '#^cache/smarty/.*index.php$#',
+        '#^cache/class_index.php$#',
         '#themes/default/css/overrides.css$#',
     ];
 
