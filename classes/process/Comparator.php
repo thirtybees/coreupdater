@@ -101,7 +101,8 @@ class Comparator extends Processor
         '#^img/s/[0-9]+.jpg$#',
         '#^img/t/[0-9]+.jpg$#',
         '#^img/cms/cms-img.jpg$#',
-        '#^cache/smarty/.*index.php$#'
+        '#^cache/smarty/.*index.php$#',
+        '#themes/default/css/overrides.css$#',
     ];
 
     const MANAGED_DIRECTORIES = [
