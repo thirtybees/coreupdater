@@ -190,13 +190,28 @@ class Comparator extends Processor
     }
 
     /**
+     * Returns PHP version of codebase currently installed
+     *
+     * @return string
+     */
+    public function getOriginPHPVersion()
+    {
+        return defined('_TB_BUILD_PHP_')
+            ? _TB_BUILD_PHP_
+            : PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;
+    }
+
+    /**
      * @param $settings
+     *
      * @return array
      * @throws Exception
      */
     protected function generateSteps($settings)
     {
         $installedRevision = $this->getInstalledRevision();
+        $originPHPVersion = $this->getOriginPHPVersion();
+        $targetPHPVersion = $this->getParameter('targetPHPVersion', $settings);
         $ignoreTheme = !! $this->getParameter('ignoreTheme', $settings);
         $targetRevision = $this->getParameter('targetRevision', $settings);
         $targetVersion = $this->getParameter('targetVersion', $settings);
@@ -212,13 +227,15 @@ class Comparator extends Processor
 
         $steps[] = [
             'action' => static::ACTION_DOWNLOAD_FILE_LIST,
+            'php' => $targetPHPVersion,
             'revision' => $targetRevision,
             'ignoreTheme' => $ignoreTheme
         ];
 
-        if ($installedRevision !== $targetRevision) {
+        if (($installedRevision !== $targetRevision) || ($originPHPVersion !== $targetPHPVersion)) {
             $steps[] = [
                 'action' => static::ACTION_DOWNLOAD_FILE_LIST,
+                'php' => $originPHPVersion,
                 'revision' => $installedRevision,
                 'ignoreTheme' => $ignoreTheme
             ];
@@ -226,19 +243,24 @@ class Comparator extends Processor
 
         $steps[] = [
             'action' => static::ACTION_RESOLVE_TOP_DIRS,
+            'php' => $targetPHPVersion,
             'revision' => $targetRevision
         ];
 
         $steps[] = [
             'action' => static::ACTION_SEARCH_INSTALLATION,
+            'originPHPVersion' => $originPHPVersion,
             'originRevision' => $installedRevision,
+            'targetPHPVersion' => $targetPHPVersion,
             'targetRevision' => $targetRevision,
             'ignoreTheme' => $ignoreTheme
         ];
 
         $steps[] = [
             'action' => static::ACTION_INCLUDE_DIST_FILESET,
+            'originPHPVersion' => $originPHPVersion,
             'originRevision' => $installedRevision,
+            'targetPHPVersion' => $targetPHPVersion,
             'targetRevision' => $targetRevision
         ];
 
@@ -249,6 +271,8 @@ class Comparator extends Processor
             'targetVersion' => $targetVersion,
             'versionName' => $versionName,
             'versionType' => $versionType,
+            'targetPHPVersion' => $targetPHPVersion,
+            'originPHPVersion' => $originPHPVersion,
         ];
 
         return $steps;
@@ -269,27 +293,38 @@ class Comparator extends Processor
                 return $this->checkModules($this->getParameter('version', $step));
             case static::ACTION_DOWNLOAD_FILE_LIST:
                 return $this->downloadFileList(
+                    $this->getParameter('php', $step),
                     $this->getParameter('revision', $step),
                     $this->getParameter('ignoreTheme', $step),
                     $storage
                 );
             case static::ACTION_RESOLVE_TOP_DIRS:
-                return $this->extractTopLevelDirs($this->getParameter('revision', $step), $storage);
+                return $this->extractTopLevelDirs(
+                    $this->getParameter('php', $step),
+                    $this->getParameter('revision', $step),
+                    $storage
+                );
             case static::ACTION_SEARCH_INSTALLATION:
                 return $this->searchInstallationStep(
+                    $this->getParameter('targetPHPVersion', $step),
                     $this->getParameter('targetRevision', $step),
+                    $this->getParameter('originPHPVersion', $step),
                     $this->getParameter('originRevision', $step),
                     $this->getParameter('ignoreTheme', $step),
                     $storage
                 );
             case static::ACTION_INCLUDE_DIST_FILESET:
                 return $this->addDistributionFileset(
+                    $this->getParameter('targetPHPVersion', $step),
                     $this->getParameter('targetRevision', $step),
+                    $this->getParameter('originPHPVersion', $step),
                     $this->getParameter('originRevision', $step),
                     $storage
                 );
             case static::ACTION_CALCULATE_CHANGES:
                 return $this->calculateChanges(
+                    $this->getParameter('targetPHPVersion', $step),
+                    $this->getParameter('originPHPVersion', $step),
                     $this->getParameter('targetVersion', $step),
                     $this->getParameter('targetRevision', $step),
                     $this->getParameter('originRevision', $step),
@@ -350,14 +385,22 @@ class Comparator extends Processor
     }
 
     /**
+     * @param string $targetPHPVersion
      * @param string $targetRevision
+     * @param string $originPHPVersion
      * @param string $originRevision
      * @param boolean $ignoreTheme
      * @param Storage $storage
      * @return ProcessingState
      */
-    protected function searchInstallationStep($targetRevision, $originRevision, $ignoreTheme, Storage $storage)
-    {
+    protected function searchInstallationStep(
+        $targetPHPVersion,
+        $targetRevision,
+        $originPHPVersion,
+        $originRevision,
+        $ignoreTheme,
+        Storage $storage
+    ) {
         $all = $storage->get('topLevel');
         $index = $storage->hasKey('topLevelIndex') ? $storage->get('topLevelIndex') : 0;
         $count = count($all);
@@ -368,7 +411,9 @@ class Comparator extends Processor
             $directory = $all[$index];
             $this->searchInstallation(
                 $directory,
+                $targetPHPVersion,
                 $targetRevision,
+                $originPHPVersion,
                 $originRevision,
                 $ignoreTheme,
                 $storage
@@ -391,22 +436,23 @@ class Comparator extends Processor
      * Returned array contains key-value pair for each entry, path
      * and Git (SHA1) hash: ['<path>' => '<hash>']
      *
+     * @param string $php
      * @param string $revision
      * @param boolean $ignoreTheme
      * @param Storage $storage
      * @return ProcessingState
      */
-    protected function downloadFileList($revision, $ignoreTheme, Storage $storage)
+    protected function downloadFileList($php, $revision, $ignoreTheme, Storage $storage)
     {
         try {
-            $response = $this->api->downloadFileList($revision);
+            $response = $this->api->downloadFileList($php, $revision);
             $fileList = [];
             foreach ($response as $path => $hash) {
                 if ($this->shouldProcessFile($path, $ignoreTheme)) {
                     $fileList[$path] = $hash;
                 }
             }
-            $storage->put('fileList-' . $revision, $fileList);
+            $storage->put(static::getFileListKey($revision, $php), $fileList);
             return ProcessingState::done();
         } catch (Exception $e) {
             return ProcessingState::failed($e->getMessage(), $e->__toString());
@@ -457,13 +503,14 @@ class Comparator extends Processor
      * On return, $storage['topLevel'] is set to the list of
      * paths. No failure expected.
      *
+     * @param string $php php version
      * @param string $revision Version of the file path list.
      * @param Storage $storage
      * @return ProcessingState
      */
-    protected function extractTopLevelDirs($revision, Storage $storage)
+    protected function extractTopLevelDirs($php, $revision, Storage $storage)
     {
-        $fileList = $storage->get('fileList-'.$revision);
+        $fileList = $storage->get(static::getFileListKey($revision, $php));
 
         $topLevelDirs = ['.'];
         foreach ($fileList as $path => $hash) {
@@ -504,16 +551,25 @@ class Comparator extends Processor
      * No failure expected, a not existing directory doesn't add anything.
      *
      * @param string $dir Directory to search.
+     * @param string $targetPHPVersion
      * @param string $targetRevision
+     * @param string $originPHPVersion
      * @param string $originRevision
      * @param boolean $ignoreTheme
      * @param Storage $storage
      */
-    protected function searchInstallation($dir, $targetRevision, $originRevision, $ignoreTheme, Storage $storage)
-    {
+    protected function searchInstallation(
+        $dir,
+        $targetPHPVersion,
+        $targetRevision,
+        $originPHPVersion,
+        $originRevision,
+        $ignoreTheme,
+        Storage $storage
+    ) {
         $this->logger->log('Indexing files in directory \'' . $dir . '\'');
-        $targetList = $storage->get('fileList-'.$targetRevision);
-        $originList = $storage->get('fileList-'.$originRevision);
+        $targetList = $storage->get(static::getFileListKey($targetRevision, $targetPHPVersion));
+        $originList = $storage->get(static::getFileListKey($originRevision, $originPHPVersion));
         $installationList = $storage->hasKey('installationList') ? $storage->get('installationList') : [];
         $cnt = 0;
 
@@ -568,23 +624,30 @@ class Comparator extends Processor
      *
      * No failure expected, operations happen on existing data, only.
      *
+     * @param string $targetPHPVersion
      * @param string $targetRevision
+     * @param string $originPHPVersion
      * @param string $originRevision
      * @param Storage $storage
      * @return ProcessingState
      */
-    protected function addDistributionFileset($targetRevision, $originRevision, $storage)
-    {
+    protected function addDistributionFileset(
+        $targetPHPVersion,
+        $targetRevision,
+        $originPHPVersion,
+        $originRevision,
+        $storage
+    ) {
         $oldCwd = getcwd();
         chdir(_PS_ROOT_DIR_);
         try {
 
             $installationList = $storage->get('installationList');
 
-            $fileList = $storage->get('fileList-' . $targetRevision);
-            if ($originRevision != $targetRevision) {
-                $fileList = array_merge($fileList, $storage->get('fileList-' . $originRevision));
-            }
+            $fileList = array_merge(
+                $storage->get(static::getFileListKey($targetRevision, $targetPHPVersion)),
+                $storage->get(static::getFileListKey($originRevision, $originPHPVersion))
+            );
 
             $modified = false;
             foreach ($fileList as $path => $_) {
@@ -630,6 +693,8 @@ class Comparator extends Processor
      *               boolean indicating whether a change/add/remove overwrites
      *               manual edits.
      *
+     * @param string $targetPHPVersion
+     * @param string $originPHPVersion
      * @param string $targetVersion
      * @param string $targetRevision
      * @param string $originRevision
@@ -639,6 +704,8 @@ class Comparator extends Processor
      * @return ProcessingState
      */
     protected function calculateChanges(
+        $targetPHPVersion,
+        $originPHPVersion,
         $targetVersion,
         $targetRevision,
         $originRevision,
@@ -647,8 +714,8 @@ class Comparator extends Processor
         $storage
     ) {
         $installedList = $storage->get('installationList');
-        $targetList = $storage->get('fileList-'.$targetRevision);
-        $originList = $storage->get('fileList-'.$originRevision);
+        $targetList = $storage->get(static::getFileListKey($targetRevision, $targetPHPVersion));
+        $originList = $storage->get(static::getFileListKey($originRevision, $originPHPVersion));
 
         $changeList   = [];
         $addList      = [];
@@ -696,12 +763,13 @@ class Comparator extends Processor
         $storage->put('result', [
             'targetVersion' => $targetVersion,
             'targetRevision' => $targetRevision,
+            'targetPHPVersion' => $targetPHPVersion,
             'versionName' => $versionName,
             'versionType' => $versionType,
             'changeSet' => [
-                'change'    => $changeList,
-                'add'       => $addList,
-                'remove'    => $removeList
+                'change'    => static::sortList($changeList),
+                'add'       => static::sortList($addList),
+                'remove'    => static::sortList($removeList)
             ]
         ]);
 
@@ -712,15 +780,16 @@ class Comparator extends Processor
     /**
      * @param string $processId
      * @param string $revision
+     * @param string $php
      * @return array
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @throws HTMLPurifier_Exception
      */
-    public function getFileList($processId, $revision)
+    public function getFileList($processId, $revision, $php)
     {
         $storage = $this->getStorage($processId);
-        return $storage->get('fileList-' . $revision);
+        return $storage->get(static::getFileListKey($revision, $php));
     }
 
     /**
@@ -737,5 +806,33 @@ class Comparator extends Processor
             return $storage->get('result');
         }
         return [];
+    }
+
+    /**
+     * @param string $revision
+     * @param string $php
+     * @return string
+     */
+    protected static function getFileListKey($revision, $php)
+    {
+        return 'fileList-' . $revision . '-' . $php;
+    }
+
+    /**
+     * @param array $list
+     * @return array
+     */
+    protected static function sortList(array $list)
+    {
+        uksort($list, function($k1, $k2) use ($list) {
+            if ($list[$k1] && !$list[$k2]) {
+                return -1;
+            }
+            if (!$list[$k1] && $list[$k2]) {
+                return 1;
+            }
+            return strcmp($k1, $k2);
+        });
+        return $list;
     }
 }

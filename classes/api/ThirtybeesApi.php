@@ -24,39 +24,48 @@ interface ThirtybeesApi
 {
 
     /**
+     * @return string[]
+     */
+    function getPHPVersions();
+
+    /**
      * Returns all files tracked by given version. Output value is map from file name to md5 hash
      *
+     * @param string $php
      * @param string $revision
      * @return array
      * @throws ThirtybeesApiException
      */
-    function downloadFileList($revision);
+    function downloadFileList($php, $revision);
 
     /**
      * Returns version list
      *
+     * @param string $php
      * @return array
      * @throws ThirtybeesApiException
      */
-    public function getVersions();
+    public function getVersions($php);
 
     /**
      * Returns targets list
      *
+     * @param string $php
      * @return array
      * @throws ThirtybeesApiException
      */
-    public function getTargets();
+    public function getTargets($php);
 
     /**
      * Downloads files from revision $revision
      *
+     * @param string $php
      * @param string $revision
      * @param string[] $files
      * @param string $targetFile
      * @return mixed
      */
-    public function downloadFiles($revision, $files, $targetFile);
+    public function downloadFiles($php, $revision, $files, $targetFile);
 
     /**
      * Checks that module version is supported

@@ -23,6 +23,7 @@ use CoreUpdater\Log\Logger;
 use CoreUpdater\Storage\StorageFactory;
 use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use HTMLPurifier_Exception;
 use PrestaShopDatabaseException;
 use PrestaShopException;
@@ -42,10 +43,12 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
     const ACTION_LIST_REVISION = 'list-revision';
     const ACTION_VERSIONS = 'versions';
     const ACTION_TARGETS = 'targets';
+    const ACTION_LIST_PHP_VERSIONS = 'list-php-versions';
 
     const MINUTE = 60;
     const MINUTE_10 = 60 * 10;
     const HOUR = 60 * 60;
+    const DAY = 24 * 60 * 60;
     const MONTH = 60 * 60 * 24 * 30;
 
     /**
@@ -103,21 +106,31 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
     }
 
     /**
+     * @return string
+     */
+    private static function getCurrentPHPVersion()
+    {
+        return phpversion();
+    }
+
+    /**
+     * @param string $php
      * @param string $revision
+     *
      * @return array
      * @throws ThirtybeesApiException
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @throws HTMLPurifier_Exception
      */
-    public function downloadFileList($revision)
+    public function downloadFileList($php, $revision)
     {
         $cacheTtl = $this->isStableRelease($revision)
             ? static::MONTH
             : static::HOUR;
-        $storage = $this->storageFactory->getStorage($this->getCacheFile('files-' . $revision), $cacheTtl);
+        $storage = $this->storageFactory->getStorage($this->getCacheFile('files-' . $revision, $php), $cacheTtl);
         if ($storage->isEmpty()) {
-            $list = $this->callApi(static::ACTION_LIST_REVISION, ['revision' => $revision]);
+            $list = $this->callApi($php, static::ACTION_LIST_REVISION, ['revision' => $revision]);
             foreach ($list as $path => $hash) {
                 $path = preg_replace('#^admin/#', $this->adminDir . '/', $path);
                 $storage->put($path, $hash);
@@ -128,20 +141,22 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
     }
 
     /**
+     * @param string $php
      * @return array
+     *
      * @throws ThirtybeesApiException
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @throws HTMLPurifier_Exception
      */
-    public function getVersions()
+    public function getVersions($php)
     {
         $this->logger->log("Resolving available versions");
         $cacheTtl = static::MINUTE_10;
-        $storage = $this->storageFactory->getStorage($this->getCacheFile('versions'), $cacheTtl);
+        $storage = $this->storageFactory->getStorage($this->getCacheFile('versions', $php), $cacheTtl);
         if (! $storage->hasKey('versions')) {
             $this->logger->log("Version list not found in cache, calling api");
-            $versions = $this->callApi(static::ACTION_VERSIONS);
+            $versions = $this->callApi($php, static::ACTION_VERSIONS);
             $storage->put('versions', $versions);
             $storage->save();
         } else {
@@ -155,20 +170,22 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
     /**
      * Returns targets list
      *
+     * @param string $php
      * @return array
+     *
      * @throws ThirtybeesApiException
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @throws HTMLPurifier_Exception
      */
-    public function getTargets()
+    public function getTargets($php)
     {
         $this->logger->log("Resolving available targets");
         $cacheTtl = static::MINUTE_10;
-        $storage = $this->storageFactory->getStorage($this->getCacheFile('targets'), $cacheTtl);
+        $storage = $this->storageFactory->getStorage($this->getCacheFile('targets', $php), $cacheTtl);
         if (! $storage->hasKey('targets')) {
             $this->logger->log("Targets list not found in cache, calling api");
-            $targets = $this->callApi(static::ACTION_TARGETS);
+            $targets = $this->callApi($php, static::ACTION_TARGETS);
             $storage->put('targets', $targets);
             $storage->save();
         } else {
@@ -188,11 +205,11 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
      * @return boolean
      * @throws ThirtybeesApiException
      */
-    public function downloadFiles($revision, $files, $targetFile)
+    public function downloadFiles($php, $revision, $files, $targetFile)
     {
         $request = [
             'action' => 'download-archive',
-            'php' => phpversion(),
+            'php' => $php,
             'revision' => $revision,
             'paths' => $files
         ];
@@ -202,7 +219,7 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
         try {
             $debugRequest = [
                 'action' => 'download-archive',
-                'php' => phpversion(),
+                'php' => $php,
                 'revision' => $revision,
                 'paths' => count($files) . ' files'
             ];
@@ -228,6 +245,10 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
         } catch (ThirtybeesApiException $e) {
             @unlink($targetFile);
             throw $e;
+        } catch (GuzzleException $e ) {
+            @unlink($targetFile);
+            $this->logger->error("Transport exception: " . $e->getMessage());
+            throw new ThirtybeesApiException('Transport exception', $request, $e);
         } catch (Exception $e) {
             @unlink($targetFile);
             $this->logger->error("Transport exception: " . $e->getMessage());
@@ -243,24 +264,50 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
      */
     public function checkModuleVersion($version)
     {
-        return $this->callApi('check-module-version', [
+        return $this->callApi(static::getCurrentPHPVersion(), 'check-module-version', [
             'version' => $version
         ]);
     }
 
+    /**
+     * @return string[]
+     * @throws HTMLPurifier_Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws ThirtybeesApiException
+     */
+    function getPHPVersions()
+    {
+        $this->logger->log("Resolving available PHP versions");
+        $cacheTtl = static::DAY;
+        $storage = $this->storageFactory->getStorage('php-versions', $cacheTtl);
+        if (! $storage->hasKey('versions')) {
+            $this->logger->log("List of supported PHP versions not found in cache, calling api");
+            $versions = $this->callApi(static::getCurrentPHPVersion(), static::ACTION_LIST_PHP_VERSIONS);
+            $storage->put('versions', $versions);
+            $storage->save();
+        } else {
+            $this->logger->log("List of supported PHP versions found in cache");
+        }
+        $versions = $storage->get('versions');
+        $this->logger->log("Available PHP versions = " . json_encode($versions));
+        return $versions;
+    }
+
 
     /**
-     * @param String $action action to perform
+     * @param string $php php version
+     * @param string $action action to perform
      * @param array $payload action payload
      *
      * @return mixed
      * @throws ThirtybeesApiException
      */
-    private function callApi($action, $payload = [])
+    private function callApi($php, $action, $payload = [])
     {
         $request = array_merge($payload, [
             'action' => $action,
-            'php' => phpversion()
+            'php' => $php
         ]);
         if ($this->token) {
             $request['token'] = $this->token;
@@ -285,6 +332,8 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
                 'http_errors' => false
             ]);
         } catch (Exception $e) {
+            throw new ThirtybeesApiException('Transport exception', $request, $e);
+        } catch (GuzzleException $e) {
             throw new ThirtybeesApiException('Transport exception', $request, $e);
         }
     }
@@ -344,10 +393,7 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
     private static function getBody($response)
     {
         if (method_exists($response, 'getBody')) {
-            $body = $response->getBody();
-            if ($body) {
-                return $body;
-            }
+            return $response->getBody();
         }
         return null;
     }
@@ -373,9 +419,9 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
      * @param string $name
      * @return string
      */
-    private function getCacheFile($name)
+    private function getCacheFile($name, $php)
     {
-        $version = substr(str_replace(".", "", phpversion()), 0, 2);
+        $version = substr(str_replace(".", "", $php), 0, 2);
         return $name . "-php" . $version;
     }
 

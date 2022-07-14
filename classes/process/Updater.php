@@ -132,6 +132,7 @@ class Updater extends Processor
     {
         $targetRevision = $settings['targetRevision'];
         $targetVersion = $settings['targetVersion'];
+        $targetPHPVersion = $settings['targetPHPVersion'];
         $versionType = $settings['versionType'];
         $versionName = $settings['versionName'];
         $changeSet = $settings['changeSet'];
@@ -168,6 +169,7 @@ class Updater extends Processor
 
             $steps[] = [
                 'action' => static::ACTION_DOWNLOAD,
+                'php' => $targetPHPVersion,
                 'revision' => $targetRevision,
                 'files' => $files,
                 'chunk' => $chunk,
@@ -225,7 +227,8 @@ class Updater extends Processor
         $steps[] = [
             'action' => static::ACTION_POST_PROCESSING,
             'targetVersion' => $targetVersion,
-            'targetRevision' => $targetRevision
+            'targetRevision' => $targetRevision,
+            'targetPHPVersion' => $targetPHPVersion,
         ];
 
         $steps[] = [
@@ -263,6 +266,7 @@ class Updater extends Processor
         switch ($action) {
             case static::ACTION_DOWNLOAD:
                 return $this->downloadChunk(
+                    $step['php'],
                     $step['revision'],
                     $step['files'],
                     $step['target']
@@ -302,7 +306,8 @@ class Updater extends Processor
             case static::ACTION_POST_PROCESSING:
                 return $this->afterUpdate(
                     $this->getParameter('targetVersion', $step),
-                    $this->getParameter('targetRevision', $step)
+                    $this->getParameter('targetRevision', $step),
+                    $this->getParameter('targetPHPVersion', $step)
                 );
             case static::ACTION_MIGRATE_DB:
                 return $this->migrateDb();
@@ -364,14 +369,15 @@ class Updater extends Processor
     /**
      * Download chunk of files as zip file
      *
+     * @param string $php
      * @param string $revision
      * @param string[] $files
      * @param string $target
      * @return ProcessingState
      */
-    protected function downloadChunk($revision, $files, $target)
+    protected function downloadChunk($php, $revision, $files, $target)
     {
-        $this->api->downloadFiles($revision, $files, $target);
+        $this->api->downloadFiles($php, $revision, $files, $target);
         return ProcessingState::done();
     }
 
@@ -609,14 +615,16 @@ class Updater extends Processor
     }
 
     /**
-     * @param $targetVersion
-     * @param $targetRevision
+     * @param string $targetVersion
+     * @param string $targetRevision
+     * @param string $targetPHPVersion
+     *
      * @return ProcessingState
      * @throws PrestaShopException
      */
-    public function afterUpdate($targetVersion, $targetRevision)
+    public function afterUpdate($targetVersion, $targetRevision, $targetPHPVersion)
     {
-        // update _TB_VERSION_ and _TB_REVISION_ shop settings
+        // update _TB_VERSION_, _TB_REVISION_ and _TB_BUILD_PHP shop settings
         $settingsPath = _PS_CONFIG_DIR_.'settings.inc.php';
         $settings = @file_get_contents($settingsPath);
         $settings = preg_replace(
@@ -632,6 +640,22 @@ class Updater extends Processor
             );
         } else {
             $settings = rtrim($settings, "\n") . "\n" . 'define(\'_TB_REVISION_\', \'' . $targetRevision . '\');' . "\n";
+        }
+
+        $parts = explode('.', $targetPHPVersion);
+        if (count($parts) >= 2) {
+            $major = (int)$parts[0];
+            $minor = (int)$parts[1];
+            $buildVersion = $major . '.' . $minor;
+            if (preg_match('/define\s*\(\s*\'_TB_BUILD_PHP_\'/', $settings)) {
+                $settings = preg_replace(
+                    '/define\s*\(\s*\'_TB_BUILD_PHP_\'\s*,\s*\'[\w.-]+\'\s*\)/',
+                    'define(\'_TB_BUILD_PHP_\', \'' . $buildVersion . '\')',
+                    $settings
+                );
+            } else {
+                $settings = rtrim($settings, "\n") . "\n" . 'define(\'_TB_BUILD_PHP_\', \'' . $buildVersion . '\');' . "\n";
+            }
         }
 
         @copy($settingsPath, _PS_ROOT_DIR_.'/config/settings.old.php');

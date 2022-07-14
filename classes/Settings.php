@@ -38,6 +38,7 @@ class Settings
     const SETTINGS_INSTALLATION_VERIFIED = 'CORE_UPDATER_INSTALLATION_VERIFIED';
     const SETTINGS_CACHE_SYSTEM = 'CORE_UPDATER_CACHE_SYSTEM';
     const SETTINGS_VERIFY_SSL = 'CORE_UPDATER_VERIFY_SSL';
+    const SETTINGS_TARGET_PHP_VERSION = 'CORE_UPDATER_TARGET_PHP_VERSION';
 
     // values
     const API_SERVER = 'https://api.thirtybees.com';
@@ -56,6 +57,8 @@ class Settings
     const VERIFY_SSL_DISABLED = 'DISABLED';
     const VERIFY_SSL_SYSTEM = 'SYSTEM';
     const VERIFY_SSL_THIRTY_BEES = 'THIRTY_BEES';
+
+    const CURRENT_PHP_VERSION = 'CURRENT';
 
     /**
      * @return string
@@ -337,6 +340,7 @@ class Settings
         static::setCacheSystem(static::CACHE_FS);
         static::setServerPerformance(static::PERFORMANCE_NORMAL);
         static::setVerifySsl(static::VERIFY_SSL_THIRTY_BEES);
+        static::setTargetPHP(static::CURRENT_PHP_VERSION);
         return true;
     }
 
@@ -357,5 +361,33 @@ class Settings
         return true;
     }
 
+    /**
+     * @param string $phpVersion
+     * @return string
+     * @throws HTMLPurifier_Exception
+     * @throws PrestaShopException
+     */
+    public static function setTargetPHP($phpVersion)
+    {
+        Configuration::updateGlobalValue(static::SETTINGS_TARGET_PHP_VERSION, $phpVersion);
+        return $phpVersion;
+    }
+
+    /**
+     * @return string
+     * @throws HTMLPurifier_Exception
+     * @throws PrestaShopException
+     */
+    public static function getTargetPHP()
+    {
+        $value = Configuration::getGlobalValue(static::SETTINGS_TARGET_PHP_VERSION);
+        if (! $value) {
+            $value = static::setTargetPHP(static::CURRENT_PHP_VERSION);
+        }
+        if ($value === static::CURRENT_PHP_VERSION) {
+            return phpversion();
+        }
+        return $value;
+    }
 
 }

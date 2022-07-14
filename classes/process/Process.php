@@ -193,9 +193,9 @@ abstract class Processor
     protected abstract function getProcessName();
 
     /**
-     * @param array $payload
+     * @param array $settings
      */
-    protected abstract function generateSteps($payload);
+    protected abstract function generateSteps($settings);
 
     /**
      * @param string $processId

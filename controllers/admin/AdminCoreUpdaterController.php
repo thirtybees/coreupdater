@@ -39,7 +39,6 @@ class AdminCoreUpdaterController extends ModuleAdminController
     const TAB_SETTINGS = 'settings';
     const TAB_DB = 'database';
 
-    const ACTION_GET_VERSIONS = 'GET_VERSIONS';
     const ACTION_SAVE_SETTINGS = 'SAVE_SETTINGS';
     const ACTION_CLEAR_CACHE = 'CLEAR_CACHE';
     const ACTION_COMPARE_PROCESS = "COMPARE";
@@ -101,11 +100,12 @@ class AdminCoreUpdaterController extends ModuleAdminController
     private function initUpdateTab()
     {
         $updateMode = Settings::getUpdateMode();
-        $version = $this->findVersionToUpdate($updateMode);
+        $php = Settings::getTargetPHP();
+        $version = $this->findVersionToUpdate($php, $updateMode);
         if ($version) {
             $this->updateProcessView($updateMode, $version);
         } else {
-            $this->selectTargetVersionView();
+            $this->selectTargetVersionView($php);
         }
     }
 
@@ -134,6 +134,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
         $processId = $comparator->startProcess([
             'ignoreTheme' => !Settings::syncThemes(),
+            'targetPHPVersion' => Settings::getTargetPHP(),
             'targetRevision' => $version['revision'],
             'targetVersion' => $version['version'],
             'versionName' => $versionName,
@@ -157,24 +158,28 @@ class AdminCoreUpdaterController extends ModuleAdminController
     }
 
     /**
+     * @param string $php target php version
      * @return void
      * @throws Exception
      */
-    private function selectTargetVersionView()
+    private function selectTargetVersionView($php)
     {
         $api = $this->factory->getApi();
         $this->content = $this->render('select_target_version', [
-            'targets' => $api->getTargets()
+            'targets' => $api->getTargets($php)
         ]);
     }
 
     /**
+     * @param string $php target php version
+     * @param string $updateMode Update mode
+     *
      * @return array
      * @throws PrestaShopException
      * @throws ThirtybeesApiException
      * @throws HTMLPurifier_Exception
      */
-    private function findVersionToUpdate($updateMode)
+    private function findVersionToUpdate($php, $updateMode)
     {
         $api = $this->factory->getApi();
         $logger = $this->factory->getLogger();
@@ -184,7 +189,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
             if ($type === 'release') {
                 $selectedTarget = Tools::getValue('release');
                 if ($selectedTarget) {
-                    $targets = $api->getTargets();
+                    $targets = $api->getTargets($php);
                     foreach ($targets['releases'] as $version) {
                         if ($version['revision'] === $selectedTarget) {
                             $version['type'] = sprintf($this->l('release %s'), $version['name']);
@@ -195,7 +200,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
             } else {
                 $selectedTarget = Tools::getValue('branch');
                 if ($selectedTarget) {
-                    $targets = $api->getTargets();
+                    $targets = $api->getTargets($php);
                     foreach ($targets['branches'] as $version) {
                         if ($version['revision'] === $selectedTarget) {
                             $version['type'] = sprintf($this->l('branch %s'), $version['name']);
@@ -212,7 +217,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
         $stable = $updateMode === Settings::UPDATE_MODE_STABLE;
         $logger->log("Resolving latest version for " . $updateMode);
-        $versions = $api->getVersions();
+        $versions = $api->getVersions($php);
         foreach ($versions as $version) {
             if ($version['stable'] === $stable) {
                 $logger->log("Latest version = " . json_encode($version, JSON_PRETTY_PRINT));
@@ -225,10 +230,24 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
     /**
      *  Method to set up page for Settings  tab
+     *
+     * @throws HTMLPurifier_Exception
      * @throws PrestaShopException
+     * @throws ThirtybeesApiException
      */
     private function initSettingsTab()
     {
+        $api = $this->factory->getApi();
+        $phpVersions = [[
+            'key' => Settings::CURRENT_PHP_VERSION,
+            'name' => $this->l('Server PHP version')
+        ]];
+        foreach ($api->getPHPVersions() as $phpVersion) {
+            $phpVersions[] = [
+                'key' => $phpVersion,
+                'name' => 'PHP ' . $phpVersion
+            ];
+        }
         $this->fields_options = [
             'distributionChannel' => [
                 'title'       => $this->l('Distribution channel'),
@@ -352,7 +371,17 @@ class AdminCoreUpdaterController extends ModuleAdminController
                             ],
                         ]
                     ],
-                ],
+                    Settings::SETTINGS_TARGET_PHP_VERSION => [
+                        'type' => 'select',
+                        'title' => $this->l('Target PHP version'),
+                        'identifier'  => 'key',
+                        'no_multishop_checkbox' => true,
+                        'list' => $phpVersions,
+                        'desc' => $this->l('Thirty bees offers different distribution packages for different PHP versions. You should always use package designed for your PHP version, or for previous versions'),
+                        'hint' => $this->l('For advanced users only. If unsure, use "Server PHP version"'),
+                        'defaultValue' => Settings::getTargetPHP()
+                    ],
+                ]
             ],
             'cache' => [
                 'title'       => $this->l('Cache'),
@@ -591,6 +620,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
             Settings::setApiToken(Tools::getValue(Settings::SETTINGS_API_TOKEN));
             Settings::setCacheSystem(Tools::getValue(Settings::SETTINGS_CACHE_SYSTEM));
             Settings::setVerifySsl(Tools::getValue(Settings::SETTINGS_VERIFY_SSL));
+            Settings::setTargetPHP(Tools::getValue(Settings::SETTINGS_TARGET_PHP_VERSION));
             $this->factory->getStorageFactory()->flush();
             $this->context->controller->confirmations[] = $this->l('Settings saved');
             $this->setRedirectAfter(static::tabLink(static::TAB_SETTINGS));
@@ -636,8 +666,6 @@ class AdminCoreUpdaterController extends ModuleAdminController
     protected function processAction($action)
     {
         switch ($action) {
-            case static::ACTION_GET_VERSIONS:
-                return $this->getVersions();
             case static::ACTION_COMPARE_PROCESS:
                 return $this->compareProcess(Tools::getValue('processId'));
             case static::ACTION_INIT_UPDATE:
@@ -654,15 +682,17 @@ class AdminCoreUpdaterController extends ModuleAdminController
     }
 
     /**
+     * @param string $php target php version
      * @return array
+     *
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @throws ThirtybeesApiException
      * @throws HTMLPurifier_Exception
      */
-    protected function getVersions()
+    protected function getVersions($php)
     {
-        return $this->factory->getApi()->getVersions();
+        return $this->factory->getApi()->getVersions($php);
     }
 
     /**
@@ -817,9 +847,14 @@ class AdminCoreUpdaterController extends ModuleAdminController
         if (! $result) {
             throw new Exception("Comparision result not found. Please reload the page and try again");
         }
-        $targetFileList = $comparator->getFileList($compareProcessId, $result['targetRevision']);
+        $targetFileList = $comparator->getFileList(
+            $compareProcessId,
+            $result['targetRevision'],
+            $result['targetPHPVersion']
+        );
         $updater = $this->factory->getUpdater();
         $processId = $updater->startProcess([
+            'targetPHPVersion' => $result['targetPHPVersion'],
             'targetVersion' => $result['targetVersion'],
             'targetRevision' => $result['targetRevision'],
             'versionType' => $result['versionType'],
