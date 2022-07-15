@@ -705,14 +705,24 @@ class Updater extends Processor
         $comparator = new DatabaseSchemaComparator();
         $differences = $comparator->getDifferences($informationSchemaBuilder->getSchema(), $objectModelBuilder->getSchema());
         $differences = array_filter($differences, function(SchemaDifference $difference) {
-            // At the moment we automatically fix only MissingColumn and MissingTable differences. These are the most
-            // important ones - system won't work correctly without it. Also, adding these database objects to database
-            // does not pose any threat or issues.
-            // In the future, we will probably allow all safe differences to be automatically fixed
-            return (
-                ($difference instanceof MissingColumn) ||
-                ($difference instanceof MissingTable)
-            );
+            // At the moment we automatically fix only subset of database differences
+            if ($difference instanceof MissingColumn) {
+                return true;
+            }
+
+            if ($difference instanceof MissingTable) {
+                return true;
+            }
+
+            if ($difference instanceof MissingKey) {
+                return true;
+            }
+
+            if ($difference instanceof DifferentKey) {
+                return true;
+            }
+
+            return false;
         });
         if ($differences) {
             foreach ($differences as $difference) {
