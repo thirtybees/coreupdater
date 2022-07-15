@@ -19,6 +19,7 @@
 
 namespace CoreUpdater;
 
+use ObjectModel;
 use Translate;
 use Db;
 
@@ -111,6 +112,14 @@ class DifferentKey implements SchemaDifference
     }
 
     /**
+     * @return bool
+     */
+    function isPrimaryKey()
+    {
+        return $this->currentKey->getType() == ObjectModel::PRIMARY_KEY;
+    }
+
+    /**
      * Applies fix to correct this database difference
      *
      * @param Db $connection
@@ -119,7 +128,25 @@ class DifferentKey implements SchemaDifference
      */
     function applyFix(Db $connection)
     {
-        $stmt = 'ALTER TABLE `' . bqSQL($this->table->getName()) . '` DROP KEY `' . bqSQL($this->key->getName()) . '`, ADD ' .$this->key->getDDLStatement();
+        if ($this->isPrimaryKey()) {
+            $currentColumns = $this->currentKey->getColumns();
+            $newColumns = $this->key->getColumns();
+            $droppedColumns = array_diff($currentColumns, $newColumns);
+            // if some columns were removed from primary key, we have to ensure they are not marked as
+            // auto increment
+            if ($droppedColumns) {
+                $builder = new InformationSchemaBuilder($connection);
+                foreach ($droppedColumns as $columnName) {
+                    $column = $builder->getCurrentColumn($this->table->getName(), $columnName);
+                    if ($column->isAutoIncrement()) {
+                        $column->setAutoIncrement(false);
+                        $stmt = 'ALTER TABLE `' . bqSQL($this->table->getName()) . '` MODIFY COLUMN ' .$column->getDDLStatement($this->table);
+                        $connection->execute($stmt);
+                    }
+                }
+            }
+        }
+        $stmt = 'ALTER TABLE `' . bqSQL($this->table->getName()) . '` DROP KEY `' . bqSQL($this->currentKey->getName()) . '`, ADD ' .$this->key->getDDLStatement();
         return $connection->execute($stmt);
     }
 
