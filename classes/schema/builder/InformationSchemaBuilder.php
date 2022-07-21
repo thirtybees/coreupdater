@@ -279,7 +279,7 @@ class InformationSchemaBuilder
         if ((is_null($defaultValue) || $defaultValue === 'NULL') && $isNullable) {
             $defaultValue = ObjectModel::DEFAULT_NULL;
         }
-        if (strtolower($defaultValue) === 'current_timestamp()') {
+        if ($defaultValue && strtolower($defaultValue) === 'current_timestamp()') {
             $defaultValue = ObjectModel::DEFAULT_CURRENT_TIMESTAMP;
         }
         $column = new ColumnSchema($columnName);
