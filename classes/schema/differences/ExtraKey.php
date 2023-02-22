@@ -19,6 +19,7 @@
 
 namespace CoreUpdater;
 
+use ObjectModel;
 use Translate;
 use Db;
 
@@ -100,7 +101,16 @@ class ExtraKey implements SchemaDifference
      */
     function getSeverity()
     {
-        return self::SEVERITY_NOTICE;
+        switch ($this->key->getType()) {
+            case ObjectModel::PRIMARY_KEY:
+                return self::SEVERITY_CRITICAL;
+            case ObjectModel::UNIQUE_KEY:
+                return self::SEVERITY_CRITICAL;
+            case ObjectModel::FOREIGN_KEY;
+                return self::SEVERITY_NORMAL;
+            default:
+                return self::SEVERITY_NOTICE;
+        }
     }
 
     /**
