@@ -29,10 +29,8 @@ use Db;
 use DbPDO;
 use Exception;
 use Archive_Tar;
-use HTMLPurifier_Exception;
 use PageCache;
 use PrestaShopAutoload;
-use PrestaShopDatabaseException;
 use PrestaShopException;
 use ReflectionException;
 use Tools;
@@ -99,7 +97,7 @@ class Updater extends Processor
      * @param ThirtybeesApi $api
      * @param string $adminDir
      * @param string $rootDir
-     * @param $baseUrl
+     * @param string $baseUrl
      */
     public function __construct(
         Logger $logger,
@@ -124,7 +122,7 @@ class Updater extends Processor
     }
 
     /**
-     * @param $settings
+     * @param array $settings
      * @return array
      * @throws Exception
      */
@@ -407,8 +405,8 @@ class Updater extends Processor
     }
 
     /**
-     * @param $dir
-     * @param $fileList
+     * @param string $dir
+     * @param array $fileList
      * @return ProcessingState
      * @throws Exception
      */
@@ -669,7 +667,6 @@ class Updater extends Processor
     }
 
     /**
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
     protected function clearCaches()
@@ -686,9 +683,7 @@ class Updater extends Processor
 
     /**
      * @return ProcessingState
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      * @throws ReflectionException
      */
     public function migrateDb()
@@ -735,7 +730,6 @@ class Updater extends Processor
 
     /**
      * @param SchemaDifference $difference
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
     protected function applyDatabaseFix(SchemaDifference $difference)
@@ -763,7 +757,6 @@ class Updater extends Processor
     /**
      * @param string[] $dirs
      * @return ProcessingState
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
     public function cleanup($dirs)
@@ -788,9 +781,7 @@ class Updater extends Processor
     /**
      * @param string $processId
      * @return array
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public function getResult($processId)
     {
@@ -802,8 +793,8 @@ class Updater extends Processor
     }
 
     /**
-     * @param $changeSet
-     * @param $targetFileList
+     * @param array $changeSet
+     * @param array $targetFileList
      * @return array
      * @throws Exception
      */
@@ -824,7 +815,7 @@ class Updater extends Processor
     /**
      * Return list of files to backup
      *
-     * @param $changeSet
+     * @param array $changeSet
      * @return array
      */
     protected function getFilesToBackup($changeSet)
@@ -833,7 +824,7 @@ class Updater extends Processor
     }
 
     /**
-     * @param $changeSet
+     * @param array $changeSet
      * @return array
      */
     protected function getFilesToDelete($changeSet)
@@ -844,8 +835,8 @@ class Updater extends Processor
     }
 
     /**
-     * @param $file
-     * @return string|string[]|null
+     * @param string $file
+     * @return string
      */
     protected function fixAdminDirectory($file)
     {
@@ -856,6 +847,7 @@ class Updater extends Processor
      * Returns list of all database servers (both master and slaves)
      *
      * @return array
+     * @throws PrestaShopException
      */
     protected static function getDBServers()
     {

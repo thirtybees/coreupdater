@@ -19,8 +19,9 @@
 
 /**
  * @param CoreUpdater $module
+ *
  * @return bool
- * @throws PrestaShopDatabaseException
+ *
  * @throws PrestaShopException
  */
 function upgrade_module_1_4_0($module)

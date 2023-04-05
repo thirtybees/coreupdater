@@ -21,9 +21,6 @@ namespace CoreUpdater;
 
 use Db;
 use PrestaShopException;
-use PrestaShopDatabaseException;
-
-
 
 
 /**
@@ -82,7 +79,6 @@ interface SchemaDifference
      *
      * @param Db $connection database connection on which to apply fix
      * @throws PrestaShopException
-     * @throws PrestaShopDatabaseException
      * @return boolean
      */
     function applyFix(Db $connection);

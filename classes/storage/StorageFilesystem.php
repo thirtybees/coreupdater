@@ -45,7 +45,7 @@ class StorageFilesystem implements Storage
     /**
      * StorageFile constructor.
      *
-     * @param $directory
+     * @param string $directory
      * @param string $name
      * @param int $ttl number of seconds this storage is active
      */
@@ -157,7 +157,7 @@ class StorageFilesystem implements Storage
     }
 
     /**
-     * @param $directory
+     * @param string $directory
      */
     public static function flush($directory)
     {

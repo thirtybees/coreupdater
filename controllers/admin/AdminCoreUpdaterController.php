@@ -56,7 +56,6 @@ class AdminCoreUpdaterController extends ModuleAdminController
      * AdminCoreUpdaterController constructor.
      *
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      * @version 1.0.0 Initial version.
      */
     public function __construct()
@@ -78,7 +77,6 @@ class AdminCoreUpdaterController extends ModuleAdminController
      *
      * @return bool|string
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     private static function resolveTrustStore()
     {
@@ -177,7 +175,6 @@ class AdminCoreUpdaterController extends ModuleAdminController
      * @return array
      * @throws PrestaShopException
      * @throws ThirtybeesApiException
-     * @throws HTMLPurifier_Exception
      */
     private function findVersionToUpdate($php, $updateMode)
     {
@@ -231,7 +228,6 @@ class AdminCoreUpdaterController extends ModuleAdminController
     /**
      *  Method to set up page for Settings  tab
      *
-     * @throws HTMLPurifier_Exception
      * @throws PrestaShopException
      * @throws ThirtybeesApiException
      */
@@ -509,6 +505,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
     }
 
     /**
+     * @throws PrestaShopException
      * @throws SmartyException
      */
     public function display()
@@ -601,9 +598,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
     }
 
     /**
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public function performPostProcess()
     {
@@ -685,10 +680,8 @@ class AdminCoreUpdaterController extends ModuleAdminController
      * @param string $php target php version
      * @return array
      *
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @throws ThirtybeesApiException
-     * @throws HTMLPurifier_Exception
      */
     protected function getVersions($php)
     {
@@ -736,8 +729,8 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
     /**
      * @param Processor $processor
-     * @param $processId
-     * @param $onEnd
+     * @param string $processId
+     * @param callable|null $onEnd
      * @return array
      * @throws Exception
      */
@@ -795,10 +788,11 @@ class AdminCoreUpdaterController extends ModuleAdminController
      * @param string $compareProcessId
      * @param array $result
      * @param string $installedRevision
+     *
      * @return array
+     *
      * @throws PrestaShopException
      * @throws SmartyException
-     * @throws HTMLPurifier_Exception
      */
     public function createCompareResult($compareProcessId, $result, $installedRevision)
     {
@@ -969,6 +963,8 @@ class AdminCoreUpdaterController extends ModuleAdminController
      * Returns list of all database servers (both master and slaves)
      *
      * @return array
+     *
+     * @throws PrestaShopException
      */
     private static function getDBServers()
     {
@@ -1022,7 +1018,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
     }
 
     /**
-     * @param $tab
+     * @param string $tab
      * @return string
      * @throws PrestaShopException
      */

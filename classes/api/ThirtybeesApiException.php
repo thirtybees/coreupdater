@@ -30,9 +30,10 @@ class ThirtybeesApiException extends Exception
 
     /**
      * ThirtybeesApiException constructor.
-     * @param $message
+     *
+     * @param string $message
      * @param array $request
-     * @param Exception | null $previous
+     * @param Exception|null $previous
      */
     public function __construct($message, $request, $previous = null)
     {

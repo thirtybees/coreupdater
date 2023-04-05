@@ -22,7 +22,6 @@ namespace CoreUpdater\Storage;
 
 use Db;
 use DbQuery;
-use PrestaShopDatabaseException;
 use PrestaShopException;
 
 class StorageDb implements Storage
@@ -50,9 +49,8 @@ class StorageDb implements Storage
     /**
      * StorageFile constructor.
      *
-     * @param $name
+     * @param string $name
      * @param int $ttl number of seconds this storage is active
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
     public function __construct($name, $ttl)
@@ -152,7 +150,6 @@ class StorageDb implements Storage
      *
      * @return array
      * @throws PrestaShopException
-     * @throws PrestaShopDatabaseException
      */
     private function load()
     {
@@ -173,7 +170,6 @@ class StorageDb implements Storage
     }
 
     /**
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
     public static function flush()

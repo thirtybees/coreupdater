@@ -24,8 +24,6 @@ use CoreUpdater\Storage\StorageFactory;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use HTMLPurifier_Exception;
-use PrestaShopDatabaseException;
 use PrestaShopException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
@@ -118,10 +116,9 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
      * @param string $revision
      *
      * @return array
+     *
      * @throws ThirtybeesApiException
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public function downloadFileList($php, $revision)
     {
@@ -145,9 +142,7 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
      * @return array
      *
      * @throws ThirtybeesApiException
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public function getVersions($php)
     {
@@ -174,9 +169,7 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
      * @return array
      *
      * @throws ThirtybeesApiException
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public function getTargets($php)
     {
@@ -271,8 +264,7 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
 
     /**
      * @return string[]
-     * @throws HTMLPurifier_Exception
-     * @throws PrestaShopDatabaseException
+     *
      * @throws PrestaShopException
      * @throws ThirtybeesApiException
      */
@@ -340,7 +332,7 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
 
 
     /**
-     * @param $request
+     * @param array $request
      * @param ResponseInterface $response
      * @return mixed
      * @throws ThirtybeesApiException
@@ -428,7 +420,7 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
     /**
      * Returns true, if $version is stable release
      *
-     * @param $version
+     * @param string $version
      * @return false
      */
     private function isStableRelease($version)

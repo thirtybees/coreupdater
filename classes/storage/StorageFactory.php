@@ -21,10 +21,7 @@ namespace CoreUpdater\Storage;
 
 
 use CoreUpdater\Settings;
-use HTMLPurifier_Exception;
-use PrestaShopDatabaseException;
 use PrestaShopException;
-
 class StorageFactory
 {
     /**
@@ -49,10 +46,10 @@ class StorageFactory
     /**
      * @param string $name
      * @param int $ttl number of seconds this storage is active
+     *
      * @return Storage
-     * @throws PrestaShopDatabaseException
+     *
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public function getStorage($name, $ttl = 3600)
     {
@@ -66,7 +63,6 @@ class StorageFactory
     }
 
     /**
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
     public function flush()

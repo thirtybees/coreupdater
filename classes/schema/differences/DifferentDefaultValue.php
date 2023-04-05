@@ -19,6 +19,7 @@
 
 namespace CoreUpdater;
 
+use PrestaShopException;
 use Translate;
 use Db;
 use ObjectModel;
@@ -108,8 +109,7 @@ class DifferentDefaultValue implements SchemaDifference
      *
      * @param Db $connection
      * @return bool
-     * @throws \PrestaShopDatabaseException
-     * @throws \PrestaShopException
+     * @throws PrestaShopException
      */
     function applyFix(Db $connection)
     {
@@ -118,7 +118,7 @@ class DifferentDefaultValue implements SchemaDifference
             $default = $this->column->getDefaultValue();
             if (is_null($default)) {
                 $default = 'NULL';
-            } else if ($default === ObjectModel::DEFAULT_CURRENT_TIMESTAMP) {
+            } elseif ($default === ObjectModel::DEFAULT_CURRENT_TIMESTAMP) {
                 // current timestamp cant be set using alter table
                 $builder = new InformationSchemaBuilder($connection);
                 $column = $builder->getCurrentColumn($this->table->getName(), $this->column->getName());

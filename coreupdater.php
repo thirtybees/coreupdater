@@ -30,9 +30,6 @@ class CoreUpdater extends Module
      * CoreUpdater constructor.
      *
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
-     * @version 1.0.0 Initial version.
-     *
      */
     public function __construct()
     {
@@ -55,10 +52,10 @@ class CoreUpdater extends Module
 
     /**
      * @param bool $createTables
+     *
      * @return bool
-     * @throws PrestaShopDatabaseException
+     *
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public function install($createTables = true)
     {
@@ -89,9 +86,8 @@ class CoreUpdater extends Module
 
     /**
      * @return bool
-     * @throws PrestaShopDatabaseException
+     *
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public function reset()
     {
@@ -106,8 +102,9 @@ class CoreUpdater extends Module
      * Created databases tables
      *
      * @param boolean $create
+     *
      * @return bool
-     * @throws PrestaShopDatabaseException
+     *
      * @throws PrestaShopException
      */
     private function installDb($create)
@@ -122,8 +119,9 @@ class CoreUpdater extends Module
      * Removes database tables
      *
      * @param boolean $drop
+     *
      * @return bool
-     * @throws PrestaShopDatabaseException
+     *
      * @throws PrestaShopException
      */
     private function uninstallDb($drop)
@@ -138,9 +136,9 @@ class CoreUpdater extends Module
      * Executes sql script
      * @param string $script
      * @param bool $check
+     *
      * @return bool
      *
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
     public function executeSqlScript($script, $check = true)
@@ -232,7 +230,6 @@ class CoreUpdater extends Module
      * Verifies that the module is properly installed
      *
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public function verifyInstallation()
     {

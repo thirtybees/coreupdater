@@ -230,7 +230,7 @@ class ColumnSchema
     {
         if (is_null($defaultValue)) {
            $this->defaultValue = null;
-        } else if (is_string($defaultValue)) {
+        } elseif (is_string($defaultValue)) {
             $this->defaultValue = $defaultValue;
         } else {
             $this->defaultValue = "$defaultValue";

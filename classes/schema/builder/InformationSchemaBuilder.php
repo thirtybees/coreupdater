@@ -22,7 +22,6 @@ namespace CoreUpdater;
 use Db;
 use ObjectModel;
 use PrestaShopException;
-use PrestaShopDatabaseException;
 
 
 /**
@@ -58,12 +57,14 @@ class InformationSchemaBuilder
     /**
      * InformationSchemaBuilder constructor.
      *
-     * @param Db $connection
-     * @param string $databaseName Optional name of database to load schema for.
+     * @param null $connection
+     * @param null $databaseName Optional name of database to load schema for.
      *                             If not provided, information about current
      *                             database will be returned.
-     * @param string[] $tables     Optional table names. If present, builder will
+     * @param null $tables Optional table names. If present, builder will
      *                             load information for these tables only
+     *
+     * @throws PrestaShopException
      * @version 1.1.0 Initial version.
      */
     public function __construct($connection = null, $databaseName = null, $tables = null)
@@ -88,7 +89,6 @@ class InformationSchemaBuilder
      *                    cached version might be returned.
      *
      * @return DatabaseSchema
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      *
      * @version 1.1.0 Initial version.
@@ -109,7 +109,6 @@ class InformationSchemaBuilder
      * @param string $tableName
      * @param string $columnName
      * @return ColumnSchema
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
     public function getCurrentColumn($tableName, $columnName)
@@ -130,7 +129,6 @@ class InformationSchemaBuilder
     /**
      * Builds DatabaseSchema object
      *
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
     protected function loadInformationSchema()
@@ -146,7 +144,6 @@ class InformationSchemaBuilder
      *
      * @param Db $connection database connection
      *
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      *
      * @version 1.1.0 Initial version.
@@ -173,7 +170,6 @@ class InformationSchemaBuilder
      *
      * @param Db $connection
      *
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      *
      * @version 1.1.0 Initial version.
@@ -199,7 +195,6 @@ class InformationSchemaBuilder
      *
      * @param Db $connection
      *
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      *
      * @version 1.1.0 Initial version.
@@ -294,7 +289,7 @@ class InformationSchemaBuilder
     /**
      * Helper method to restrict sql query for specific tables only
      *
-     * @param $alias
+     * @param string $alias
      * @return string
      */
     protected function addTablesRestriction($alias)

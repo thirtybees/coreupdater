@@ -60,7 +60,7 @@ class TableSchema
     /**
      * TableSchema constructor.
      *
-     * @param $name string name of the database table
+     * @param string $name name of the database table
      *
      * @version 1.1.0 Initial version.
      */
@@ -111,7 +111,7 @@ class TableSchema
     /**
      * Set database engine, such as InnoDB or MyISAM
      *
-     * @param $engine string
+     * @param string $engine
      *
      * @version 1.1.0 Initial version.
      */
@@ -173,7 +173,7 @@ class TableSchema
     /**
      * Sets table columns
      *
-     * @param $columns ColumnSchema[]
+     * @param ColumnSchema[] $columns
      *
      * @version 1.1.0 Initial version.
      */
@@ -185,7 +185,7 @@ class TableSchema
     /**
      * Method to reorder table columns
      *
-     * @param $columnNames string[] New order of columns. This list does not
+     * @param string[] $columnNames New order of columns. This list does not
      *                              need to be exhaustive - all registered
      *                              columns that are not part of this parameter
      *                              will be last.
@@ -219,7 +219,7 @@ class TableSchema
     /**
      * Returns true, if table contains column with given name
      *
-     * @param $columnName string
+     * @param string $columnName
      *
      * @return bool
      *
@@ -233,7 +233,7 @@ class TableSchema
     /**
      * Returns column definition
      *
-     * @param $columnName string name of column
+     * @param string $columnName name of column
      *
      * @return ColumnSchema | null
      *
@@ -253,9 +253,9 @@ class TableSchema
     /**
      * Returns key definition
      *
-     * @param $keyName string name of key
+     * @param string $keyName name of key
      *
-     * @return TableKey | null
+     * @return TableKey|null
      *
      * @version 1.1.0 Initial version.
      */
@@ -271,7 +271,7 @@ class TableSchema
     /**
      * Returns true, if table contains key with given name
      *
-     * @param $keyName
+     * @param string $keyName
      *
      * @return bool
      *

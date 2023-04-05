@@ -41,7 +41,7 @@ class Logger
     }
 
     /**
-     * @param $message
+     * @param string $message
      */
     public function log($message)
     {

@@ -50,7 +50,7 @@ interface Storage
     public function hasKey($key);
 
     /**
-     * @param $key
+     * @param string $key
      * @return mixed
      */
     public function get($key);

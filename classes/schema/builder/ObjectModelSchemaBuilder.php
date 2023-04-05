@@ -162,8 +162,8 @@ class ObjectModelSchemaBuilder
      * Process single ObjectModel::$definition array. This will adds all tables,
      * columns, and keys used by this object model to the DatabaseSchema object.
      *
-     * @param $objectModel string object model name
-     * @param $definition array object model definition
+     * @param string $objectModel object model name
+     * @param array $definition object model definition
      *
      * @throws PrestaShopException
      *
@@ -373,7 +373,7 @@ class ObjectModelSchemaBuilder
         // set column nullable option
         if (array_key_exists('dbNullable', $columnDefinition)) {
             $column->setNullable(!!$columnDefinition['dbNullable']);
-        } else if (array_key_exists('required', $columnDefinition)) {
+        } elseif (array_key_exists('required', $columnDefinition)) {
             $column->setNullable(!$columnDefinition['required']);
         }
 
@@ -422,8 +422,8 @@ class ObjectModelSchemaBuilder
      * Process single key definition, and registers database primary/unique/
      * foreign key for given table.
      *
-     * @param $tableName
-     * @param $keys
+     * @param string $tableName
+     * @param array $keys
      *
      * @version 1.1.0 Initial version.
      */
@@ -496,9 +496,9 @@ class ObjectModelSchemaBuilder
     /**
      * This method derives column database type based on its definition
      *
-     * @param $columnDefinition array
-     * @param $objectModel string
-     * @param $field
+     * @param array $columnDefinition
+     * @param string $objectModel
+     * @param string $field
      *
      * @return string
      * @throws PrestaShopException

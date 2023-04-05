@@ -19,10 +19,9 @@
 
 namespace CoreUpdater;
 
+use PrestaShopException;
 use Translate;
 use Db;
-
-
 
 /**
  * Class ExtraColumn
@@ -109,8 +108,7 @@ class DifferentAutoIncrement implements SchemaDifference
      *
      * @param Db $connection
      * @return bool
-     * @throws \PrestaShopDatabaseException
-     * @throws \PrestaShopException
+     * @throws PrestaShopException
      */
     function applyFix(Db $connection)
     {

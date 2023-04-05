@@ -21,10 +21,8 @@ namespace CoreUpdater;
 
 use Configuration;
 use Exception;
-use HTMLPurifier_Exception;
 use Language;
 use Module;
-use PrestaShopDatabaseException;
 use PrestaShopException;
 use Tab;
 
@@ -102,9 +100,7 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      * @version 1.0.0 Initial version.
      */
     public static function doAllDatabaseUpgrades() {
@@ -178,7 +174,6 @@ class Retrocompatibility
      *               failure.
      *
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      * @version 1.0.0 Initial version.
      */
     protected function handleSingleLangConfigs() {
@@ -208,8 +203,6 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
-     * @throws HTMLPurifier_Exception
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @version 1.0.0 Initial version.
      */
@@ -268,7 +261,6 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @version 1.0.0 Initial version.
      */
@@ -298,7 +290,6 @@ class Retrocompatibility
      * @return array Empty array on success, array with error messages on
      *               failure.
      *
-     * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @version 1.0.0 Initial version.
      */

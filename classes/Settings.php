@@ -22,7 +22,6 @@ namespace CoreUpdater;
 
 use Configuration;
 use Exception;
-use HTMLPurifier_Exception;
 use PrestaShopException;
 use ReflectionClass;
 
@@ -76,7 +75,6 @@ class Settings
     /**
      * @return string
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public static function getUpdateMode()
     {
@@ -90,7 +88,6 @@ class Settings
     /**
      * @return string
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public static function getCacheSystem()
     {
@@ -103,9 +100,9 @@ class Settings
 
     /**
      * @param string $value
+     *
      * @return string
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public static function setCacheSystem($value)
     {
@@ -128,7 +125,6 @@ class Settings
     /**
      * @return string
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public static function getServerPerformance()
     {
@@ -155,7 +151,6 @@ class Settings
     /**
      * @param string $version
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public static function setInstallationVerified($version)
     {
@@ -166,7 +161,6 @@ class Settings
      * @param boolean $sync
      * @return boolean
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public static function setSyncThemes($sync)
     {
@@ -178,7 +172,6 @@ class Settings
      * @param string $updateMode
      * @return string
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public static function setUpdateMode($updateMode)
     {
@@ -195,9 +188,9 @@ class Settings
 
     /**
      * Sets API token
+     *
      * @param string $token
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public static function setApiToken($token)
     {
@@ -223,7 +216,6 @@ class Settings
      * @param string $performance
      * @return string
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public static function setServerPerformance($performance)
     {
@@ -237,7 +229,6 @@ class Settings
     /**
      * @return string
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public static function getVerifySsl()
     {
@@ -252,7 +243,6 @@ class Settings
      * @param string $value
      * @return string
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public static function setVerifySsl($value)
     {
@@ -291,7 +281,7 @@ class Settings
     /**
      * Returns number of seconds since last version check
      *
-     * @param $version
+     * @param string $version
      * @return int
      * @throws PrestaShopException
      */
@@ -313,10 +303,9 @@ class Settings
 
     /**
      * @param string $version
-     * @param $latest
+     * @param string $latest
      * @param int $supported
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public static function updateVersionCheck($version, $latest, $supported)
     {
@@ -331,7 +320,6 @@ class Settings
     /**
      * @return boolean
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public static function install()
     {
@@ -364,7 +352,6 @@ class Settings
     /**
      * @param string $phpVersion
      * @return string
-     * @throws HTMLPurifier_Exception
      * @throws PrestaShopException
      */
     public static function setTargetPHP($phpVersion)
@@ -375,7 +362,6 @@ class Settings
 
     /**
      * @return string
-     * @throws HTMLPurifier_Exception
      * @throws PrestaShopException
      */
     public static function getTargetPHP()

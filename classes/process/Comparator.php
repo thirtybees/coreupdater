@@ -26,8 +26,6 @@ use CoreUpdater\Process\Processor;
 use CoreUpdater\Storage\Storage;
 use CoreUpdater\Storage\StorageFactory;
 use Exception;
-use HTMLPurifier_Exception;
-use PrestaShopDatabaseException;
 use PrestaShopException;
 
 
@@ -202,7 +200,7 @@ class Comparator extends Processor
     }
 
     /**
-     * @param $settings
+     * @param array $settings
      *
      * @return array
      * @throws Exception
@@ -279,7 +277,7 @@ class Comparator extends Processor
     }
 
     /**
-     * @param $processId
+     * @param string $processId
      * @param array $step
      * @param Storage $storage
      * @return ProcessingState
@@ -368,7 +366,7 @@ class Comparator extends Processor
     }
 
     /**
-     * @param $targetVersion
+     * @param string $targetVersion
      * @return ProcessingState
      */
     protected function checkModules($targetVersion)
@@ -781,10 +779,10 @@ class Comparator extends Processor
      * @param string $processId
      * @param string $revision
      * @param string $php
+     *
      * @return array
-     * @throws PrestaShopDatabaseException
+     *
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public function getFileList($processId, $revision, $php)
     {
@@ -794,10 +792,10 @@ class Comparator extends Processor
 
     /**
      * @param string $processId
+     *
      * @return array
-     * @throws PrestaShopDatabaseException
+     *
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
      */
     public function getResult($processId)
     {
