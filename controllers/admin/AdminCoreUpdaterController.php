@@ -617,14 +617,14 @@ class AdminCoreUpdaterController extends ModuleAdminController
             Settings::setVerifySsl(Tools::getValue(Settings::SETTINGS_VERIFY_SSL));
             Settings::setTargetPHP(Tools::getValue(Settings::SETTINGS_TARGET_PHP_VERSION));
             $this->factory->getStorageFactory()->flush();
-            $this->context->controller->confirmations[] = $this->l('Settings saved');
+            $this->confirmations[] = $this->l('Settings saved');
             $this->setRedirectAfter(static::tabLink(static::TAB_SETTINGS));
             $this->redirect();
         }
 
         if (Tools::isSubmit(static::ACTION_CLEAR_CACHE)) {
             $this->factory->getStorageFactory()->flush();
-            $this->context->controller->confirmations[] = $this->l('Cache cleared');
+            $this->confirmations[] = $this->l('Cache cleared');
             $this->setRedirectAfter(static::tabLink(static::TAB_SETTINGS));
             $this->redirect();
         }
