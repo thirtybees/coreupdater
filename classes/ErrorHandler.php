@@ -25,13 +25,19 @@ use Exception;
 class ErrorHandler
 {
 
-    /** @var bool */
+    /**
+     * @var bool
+     */
     private $registered;
 
-    /** @var callable original error handler */
+    /**
+     * @var callable original error handler
+     */
     private $orig;
 
-    /** @var number */
+    /**
+     * @var number
+     */
     private $depth = 0;
 
     /**

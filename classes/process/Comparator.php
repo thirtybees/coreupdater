@@ -203,7 +203,8 @@ class Comparator extends Processor
      * @param array $settings
      *
      * @return array
-     * @throws Exception
+     *
+     * @throws PrestaShopException
      */
     protected function generateSteps($settings)
     {
@@ -280,8 +281,10 @@ class Comparator extends Processor
      * @param string $processId
      * @param array $step
      * @param Storage $storage
+     *
      * @return ProcessingState
-     * @throws Exception
+     *
+     * @throws PrestaShopException
      */
     protected function processStep($processId, $step, $storage)
     {
@@ -331,7 +334,7 @@ class Comparator extends Processor
                     $storage
                 );
             default:
-                throw new Exception("Unknown action: $action");
+                throw new PrestaShopException("Unknown action: $action");
         }
     }
 
@@ -339,7 +342,8 @@ class Comparator extends Processor
      * @param array $step
      * @param Storage $storage
      * @return string
-     * @throws Exception
+     *
+     * @throws PrestaShopException
      */
     protected function describeStep($step, $storage)
     {
@@ -361,7 +365,7 @@ class Comparator extends Processor
             case static::ACTION_CALCULATE_CHANGES:
                 return $this->l("Calculating changes");
             default:
-                throw new Exception("Unknown action: $action");
+                throw new PrestaShopException("Unknown action: $action");
         }
     }
 

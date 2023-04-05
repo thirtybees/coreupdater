@@ -25,6 +25,8 @@ interface ThirtybeesApi
 
     /**
      * @return string[]
+     *
+     * @throws ThirtybeesApiException
      */
     function getPHPVersions();
 
@@ -33,7 +35,9 @@ interface ThirtybeesApi
      *
      * @param string $php
      * @param string $revision
+     *
      * @return array
+     *
      * @throws ThirtybeesApiException
      */
     function downloadFileList($php, $revision);
@@ -42,7 +46,9 @@ interface ThirtybeesApi
      * Returns version list
      *
      * @param string $php
+     *
      * @return array
+     *
      * @throws ThirtybeesApiException
      */
     public function getVersions($php);
@@ -51,7 +57,9 @@ interface ThirtybeesApi
      * Returns targets list
      *
      * @param string $php
+     *
      * @return array
+     *
      * @throws ThirtybeesApiException
      */
     public function getTargets($php);
@@ -63,7 +71,10 @@ interface ThirtybeesApi
      * @param string $revision
      * @param string[] $files
      * @param string $targetFile
-     * @return mixed
+     *
+     * @return void
+     *
+     * @throws ThirtybeesApiException
      */
     public function downloadFiles($php, $revision, $files, $targetFile);
 
@@ -71,6 +82,10 @@ interface ThirtybeesApi
      * Checks that module version is supported
      *
      * @param string $version
+     *
+     * @throws ThirtybeesApiException
+     *
+     * @return array
      */
     public function checkModuleVersion($version);
 

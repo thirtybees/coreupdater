@@ -22,7 +22,6 @@ namespace CoreUpdater;
 use Db;
 use PrestaShopException;
 use ReflectionClass;
-use ReflectionException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use AppendIterator;
@@ -45,7 +44,7 @@ class CodeCallback
      * Calls all callbacks defined in the core classes
      *
      * @param Db $db
-     * @throws ReflectionException
+     *
      * @throws PrestaShopException
      */
     public function execute(Db $db)

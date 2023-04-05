@@ -23,7 +23,6 @@ use CoreModels;
 use ObjectModel;
 use PrestaShopException;
 use ReflectionClass;
-use ReflectionException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Shop;
@@ -66,7 +65,6 @@ class ObjectModelSchemaBuilder
      *
      * @return DatabaseSchema
      * @throws PrestaShopException
-     * @throws ReflectionException
      *
      * @version 1.1.0 Initial version.
      */
@@ -99,7 +97,6 @@ class ObjectModelSchemaBuilder
      * and process their $definition.
      *
      * @throws PrestaShopException
-     * @throws ReflectionException
      *
      * @version 1.1.0 Initial version.
      */

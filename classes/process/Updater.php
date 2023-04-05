@@ -20,6 +20,7 @@
 namespace CoreUpdater;
 
 use CoreUpdater\Api\ThirtybeesApi;
+use CoreUpdater\Api\ThirtybeesApiException;
 use CoreUpdater\Log\Logger;
 use CoreUpdater\Process\ProcessingState;
 use CoreUpdater\Process\Processor;
@@ -27,12 +28,10 @@ use CoreUpdater\Storage\Storage;
 use CoreUpdater\Storage\StorageFactory;
 use Db;
 use DbPDO;
-use Exception;
 use Archive_Tar;
 use PageCache;
 use PrestaShopAutoload;
 use PrestaShopException;
-use ReflectionException;
 use Tools;
 use Media;
 
@@ -124,7 +123,8 @@ class Updater extends Processor
     /**
      * @param array $settings
      * @return array
-     * @throws Exception
+     *
+     * @throws PrestaShopException
      */
     protected function generateSteps($settings)
     {
@@ -255,8 +255,11 @@ class Updater extends Processor
      * @param string $processId
      * @param array $step
      * @param Storage $storage
+     *
      * @return ProcessingState
-     * @throws Exception
+     *
+     * @throws PrestaShopException
+     * @throws ThirtybeesApiException
      */
     protected function processStep($processId, $step, $storage)
     {
@@ -320,7 +323,7 @@ class Updater extends Processor
                     $storage
                 );
             default:
-                throw new Exception("Unknown action: $action");
+                throw new PrestaShopException("Unknown action: $action");
         }
     }
 
@@ -328,7 +331,8 @@ class Updater extends Processor
      * @param array $step
      * @param Storage $storage
      * @return string
-     * @throws Exception
+     *
+     * @throws PrestaShopException
      */
     protected function describeStep($step, $storage)
     {
@@ -359,7 +363,7 @@ class Updater extends Processor
             case static::ACTION_PREPARE_RESULT:
                 return $this->l('Finalizing update process...');
             default:
-                throw new Exception("Unknown action: $action");
+                throw new PrestaShopException("Unknown action: $action");
         }
     }
 
@@ -371,7 +375,10 @@ class Updater extends Processor
      * @param string $revision
      * @param string[] $files
      * @param string $target
+     *
      * @return ProcessingState
+     *
+     * @throws ThirtybeesApiException
      */
     protected function downloadChunk($php, $revision, $files, $target)
     {
@@ -384,19 +391,21 @@ class Updater extends Processor
      *
      * @param string $source
      * @param string $target
+     *
      * @return ProcessingState
-     * @throws Exception
+     *
+     * @throws PrestaShopException
      */
     protected function extractChunk($source, $target)
     {
         try {
             $archive = new Archive_Tar($source, 'gz');
             if ($archive->error_object) {
-                throw new Exception("Downloaded archive $source is invalid" . $archive->error_object->message);
+                throw new PrestaShopException("Downloaded archive $source is invalid" . $archive->error_object->message);
             }
             $archive->extract($target);
             if ($archive->error_object) {
-                throw new Exception("Downloaded archive $source is invalid" . $archive->error_object->message);
+                throw new PrestaShopException("Downloaded archive $source is invalid" . $archive->error_object->message);
             }
         } finally {
             @unlink($source);
@@ -407,8 +416,8 @@ class Updater extends Processor
     /**
      * @param string $dir
      * @param array $fileList
+     *
      * @return ProcessingState
-     * @throws Exception
      */
     protected function verifyChunk($dir, $fileList)
     {
@@ -451,15 +460,16 @@ class Updater extends Processor
      * @param string $from
      * @param string $to
      * @return ProcessingState
-     * @throws Exception
+     *
+     * @throws PrestaShopException
      */
     protected function renameDir($from, $to)
     {
         if (! @is_dir($from)) {
-            throw new Exception("Not a directory: $from");
+            throw new PrestaShopException("Not a directory: $from");
         }
         if (! @rename($from, $to)) {
-            throw new Exception("Failed to rename directory '$from' to '$to");
+            throw new PrestaShopException("Failed to rename directory '$from' to '$to");
         }
         return ProcessingState::done();
     }
@@ -683,8 +693,8 @@ class Updater extends Processor
 
     /**
      * @return ProcessingState
+     *
      * @throws PrestaShopException
-     * @throws ReflectionException
      */
     public function migrateDb()
     {
@@ -723,7 +733,6 @@ class Updater extends Processor
             foreach ($differences as $difference) {
                 $this->applyDatabaseFix($difference);
             }
-            //return sprintf($this->l('Database successfully migrated, %s fixes applied'), count($differences));
         }
         return ProcessingState::done();
     }
@@ -744,8 +753,8 @@ class Updater extends Processor
 
     /**
      * @return ProcessingState
+     *
      * @throws PrestaShopException
-     * @throws ReflectionException
      */
     public function initializeCodebase()
     {
@@ -756,7 +765,9 @@ class Updater extends Processor
 
     /**
      * @param string[] $dirs
+     *
      * @return ProcessingState
+     *
      * @throws PrestaShopException
      */
     public function cleanup($dirs)
@@ -795,8 +806,10 @@ class Updater extends Processor
     /**
      * @param array $changeSet
      * @param array $targetFileList
+     *
      * @return array
-     * @throws Exception
+     *
+     * @throws PrestaShopException
      */
     protected function getFilesToDownload($changeSet, $targetFileList)
     {
@@ -804,7 +817,7 @@ class Updater extends Processor
         $toDownload = array_merge($changeSet['change'], $changeSet['add']);
         foreach ($toDownload as $path => $modified) {
             if (!isset($targetFileList[$path])) {
-                throw new Exception("File $path not found in file list");
+                throw new PrestaShopException("File $path not found in file list");
             }
             $file = preg_replace('#^' . preg_quote($this->adminDir . '/') . '#', 'admin/', $path);
             $files[$file] = $targetFileList[$path];

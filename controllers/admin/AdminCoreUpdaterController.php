@@ -17,6 +17,7 @@
  * @license   Academic Free License (AFL 3.0)
  */
 
+use CoreUpdater\Api\ThirtybeesApi;
 use CoreUpdater\Api\ThirtybeesApiException;
 use CoreUpdater\DatabaseSchemaComparator;
 use CoreUpdater\Factory;
@@ -56,7 +57,6 @@ class AdminCoreUpdaterController extends ModuleAdminController
      * AdminCoreUpdaterController constructor.
      *
      * @throws PrestaShopException
-     * @version 1.0.0 Initial version.
      */
     public function __construct()
     {
@@ -93,25 +93,36 @@ class AdminCoreUpdaterController extends ModuleAdminController
     }
 
     /**
-     * @throws Exception
+     * @throws PrestaShopException
+     * @throws SmartyException
      */
     private function initUpdateTab()
     {
         $updateMode = Settings::getUpdateMode();
         $php = Settings::getTargetPHP();
-        $version = $this->findVersionToUpdate($php, $updateMode);
-        if ($version) {
-            $this->updateProcessView($updateMode, $version);
-        } else {
-            $this->selectTargetVersionView($php);
+        try {
+            $version = $this->findVersionToUpdate($php, $updateMode);
+            if ($version) {
+                $this->updateProcessView($updateMode, $version);
+            } else {
+                $this->selectTargetVersionView($php);
+            }
+        } catch (ThirtybeesApiException $e) {
+            $this->content .= $this->render('error', [
+                'errorMessage' => $this->l('Failed to connect to API server'),
+                'errorDetails' => $e->getMessage()
+            ]);
         }
     }
 
     /**
      * @param string $updateMode
      * @param array $version
+     *
      * @return void
-     * @throws Exception
+     *
+     * @throws PrestaShopException
+     * @throws SmartyException
      */
     private function updateProcessView($updateMode, $version)
     {
@@ -157,8 +168,12 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
     /**
      * @param string $php target php version
+     *
      * @return void
-     * @throws Exception
+     *
+     * @throws PrestaShopException
+     * @throws SmartyException
+     * @throws ThirtybeesApiException
      */
     private function selectTargetVersionView($php)
     {
@@ -226,10 +241,9 @@ class AdminCoreUpdaterController extends ModuleAdminController
     }
 
     /**
-     *  Method to set up page for Settings  tab
+     * Method to set up page for Settings  tab
      *
      * @throws PrestaShopException
-     * @throws ThirtybeesApiException
      */
     private function initSettingsTab()
     {
@@ -238,7 +252,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
             'key' => Settings::CURRENT_PHP_VERSION,
             'name' => $this->l('Server PHP version')
         ]];
-        foreach ($api->getPHPVersions() as $phpVersion) {
+        foreach ($this->getSupportedPHPVersions($api) as $phpVersion) {
             $phpVersions[] = [
                 'key' => $phpVersion,
                 'name' => 'PHP ' . $phpVersion
@@ -655,8 +669,11 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
     /**
      * @param string $action action to process
+     *
      * @return array
-     * @throws Exception
+     *
+     * @throws PrestaShopException
+     * @throws SmartyException
      */
     protected function processAction($action)
     {
@@ -672,7 +689,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
             case static::ACTION_APPLY_DATABASE_FIX:
                 return $this->applyDatabaseFix(Tools::getValue('ids'));
             default:
-                throw new Exception("Invalid action: $action");
+                throw new PrestaShopException("Invalid action: $action");
         }
     }
 
@@ -690,8 +707,11 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
     /**
      * @param string $processId
+     *
      * @return array
-     * @throws Exception
+     *
+     * @throws PrestaShopException
+     * @throws SmartyException
      */
     protected function updateProcess($processId)
     {
@@ -708,8 +728,11 @@ class AdminCoreUpdaterController extends ModuleAdminController
 
     /**
      * @param string $processId
+     *
      * @return array
-     * @throws Exception
+     *
+     * @throws PrestaShopException
+     * @throws SmartyException
      */
     protected function compareProcess($processId)
     {
@@ -731,8 +754,10 @@ class AdminCoreUpdaterController extends ModuleAdminController
      * @param Processor $processor
      * @param string $processId
      * @param callable|null $onEnd
+     *
      * @return array
-     * @throws Exception
+     *
+     * @throws PrestaShopException
      */
     protected function runProcess($processor, $processId, $onEnd = null)
     {
@@ -831,7 +856,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
     }
 
     /**
-     * @throws Exception
+     * @throws PrestaShopException
      */
     protected function initUpdateProcess()
     {
@@ -839,7 +864,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
         $comparator = $this->factory->getComparator();
         $result = $comparator->getResult($compareProcessId);
         if (! $result) {
-            throw new Exception("Comparision result not found. Please reload the page and try again");
+            throw new PrestaShopException("Comparision result not found. Please reload the page and try again");
         }
         $targetFileList = $comparator->getFileList(
             $compareProcessId,
@@ -880,7 +905,6 @@ class AdminCoreUpdaterController extends ModuleAdminController
      *
      * @return array
      * @throws PrestaShopException
-     * @throws ReflectionException
      */
     protected function getDatabaseDifferences()
     {
@@ -924,8 +948,8 @@ class AdminCoreUpdaterController extends ModuleAdminController
      * @param array $ids unique differences ids to be fixed
      *
      * @return array new database differences (see getDatabaseDifferences method)
+     *
      * @throws PrestaShopException
-     * @throws ReflectionException
      */
     private function applyDatabaseFix($ids)
     {
@@ -1053,6 +1077,21 @@ class AdminCoreUpdaterController extends ModuleAdminController
                 return '';
             default:
                 throw new RuntimeException('Invariant exception');
+        }
+    }
+
+    /**
+     * @param ThirtybeesApi $api
+     *
+     * @return array
+     */
+    protected function getSupportedPHPVersions($api)
+    {
+        try {
+            return $api->getPHPVersions();
+        } catch (ThirtybeesApiException $e) {
+            $this->errors[] = $this->l('Failed to resolve supported PHP versions: ' . $e->getMessage());
+            return [];
         }
     }
 }

@@ -52,8 +52,10 @@ abstract class Processor
 
     /**
      * @param array $payload
+     *
      * @return string
-     * @throws Exception
+     *
+     * @throws PrestaShopException
      */
     public function startProcess($payload)
     {
@@ -61,7 +63,7 @@ abstract class Processor
         $this->logger->log("Starting " . $this->getProcessName() . " process with id " . $processId);
         $steps = $this->generateSteps($payload);
         if (! $steps || ! is_array($steps) || count($steps) == 0) {
-            throw new Exception("Empty steps");
+            throw new PrestaShopException("Empty steps");
         }
         $storage = $this->getStorage($processId);
         $storage->put('processId', $processId);
@@ -75,14 +77,16 @@ abstract class Processor
 
     /**
      * @param string $processId
+     *
      * @return ProcessingState
-     * @throws Exception
+     *
+     * @throws PrestaShopException
      */
     public function process($processId)
     {
         $storage = $this->getStorage($processId);
         if (! $storage->hasKey('processId')) {
-            throw new Exception("Process not found: '$processId'");
+            throw new PrestaShopException("Process not found: '$processId'");
         }
 
         $step = (int)$storage->get('currentStep');
@@ -128,13 +132,13 @@ abstract class Processor
     /**
      * @param string $processId
      * @return string
-     * @throws Exception
+     * @throws PrestaShopException
      */
     public function describeCurrentStep($processId)
     {
         $storage = $this->getStorage($processId);
         if (! $storage->hasKey('processId')) {
-            throw new Exception("Process not found: '$processId'");
+            throw new PrestaShopException("Process not found: '$processId'");
         }
 
         $step = (int)$storage->get('currentStep');
@@ -164,15 +168,17 @@ abstract class Processor
     /**
      * @param string $key
      * @param array $settings
+     *
      * @return mixed
-     * @throws Exception
+     *
+     * @throws PrestaShopException
      */
     protected function getParameter($key, $settings)
     {
         if (array_key_exists($key, $settings)) {
             return $settings[$key];
         }
-        throw new Exception("Key $key does not exists in settings");
+        throw new PrestaShopException("Key $key does not exists in settings");
     }
 
 

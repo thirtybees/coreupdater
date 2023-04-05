@@ -57,6 +57,7 @@ class Factory
      * @var string Base url to the server
      */
     private $baseUrl;
+
     /**
      * @var string Full path to thirty bees root directory, using linux slashes
      */
@@ -122,6 +123,7 @@ class Factory
 
     /**
      * @return ThirtybeesApi
+     *
      * @throws PrestaShopException
      */
     public function getApi()

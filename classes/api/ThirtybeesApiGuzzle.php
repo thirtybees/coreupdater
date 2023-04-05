@@ -192,10 +192,13 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
 
     /**
      * Download files
+     *
      * @param string $revision
      * @param string[] $files
      * @param string $targetFile
-     * @return boolean
+     *
+     * @return void
+     *
      * @throws ThirtybeesApiException
      */
     public function downloadFiles($php, $revision, $files, $targetFile)
@@ -234,25 +237,21 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
                 throw new ThirtybeesApiException($message, $request);
             }
             $this->logger->log("Downloaded file " . $targetFile);
-            return true;
         } catch (ThirtybeesApiException $e) {
             @unlink($targetFile);
             throw $e;
         } catch (GuzzleException $e ) {
-            @unlink($targetFile);
-            $this->logger->error("Transport exception: " . $e->getMessage());
-            throw new ThirtybeesApiException('Transport exception', $request, $e);
+            $this->handleException($e, $request, $targetFile);
         } catch (Exception $e) {
-            @unlink($targetFile);
-            $this->logger->error("Transport exception: " . $e->getMessage());
-            throw new ThirtybeesApiException('Transport exception', $request, $e);
+            $this->handleException($e, $request, $targetFile);
         }
     }
 
     /**
      * @param string $version
      *
-     * @return mixed
+     * @return array
+     *
      * @throws ThirtybeesApiException
      */
     public function checkModuleVersion($version)
@@ -292,7 +291,8 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
      * @param string $action action to perform
      * @param array $payload action payload
      *
-     * @return mixed
+     * @return array
+     *
      * @throws ThirtybeesApiException
      */
     private function callApi($php, $action, $payload = [])
@@ -313,7 +313,9 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
 
     /**
      * @param array $request
+     *
      * @return ResponseInterface
+     *
      * @throws ThirtybeesApiException
      */
     private function performPost($request)
@@ -324,9 +326,9 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
                 'http_errors' => false
             ]);
         } catch (Exception $e) {
-            throw new ThirtybeesApiException('Transport exception', $request, $e);
+            $this->handleException($e, $request);
         } catch (GuzzleException $e) {
-            throw new ThirtybeesApiException('Transport exception', $request, $e);
+            $this->handleException($e, $request);
         }
     }
 
@@ -334,7 +336,9 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
     /**
      * @param array $request
      * @param ResponseInterface $response
-     * @return mixed
+     *
+     * @return array
+     *
      * @throws ThirtybeesApiException
      */
     private function unwrapResponse($request, $response)
@@ -360,7 +364,7 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
                     return $data;
                 } else {
                     $this->logger->log("API response: " . $body);
-                    return true;
+                    return [];
                 }
             } else {
                 $this->logger->log("API response: " . $body);
@@ -392,13 +396,13 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
 
     /**
      * @param string $body
-     * @return array | null
+     * @return array|null
      */
     private static function parseBody($body)
     {
         if ($body) {
             $json = json_decode($body, true);
-            if ($json && array_key_exists('success', $json)) {
+            if (is_array($json) && array_key_exists('success', $json)) {
                 return $json;
             }
         }
@@ -427,5 +431,27 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
     {
         return !!preg_match("#^[0-9]+\.[0-9]+\.[0-9]+$#", $version);
     }
+
+    /**
+     * @param Exception|GuzzleException $e
+     * @param array $request
+     * @param string|null $targetFile
+     *
+     * @return void
+     *
+     * @throws ThirtybeesApiException
+     */
+    protected function handleException($e, $request, $targetFile = null)
+    {
+        if ($targetFile && file_exists($targetFile)) {
+            unlink($targetFile);
+        }
+        $message = $e->getMessage();
+        if (! $message) {
+            $message = 'Transport exception';
+        }
+        throw new ThirtybeesApiException($message, $request, $e);
+    }
+
 
 }
