@@ -39,6 +39,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
     const TAB_UPDATE = 'update';
     const TAB_SETTINGS = 'settings';
     const TAB_DB = 'database';
+    const TAB_DEVELOPER = 'developer';
 
     const ACTION_SAVE_SETTINGS = 'SAVE_SETTINGS';
     const ACTION_CLEAR_CACHE = 'CLEAR_CACHE';
@@ -47,6 +48,10 @@ class AdminCoreUpdaterController extends ModuleAdminController
     const ACTION_UPDATE_PROCESS = "UPDATE";
     const ACTION_GET_DATABASE_DIFFERENCES = "GET_DATABASE_DIFFERENCES";
     const ACTION_APPLY_DATABASE_FIX = 'APPLY_DATABASE_FIX';
+    const ACTION_RUN_POST_UPDATE_PROCESSES = 'RUN_POST_UPDATE_PROCESSES';
+
+    const SELECTED_PROCESS_MIGRATE_DB = 'SELECTED_PROCESS_MIGRATE_DB';
+    const SELECTED_PROCESS_INITIALIZATION_CALLBACK = 'SELECTED_PROCESS_INITIALIZATION_CALLBACK';
 
     /**
      * @var Factory
@@ -112,6 +117,49 @@ class AdminCoreUpdaterController extends ModuleAdminController
                 'errorMessage' => $this->l('Failed to connect to API server'),
                 'errorDetails' => $e->getMessage()
             ]);
+        }
+    }
+
+    /**
+     * @return void
+     * @throws PrestaShopException
+     */
+    private function initDeveloperTab()
+    {
+        if (Settings::isDeveloperMode()) {
+            $this->fields_options = [
+                'runPostUpdateProcesses' => [
+                    'title'       => $this->l('Execute Post Update processes'),
+                    'icon'        => 'icon-terminal',
+                    'description' => (
+                        $this->l('You can manually execute processes that are run after each update.') . '<br>' .
+                        $this->l('This can be useful for testing changes in core database schema or code initialization.')
+                    ),
+                    'submit'      => [
+                        'title'     => $this->l('Execute processes'),
+                        'imgclass'  => 'save',
+                        'name'      => static::ACTION_RUN_POST_UPDATE_PROCESSES,
+                    ],
+                    'fields' => [
+                        static::SELECTED_PROCESS_MIGRATE_DB => [
+                            'type'       => 'bool',
+                            'title'      => $this->l('Migrate database'),
+                            'desc'       => $this->l('Fixes some critical databas schema differencies. For example adds missing tables'),
+                            'defaultValue' => true,
+                            'no_multishop_checkbox' => true,
+                        ],
+                        static::SELECTED_PROCESS_INITIALIZATION_CALLBACK => [
+                            'type'       => 'bool',
+                            'title'      => $this->l('Initialize codebase'),
+                            'desc'       => $this->l('Executes initialization method on all classes that implementes InitializationCallback interface'),
+                            'defaultValue' => true,
+                            'no_multishop_checkbox' => true,
+                        ],
+                    ],
+                ],
+            ];
+        } else {
+            $this->errors[] = $this->l('Developer mode is not enabled');
         }
     }
 
@@ -422,6 +470,12 @@ class AdminCoreUpdaterController extends ModuleAdminController
                         'desc'       => $this->l('Secret token for communication with thirtybees api. Optional'),
                         'no_multishop_checkbox' => true,
                     ],
+                    Settings::SETTINGS_DEVELOPER_MODE => [
+                        'type'       => 'bool',
+                        'title'      => $this->l('Developer mode'),
+                        'desc'       => $this->l('This will unlock features that useful for core developers'),
+                        'no_multishop_checkbox' => true,
+                    ],
                 ]
             ],
         ];
@@ -508,6 +562,9 @@ class AdminCoreUpdaterController extends ModuleAdminController
                     case static::TAB_DB:
                         $this->initDatabaseTab();
                         break;
+                    case static::TAB_DEVELOPER:
+                        $this->initDeveloperTab();
+                        break;
                 }
             }
         } catch (Exception $e) {
@@ -535,17 +592,23 @@ class AdminCoreUpdaterController extends ModuleAdminController
     {
         switch ($this->getActiveTab()) {
             case static::TAB_UPDATE:
+                $this->addDeveloperButton();
                 $this->addDatabaseButton();
                 $this->addSettingsButton();
                 break;
             case static::TAB_DB:
+                $this->addDeveloperButton();
                 $this->addUpdateButton();
                 $this->addSettingsButton();
                 break;
             case static::TAB_SETTINGS:
+                $this->addDeveloperButton();
                 $this->addDatabaseButton();
                 $this->addUpdateButton();
                 break;
+            case static::TAB_DEVELOPER:
+                $this->addDatabaseButton();
+                $this->addSettingsButton();
         }
         parent::initToolbar();
     }
@@ -584,6 +647,20 @@ class AdminCoreUpdaterController extends ModuleAdminController
             'href' => static::tabLink(static::TAB_UPDATE),
             'desc' => $this->l('Check updates'),
         ];
+    }
+
+    /**
+     * @throws PrestaShopException
+     */
+    private function addDeveloperButton()
+    {
+        if (Settings::isDeveloperMode()) {
+            $this->page_header_toolbar_btn['developer'] = [
+                'icon' => 'process-icon-terminal',
+                'href' => static::tabLink(static::TAB_DEVELOPER),
+                'desc' => $this->l('Developer'),
+            ];
+        }
     }
 
     /**
@@ -627,6 +704,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
             Settings::setSyncThemes(!!Tools::getValue(Settings::SETTINGS_SYNC_THEMES));
             Settings::setServerPerformance(Tools::getValue(Settings::SETTINGS_SERVER_PERFORMANCE));
             Settings::setApiToken(Tools::getValue(Settings::SETTINGS_API_TOKEN));
+            Settings::setDeveloperMode(Tools::getValue(Settings::SETTINGS_DEVELOPER_MODE));
             Settings::setCacheSystem(Tools::getValue(Settings::SETTINGS_CACHE_SYSTEM));
             Settings::setVerifySsl(Tools::getValue(Settings::SETTINGS_VERIFY_SSL));
             Settings::setTargetPHP(Tools::getValue(Settings::SETTINGS_TARGET_PHP_VERSION));
@@ -640,6 +718,12 @@ class AdminCoreUpdaterController extends ModuleAdminController
             $this->factory->getStorageFactory()->flush();
             $this->confirmations[] = $this->l('Cache cleared');
             $this->setRedirectAfter(static::tabLink(static::TAB_SETTINGS));
+            $this->redirect();
+        }
+
+        if (Tools::isSubmit(static::ACTION_RUN_POST_UPDATE_PROCESSES)) {
+            $this->runPostUpdateProcesses();
+            $this->setRedirectAfter(static::tabLink(static::TAB_DEVELOPER));
             $this->redirect();
         }
     }
@@ -1092,6 +1176,40 @@ class AdminCoreUpdaterController extends ModuleAdminController
         } catch (ThirtybeesApiException $e) {
             $this->errors[] = $this->l('Failed to resolve supported PHP versions: ' . $e->getMessage());
             return [];
+        }
+    }
+
+    /**
+     * @return void
+     *
+     * @throws PrestaShopException
+     */
+    protected function runPostUpdateProcesses()
+    {
+        $migrateDb = (bool)Tools::getValue(static::SELECTED_PROCESS_MIGRATE_DB);
+        $initializeCodeBase = (bool)Tools::getValue(static::SELECTED_PROCESS_INITIALIZATION_CALLBACK);
+
+        if ($migrateDb || $initializeCodeBase) {
+            $updater = $this->factory->getUpdater();
+            if ($migrateDb) {
+                try {
+                    $updater->migrateDb();
+                    $this->confirmations[] = '<p>' . $this->l('Database has been migrated') . '</p>';
+                } catch (Exception $e) {
+                    $this->errors[] = $this->l('Failed to migrate database') . "<pre>$e</pre>";
+                }
+            }
+
+            if ($initializeCodeBase) {
+                try {
+                    $updater->initializeCodebase();
+                    $this->confirmations[] = '<p>' . $this->l('Codebase has been initialized') . '</p>';
+                } catch (Exception $e) {
+                    $this->errors[] = $this->l('Failed to initialize codebase') . "<pre>$e</pre>";
+                }
+            }
+        } else {
+            $this->warnings[] = $this->l('No operation performed');
         }
     }
 }

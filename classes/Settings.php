@@ -38,6 +38,7 @@ class Settings
     const SETTINGS_CACHE_SYSTEM = 'CORE_UPDATER_CACHE_SYSTEM';
     const SETTINGS_VERIFY_SSL = 'CORE_UPDATER_VERIFY_SSL';
     const SETTINGS_TARGET_PHP_VERSION = 'CORE_UPDATER_TARGET_PHP_VERSION';
+    const SETTINGS_DEVELOPER_MODE = 'CORE_UPDATER_DEVELOPER_MODE';
 
     // values
     const API_SERVER = 'https://api.thirtybees.com';
@@ -374,6 +375,30 @@ class Settings
             return phpversion();
         }
         return $value;
+    }
+
+    /**
+     * Sets developer mode flag
+     *
+     * @param bool $developerMode
+     * @return boolean
+     * @throws PrestaShopException
+     */
+    public static function setDeveloperMode($developerMode)
+    {
+        Configuration::updateGlobalValue(static::SETTINGS_DEVELOPER_MODE, $developerMode ? 1 : 0);
+        return !!$developerMode;
+    }
+
+    /**
+     * Returns true, if developer mode was enabled
+     *
+     * @return bool
+     * @throws PrestaShopException
+     */
+    public static function isDeveloperMode()
+    {
+        return (bool)Configuration::getGlobalValue(static::SETTINGS_DEVELOPER_MODE);
     }
 
 }
