@@ -189,7 +189,9 @@ class AdminCoreUpdaterController extends ModuleAdminController
             }
         }
 
-        $processId = $comparator->startProcess([
+        $employeeId = (int)$this->context->employee->id;
+
+        $processId = $comparator->startProcess($employeeId, [
             'ignoreTheme' => !Settings::syncThemes(),
             'targetPHPVersion' => Settings::getTargetPHP(),
             'targetRevision' => $version['revision'],
@@ -955,8 +957,9 @@ class AdminCoreUpdaterController extends ModuleAdminController
             $result['targetRevision'],
             $result['targetPHPVersion']
         );
+        $employeeId = (int)$this->context->employee->id;
         $updater = $this->factory->getUpdater();
-        $processId = $updater->startProcess([
+        $processId = $updater->startProcess($employeeId, [
             'targetPHPVersion' => $result['targetPHPVersion'],
             'targetVersion' => $result['targetVersion'],
             'targetRevision' => $result['targetRevision'],
@@ -1211,5 +1214,79 @@ class AdminCoreUpdaterController extends ModuleAdminController
         } else {
             $this->warnings[] = $this->l('No operation performed');
         }
+    }
+
+    /**
+     * @return void
+     * @throws PrestaShopException
+     */
+    public function init()
+    {
+        // auto-login functionality
+        // if employee is not logged in but update process is running, we will auto-login employee
+        if (! $this->isEmployeeLoggedIn()) {
+            $employee = $this->getCurrentUpdateProcessEmployee();
+            if ($employee) {
+                // Update cookie
+                $this->context->employee = $employee;
+                $cookie = $this->context->cookie;
+                $cookie->id_employee = $employee->id;
+                $cookie->email = $employee->email;
+                $cookie->profile = $employee->id_profile;
+                $cookie->passwd = $employee->passwd;
+                $cookie->remote_addr = (int) ip2long(Tools::getRemoteAddr());
+                $cookie->last_activity = time();
+                $cookie->write();
+                $this->token = Tools::getAdminToken($this->controller_name.(int) $this->id.(int) $employee->id);
+                Cache::clean('*');
+            }
+        }
+
+        parent::init();
+    }
+
+    /**
+     * Returns true, if employee is logged in
+     *
+     * @return bool
+     * @throws PrestaShopException
+     */
+    protected function isEmployeeLoggedIn()
+    {
+        $employee = $this->context->employee;
+        if (Validate::isLoadedObject($employee)) {
+            return $employee->isLoggedBack();
+        }
+        return false;
+    }
+
+    /**
+     * @return Employee|false
+     *
+     * @throws PrestaShopException
+     */
+    protected function getCurrentUpdateProcessEmployee()
+    {
+        if (! Tools::getValue('ajax')) {
+            return false;
+        }
+
+        $action = (string)Tools::getValue('action');
+        if ($action !== static::ACTION_UPDATE_PROCESS) {
+            return false;
+        }
+
+        $processId = (string)Tools::getValue('processId');
+        if (! $processId) {
+            return false;
+        }
+
+        // resolve update process employee
+        $updater = $this->factory->getUpdater();
+        $employee = new Employee($updater->getEmployeeId($processId));
+        if (Validate::isLoadedObject($employee)) {
+            return $employee;
+        }
+        return false;
     }
 }

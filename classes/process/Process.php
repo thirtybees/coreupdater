@@ -51,13 +51,14 @@ abstract class Processor
     }
 
     /**
+     * @param int $employeeId
      * @param array $payload
      *
      * @return string
      *
      * @throws PrestaShopException
      */
-    public function startProcess($payload)
+    public function startProcess($employeeId, $payload)
     {
         $processId = Utils::generateRandomString();
         $this->logger->log("Starting " . $this->getProcessName() . " process with id " . $processId);
@@ -67,6 +68,7 @@ abstract class Processor
         }
         $storage = $this->getStorage($processId);
         $storage->put('processId', $processId);
+        $storage->put('employeeId' , (int)$employeeId);
         $storage->put('steps', $steps);
         $storage->put('currentStep', 0);
         $storage->save();
@@ -149,6 +151,21 @@ abstract class Processor
             return $this->describeStep($currentStep, $storage);
         }
         return $this->l("Done");
+    }
+
+    /**
+     * @param string $processId
+     *
+     * @return int
+     * @throws PrestaShopException
+     */
+    public function getEmployeeId($processId)
+    {
+        $storage = $this->getStorage($processId);
+        if (! $storage->hasKey('processId')) {
+            throw new PrestaShopException("Process not found: '$processId'");
+        }
+        return (int)$storage->get('employeeId');
     }
 
 
