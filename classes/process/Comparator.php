@@ -371,7 +371,9 @@ class Comparator extends Processor
 
     /**
      * @param string $targetVersion
+     *
      * @return ProcessingState
+     * @throws PrestaShopException
      */
     protected function checkModules($targetVersion)
     {

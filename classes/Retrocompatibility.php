@@ -35,63 +35,42 @@ use Tab;
  */
 class Retrocompatibility
 {
+
+    const ANY_VERSION = '*';
+
     /**
      * Modules known to be incompatible starting at a certain version. If the
      * target version of the update is this or higher, these modules get
      * uninstalled.
      */
-    const MODULE_MIN_INCOMPAT = [
+    const INCOMPATIBILE_MODULES = [
         '1.0.4'   => [
-            'graphnvd3',
-            'gridhtml',
-            'pagesnotfound',
-            'sekeywords',
-            'statsbestcategories',
-            'statsbestcustomers',
-            'statsbestmanufacturers',
-            'statsbestproducts',
-            'statsbestsuppliers',
-            'statsbestvouchers',
-            'statscarrier',
-            'statscatalog',
-            'statscheckup',
-            'statsequipment',
-            'statsforecast',
-            'statslive',
-            'statsnewsletter',
-            'statsorigin',
-            'statspersonalinfos',
-            'statsproduct',
-            'statsregistrations',
-            'statssales',
-            'statssearch',
-            'statsstock',
-            'statsvisits',
-        ],
-        '1.0.5'   => [
-        ],
-        '1.0.6'   => [
-        ],
-        '1.0.7'   => [
-        ],
-        '1.0.8'   => [
-        ],
-    ];
-    /**
-     * Modules known to be incompatible up to a certain version. If the target
-     * version of the update is this or lower, these modules get uninstalled.
-     */
-    const MODULE_MAX_INCOMPAT = [
-        '1.0.4'   => [
-        ],
-        '1.0.5'   => [
-        ],
-        '1.0.6'   => [
-        ],
-        '1.0.7'   => [
-        ],
-        '1.0.8'   => [
-        ],
+            'graphnvd3' => self::ANY_VERSION,
+            'gridhtml' => self::ANY_VERSION,
+            'pagesnotfound' => self::ANY_VERSION,
+            'sekeywords' => self::ANY_VERSION,
+            'statsbestcategories' => self::ANY_VERSION,
+            'statsbestcustomers' => self::ANY_VERSION,
+            'statsbestmanufacturers' => self::ANY_VERSION,
+            'statsbestproducts' => self::ANY_VERSION,
+            'statsbestsuppliers' => self::ANY_VERSION,
+            'statsbestvouchers' => self::ANY_VERSION,
+            'statscarrier' => self::ANY_VERSION,
+            'statscatalog' => self::ANY_VERSION,
+            'statscheckup' => self::ANY_VERSION,
+            'statsequipment' => self::ANY_VERSION,
+            'statsforecast' => self::ANY_VERSION,
+            'statslive' => self::ANY_VERSION,
+            'statsnewsletter' => self::ANY_VERSION,
+            'statsorigin' => self::ANY_VERSION,
+            'statspersonalinfos' => self::ANY_VERSION,
+            'statsproduct' => self::ANY_VERSION,
+            'statsregistrations' => self::ANY_VERSION,
+            'statssales' => self::ANY_VERSION,
+            'statssearch' => self::ANY_VERSION,
+            'statsstock' => self::ANY_VERSION,
+            'statsvisits' => self::ANY_VERSION,
+        ]
     ];
 
     /**
@@ -379,47 +358,85 @@ class Retrocompatibility
      *
      * @param string $targetVersion Target version.
      *
-     * @return array Array with strings of module names. Empty array if there
-     *               are no incompatible ones installed.
+     * @return array Array with strings of errors
      *
+     * @throws PrestaShopException
      * @version 1.0.0 Initial version.
      */
-    public static function getIncompatibleModules($targetVersion) {
+    public static function getIncompatibleModules($targetVersion)
+    {
+        $installedModules = static::getModulesInstalled();
+
         $incompatibles = [];
-        foreach (static::MODULE_MIN_INCOMPAT as $version => $list) {
+        foreach (static::INCOMPATIBILE_MODULES as $version => $list) {
             if (version_compare($targetVersion, $version, '>=')) {
-                $incompatibles = array_merge($incompatibles, $list);
+                foreach ($list as $moduleName => $minVersion) {
+                    if (isset($installedModules[$moduleName])) {
+                        $installedVersion = $installedModules[$moduleName];
+                        $reason = static::isModuleVersionIncompatibile($moduleName, $installedVersion, $minVersion);
+                        if ($reason) {
+                            $incompatibles[] = $reason;
+                        }
+                    }
+                }
             }
         }
-        foreach (static::MODULE_MAX_INCOMPAT as $version => $list) {
-            if (version_compare($targetVersion, $version, '<=')) {
-                $incompatibles = array_merge($incompatibles, $list);
-            }
-        }
-
-        $installedIncompatibles = [];
-        foreach (static::getModulesInstalled() as $module) {
-            $name = $module['name'];
-            $path = rtrim(_PS_ROOT_DIR_, '/\\') . '/modules/' . $name . '/' . $name . '.php';
-            if (in_array($name, $incompatibles) && @file_exists($path)) {
-                $installedIncompatibles[] = $name;
-            }
-        }
-
-        return $installedIncompatibles;
+        return $incompatibles;
     }
 
     /**
      * @return array
+     *
+     * @throws PrestaShopException
      */
     public static function getModulesInstalled()
     {
-        try {
-            $modules = Module::getModulesInstalled();
-            if (is_array($modules)) {
-                return $modules;
+        $modules = [];
+        foreach (Module::getModulesInstalled() as $row) {
+            $moduleName = $row['name'];
+            $path = rtrim(_PS_ROOT_DIR_, '/\\') . '/modules/' . $moduleName . '/' . $moduleName . '.php';
+            if (file_exists($path)) {
+                $modules[$moduleName] = $row['version'];
             }
-        } catch (Exception $ignored) {}
-        return [];
+        }
+        return $modules;
+    }
+
+    /**
+     * @param string $installedVersion
+     * @param string $minVersion
+     *
+     * @return string|null
+     */
+    protected static function isModuleVersionIncompatibile($moduleName, $installedVersion, $minVersion)
+    {
+        if ($minVersion === static::ANY_VERSION) {
+            return sprintf("Module '%s' [%s] is not compatible with target version of thirty bees", static::getModuleName($moduleName), $moduleName);
+        }
+
+        if (version_compare($installedVersion, $minVersion, '<')) {
+            return sprintf(
+                "Module '%s' [%s] has version %s, at least %s is required",
+                static::getModuleName($moduleName),
+                $moduleName,
+                $installedVersion,
+                $minVersion
+            );
+        }
+
+        // module is compatible
+        return null;
+    }
+
+    /**
+     * @return string
+     */
+    protected static function getModuleName($module)
+    {
+        try {
+            return Module::getModuleName($module);
+        } catch (Exception $e) {
+           return $module;
+        }
     }
 }
