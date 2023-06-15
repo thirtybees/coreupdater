@@ -73,6 +73,7 @@ class Retrocompatibility
         ],
         '1.5.0'   => [
             'tbupdater' => self::ANY_VERSION,
+            'collectlogs' => '1.2.1', // collectlogs must have at least version 1.2.1
         ],
     ];
 
