@@ -70,7 +70,10 @@ class Retrocompatibility
             'statssearch' => self::ANY_VERSION,
             'statsstock' => self::ANY_VERSION,
             'statsvisits' => self::ANY_VERSION,
-        ]
+        ],
+        '1.5.0'   => [
+            'tbupdater' => self::ANY_VERSION,
+        ],
     ];
 
     /**
