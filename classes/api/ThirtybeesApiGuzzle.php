@@ -241,9 +241,9 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
             @unlink($targetFile);
             throw $e;
         } catch (GuzzleException $e ) {
-            $this->handleException($e, $request, $targetFile);
+            throw static::wrapException($e, $request, $targetFile);
         } catch (Exception $e) {
-            $this->handleException($e, $request, $targetFile);
+            throw static::wrapException($e, $request, $targetFile);
         }
     }
 
@@ -326,9 +326,9 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
                 'http_errors' => false
             ]);
         } catch (Exception $e) {
-            $this->handleException($e, $request);
+            throw static::wrapException($e, $request);
         } catch (GuzzleException $e) {
-            $this->handleException($e, $request);
+            throw static::wrapException($e, $request);
         }
     }
 
@@ -437,11 +437,9 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
      * @param array $request
      * @param string|null $targetFile
      *
-     * @return void
-     *
-     * @throws ThirtybeesApiException
+     * @return ThirtybeesApiException
      */
-    protected function handleException($e, $request, $targetFile = null)
+    protected static function wrapException($e, $request, $targetFile = null)
     {
         if ($targetFile && file_exists($targetFile)) {
             unlink($targetFile);
@@ -450,7 +448,7 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
         if (! $message) {
             $message = 'Transport exception';
         }
-        throw new ThirtybeesApiException($message, $request, $e);
+        return new ThirtybeesApiException($message, $request, $e);
     }
 
 
