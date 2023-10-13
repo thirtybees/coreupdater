@@ -39,6 +39,7 @@ class Settings
     const SETTINGS_VERIFY_SSL = 'CORE_UPDATER_VERIFY_SSL';
     const SETTINGS_TARGET_PHP_VERSION = 'CORE_UPDATER_TARGET_PHP_VERSION';
     const SETTINGS_DEVELOPER_MODE = 'CORE_UPDATER_DEVELOPER_MODE';
+    const SETTINGS_WARNINGS = 'CORE_UPDATER_WARNINGS';
 
     // values
     const API_SERVER = 'https://api.thirtybees.com';
@@ -399,6 +400,40 @@ class Settings
     public static function isDeveloperMode()
     {
         return (bool)Configuration::getGlobalValue(static::SETTINGS_DEVELOPER_MODE);
+    }
+
+
+    /**
+     * @param array $warnings
+     *
+     * @return void
+     * @throws PrestaShopException
+     */
+    public static function updateWarnings($warnings)
+    {
+        if (is_array($warnings) && $warnings) {
+            Configuration::updateGlobalValue(static::SETTINGS_WARNINGS, json_encode($warnings));
+        } else {
+            Configuration::deleteByName(static::SETTINGS_WARNINGS);
+        }
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function getWarnings()
+    {
+        try {
+            $val = Configuration::getGlobalValue(static::SETTINGS_WARNINGS);
+            if ($val) {
+                $warnings = json_decode($val, true);
+                if (is_array($warnings)) {
+                    return $warnings;
+                }
+            }
+        } catch (Exception $e) {}
+
+        return [];
     }
 
 }

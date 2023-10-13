@@ -548,6 +548,9 @@ class AdminCoreUpdaterController extends ModuleAdminController
             if ($this->checkModuleVersion()) {
                 $currentVersion = $this->module->version;
                 $latestVersion = Settings::getLatestModuleVersion();
+                foreach (Settings::getWarnings() as $warning) {
+                    $this->warnings[] = $warning;
+                }
                 if (version_compare($currentVersion, $latestVersion, '<')) {
                     $this->content .= $this->render('new-version', [
                         'currentVersion' => $currentVersion,
@@ -1102,6 +1105,11 @@ class AdminCoreUpdaterController extends ModuleAdminController
                     $this->content = $this->render('error', ['errorMessage' => 'Invalid check module version response']);
                     $logger->error('Invalid check module version response');
                     return false;
+                }
+                if (isset($result['warnings'])) {
+                    Settings::updateWarnings($result['warnings']);
+                } else {
+                    Settings::updateWarnings([]);
                 }
                 $supported = !!$result['supported'];
                 $latestVersion = $result['latest'];
