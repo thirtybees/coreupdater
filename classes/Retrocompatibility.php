@@ -88,9 +88,8 @@ class Retrocompatibility
      */
     public static function doAllDatabaseUpgrades() {
         $errors = [];
-        $me = new Retrocompatibility;
+        $me = new Retrocompatibility();
 
-        $errors = array_merge($errors, $me->doSqlUpgrades());
         $errors = array_merge($errors, $me->handleSingleLangConfigs());
         $errors = array_merge($errors, $me->handleMultiLangConfigs());
         $errors = array_merge($errors, $me->deleteObsoleteTabs());
@@ -110,41 +109,6 @@ class Retrocompatibility
     {
         return \Translate::getModuleTranslation('coreupdater', $string,
                                                 'coreupdater');
-    }
-
-    /**
-     * Apply database upgrade scripts.
-     *
-     * @return array Empty array on success, array with error messages on
-     *               failure.
-     *
-     * @version 1.0.0 Initial version.
-     * @throws PrestaShopException
-     */
-    protected function doSqlUpgrades() {
-        $errors = [];
-
-        $upgrades = file_get_contents(__DIR__.'/retroUpgrades.sql');
-        // Strip comments.
-        $upgrades = preg_replace('#/\*.*?\*/#s', '', $upgrades);
-        $upgrades = explode(';', $upgrades);
-
-        $db = \Db::getInstance(_PS_USE_SQL_SLAVE_);
-        $engine = (defined('_MYSQL_ENGINE_') ? _MYSQL_ENGINE_ : 'InnoDB');
-        foreach ($upgrades as $upgrade) {
-            $upgrade = trim($upgrade);
-            if (strlen($upgrade)) {
-                $upgrade = str_replace(['PREFIX_', 'ENGINE_TYPE'],
-                                       [_DB_PREFIX_, $engine], $upgrade);
-
-                $result = $db->execute($upgrade);
-                if ( ! $result) {
-                    $errors[] = (trim($db->getMsgError()));
-                }
-            }
-        }
-
-        return $errors;
     }
 
     /**
