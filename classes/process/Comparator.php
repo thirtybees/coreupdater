@@ -42,6 +42,7 @@ class Comparator extends Processor
         '#^mails/en/.*\.txt$#',
         '#^mails/en/.*\.tpl$#',
         '#^mails/en/.*\.html$#',
+        '#^mails/en/lang.php$#',
     ];
 
     // This gets added with option 'Ignore the community theme' ON.
