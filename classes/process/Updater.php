@@ -46,9 +46,10 @@ class Updater extends Processor
     const ACTION_BACKUP = 'BACKUP';
     const ACTION_CREATE_UPDATE_SCRIPT = 'CREATE_UPDATE_SCRIPT';
     const ACTION_UPDATE = 'UPDATE';
-    const ACTION_POST_PROCESSING = 'POST_PROCESSING';
+    const ACTION_POST_PROCESS_AFTER_UPDATE = 'POST_PROCESS_AFTER_UPDATE';
     const ACTION_MIGRATE_DB = 'MIGRATE_DB';
     const ACTION_INITIALIZE_CODEBASE = 'INITIALIZE_CODEBASE';
+    const ACTION_POST_PROCESS_AFTER_INITIALIZATION = 'POST_PROCESS_AFTER_INIT';
     const ACTION_CLEANUP = 'CLEANUP';
     const ACTION_PREPARE_RESULT = 'PREPARE_RESULT';
 
@@ -223,7 +224,7 @@ class Updater extends Processor
         ];
 
         $steps[] = [
-            'action' => static::ACTION_POST_PROCESSING,
+            'action' => static::ACTION_POST_PROCESS_AFTER_UPDATE,
             'targetVersion' => $targetVersion,
             'targetRevision' => $targetRevision,
             'targetPHPVersion' => $targetPHPVersion,
@@ -235,6 +236,10 @@ class Updater extends Processor
 
         $steps[] = [
             'action' => static::ACTION_INITIALIZE_CODEBASE
+        ];
+
+        $steps[] = [
+            'action' => static::ACTION_POST_PROCESS_AFTER_INITIALIZATION
         ];
 
         $steps[] = [
@@ -304,7 +309,7 @@ class Updater extends Processor
                 // nothing to do here, update was performed via ajax call to
                 // generated update script
                 return ProcessingState::done();
-            case static::ACTION_POST_PROCESSING:
+            case static::ACTION_POST_PROCESS_AFTER_UPDATE:
                 return $this->afterUpdate(
                     $this->getParameter('targetVersion', $step),
                     $this->getParameter('targetRevision', $step),
@@ -314,6 +319,8 @@ class Updater extends Processor
                 return $this->migrateDb();
             case static::ACTION_INITIALIZE_CODEBASE:
                 return $this->initializeCodebase();
+            case static::ACTION_POST_PROCESS_AFTER_INITIALIZATION:
+                return $this->postProcessAfter();
             case static::ACTION_CLEANUP:
                 return $this->cleanup($this->getParameter('dirs', $step));
             case static::ACTION_PREPARE_RESULT:
@@ -352,12 +359,14 @@ class Updater extends Processor
                 return $this->l("Generating update script");
             case static::ACTION_UPDATE:
                 return $this->l("Executing update script");
-            case static::ACTION_POST_PROCESSING:
+            case static::ACTION_POST_PROCESS_AFTER_UPDATE:
                 return $this->l("Update post processing");
             case static::ACTION_MIGRATE_DB:
                 return $this->l("Migrating database");
             case static::ACTION_INITIALIZE_CODEBASE:
                 return $this->l("Initializing codebase");
+            case static::ACTION_POST_PROCESS_AFTER_INITIALIZATION:
+                return $this->l("Final post processing");
             case static::ACTION_CLEANUP:
                 return $this->l("Cleaning up");
             case static::ACTION_PREPARE_RESULT:
@@ -481,9 +490,8 @@ class Updater extends Processor
      */
     protected function backupFiles($files, $backupDir)
     {
-        if (! file_exists($backupDir)) {
-            mkdir($backupDir, 0777, true);
-        }
+        $this->ensureDirectoryExists($backupDir);
+
         foreach ($files as $file) {
             $source = $this->rootDir . $file;
             if (file_exists($source)) {
@@ -758,8 +766,24 @@ class Updater extends Processor
      */
     public function initializeCodebase()
     {
+        // call initialization callbacks
         $codeCallback = new CodeCallback();
         $codeCallback->execute(Db::getInstance());
+        return ProcessingState::done();
+    }
+
+
+    /**
+     * @return ProcessingState
+     */
+    public function postProcessAfter()
+    {
+        // regenerate htacces
+        $this->regenerateHtaccess(
+            rtrim(_PS_ROOT_DIR_, '/') . '/.htaccess',
+            $this->stagingDir,
+            $this->backupDir
+        );
         return ProcessingState::done();
     }
 
@@ -867,5 +891,56 @@ class Updater extends Processor
         // ensure slave server settings are loaded
         Db::getInstance(_PS_USE_SQL_SLAVE_);
         return Db::$_servers;
+    }
+
+    /**
+     *
+     * @param string $targetFile path to .htaccess file
+     * @param string $stagingDir staging directory
+     * @param string $backupDir backup directory
+     *
+     * @return void
+     */
+    protected function regenerateHtaccess($targetFile, $stagingDir, $backupDir)
+    {
+        $tempFile = $stagingDir . '/htaccess-temp';
+        if (file_exists($tempFile)) {
+            unlink($tempFile);
+        }
+        if (file_exists($targetFile)) {
+            copy($targetFile, $tempFile);
+        }
+        try {
+            if (Tools::generateHtaccess($tempFile)) {
+                $md5Orig = md5_file($targetFile);
+                $md5New = md5_file($tempFile);
+                if ($md5New !== $md5Orig) {
+                    // backup original .htaccess
+                    $this->ensureDirectoryExists($backupDir);
+                    copy($targetFile, $backupDir . '/.htaccess');
+
+                    // install new .htaccess
+                    copy($tempFile, $targetFile);
+                }
+            }
+        } catch (\Throwable $ignored) {
+            // it's not critical if this task fails
+        } finally {
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+        }
+    }
+
+    /**
+     * @param string $dir
+     *
+     * @return void
+     */
+    protected function ensureDirectoryExists(string $dir)
+    {
+        if (!file_exists($dir)) {
+            mkdir($dir, 0777, true);
+        }
     }
 }
