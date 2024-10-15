@@ -26,6 +26,7 @@ use CoreUpdater\Storage\StorageFactory;
 use CoreUpdater\Utils;
 use Exception;
 use PrestaShopException;
+use Translate;
 
 abstract class Processor
 {
@@ -208,7 +209,7 @@ abstract class Processor
      */
     protected function l($string)
     {
-        return \Translate::getModuleTranslation('coreupdater', $string, 'coreupdater');
+        return Translate::getModuleTranslation('coreupdater', $string, 'Process');
     }
 
     protected abstract function getProcessName();

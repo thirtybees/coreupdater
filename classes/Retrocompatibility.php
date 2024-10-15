@@ -25,6 +25,7 @@ use Language;
 use Module;
 use PrestaShopException;
 use Tab;
+use Translate;
 
 /**
  * Class Retrocompatibility.
@@ -107,8 +108,7 @@ class Retrocompatibility
      */
     protected function l($string)
     {
-        return \Translate::getModuleTranslation('coreupdater', $string,
-                                                'coreupdater');
+        return Translate::getModuleTranslation('coreupdater', $string, 'Retrocompatibility');
     }
 
     /**
@@ -279,8 +279,7 @@ class Retrocompatibility
                 if ($tabSet['tabName']) {
                     $langs = Language::getLanguages();
                     foreach ($langs as $lang) {
-                        $translation = \Translate::getAdminTranslation(
-                            $tabSet['tabName'], 'AdminTab', false, false);
+                        $translation = Translate::getAdminTranslation($tabSet['tabName'], 'AdminTab', false, false);
                         $tab->name[$lang['id_lang']] = $translation;
                     }
                 }
