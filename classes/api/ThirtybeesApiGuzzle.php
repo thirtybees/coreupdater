@@ -19,6 +19,7 @@
 
 namespace CoreUpdater\Api;
 
+use Configuration;
 use CoreUpdater\Log\Logger;
 use CoreUpdater\Storage\StorageFactory;
 use Exception;
@@ -27,6 +28,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use PrestaShopException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
+use Tools;
 
 class ThirtybeesApiGuzzle implements ThirtybeesApi
 {
@@ -83,6 +85,8 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
      * @param string $truststore Path to pem file containing trusted root certificate authorities
      * @param string $adminDir Full path to admin directory
      * @param StorageFactory $storageFactory
+     *
+     * @throws PrestaShopException
      */
     public function __construct(
         Logger $logger,
@@ -94,9 +98,12 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
     ) {
         $this->logger = $logger;
         $this->guzzle = new Client([
-            'base_uri'    => rtrim($baseUri, '/'),
-            'verify'      => $truststore,
-            'timeout'     => 20,
+            'base_uri' => rtrim($baseUri, '/'),
+            'verify' => $truststore,
+            'timeout' => 20,
+            'headers' => [
+                'X-SID' => static::getSID(),
+            ]
         ]);
         $this->adminDir = $adminDir;
         $this->token = $token;
@@ -451,5 +458,22 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
         return new ThirtybeesApiException($message, $request, $e);
     }
 
+    /**
+     * @return string
+     *
+     * @throws PrestaShopException
+     */
+    public static function getSID()
+    {
+        static $sid = null;
+        if (is_null($sid)) {
+            $sid = Configuration::getGlobalValue('TB_TRACKING_UID');
+            if (!$sid) {
+                $sid = Tools::passwdGen(40);
+                Configuration::updateGlobalValue('TB_TRACKING_UID', $sid);
+            }
+        }
+        return $sid;
+    }
 
 }
