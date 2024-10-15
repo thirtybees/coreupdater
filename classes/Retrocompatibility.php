@@ -25,6 +25,7 @@ use Language;
 use Module;
 use PrestaShopException;
 use Tab;
+use Throwable;
 use Translate;
 
 /**
@@ -74,7 +75,10 @@ class Retrocompatibility
         ],
         '1.5.0'   => [
             'tbupdater' => self::ANY_VERSION,
-            'collectlogs' => '1.2.1', // collectlogs must have at least version 1.2.1
+            'collectlogs' => [
+                'minVersion' => '1.2.1', // collectlogs must have at least version 1.2.1
+                'autoUninstall' => false
+            ]
         ],
     ];
 
@@ -337,12 +341,32 @@ class Retrocompatibility
         $incompatibles = [];
         foreach (static::INCOMPATIBILE_MODULES as $version => $list) {
             if (version_compare($targetVersion, $version, '>=')) {
-                foreach ($list as $moduleName => $minVersion) {
+                foreach ($list as $moduleName => $options) {
                     if (isset($installedModules[$moduleName])) {
+
+                        if (is_array($options)) {
+                            $minVersion = $options['minVersion'] ?? static::ANY_VERSION;
+                            $autoUninstall = $options['autoUninstall'] ?? true;
+                        } else {
+                            $minVersion = $options;
+                            $autoUninstall = true;
+                        }
+
                         $installedVersion = $installedModules[$moduleName];
                         $reason = static::isModuleVersionIncompatibile($moduleName, $installedVersion, $minVersion);
                         if ($reason) {
-                            $incompatibles[] = $reason;
+                            if ($autoUninstall) {
+                                try {
+                                    $module = Module::getInstanceByName($moduleName);
+                                    if ($module) {
+                                        $module->uninstall();
+                                    }
+                                } catch (Throwable $e) {
+                                    $incompatibles[] = $reason . ". Automatic uninstall process failed with error: " . $e->getMessage();
+                                }
+                            } else {
+                                $incompatibles[] = $reason;
+                            }
                         }
                     }
                 }
