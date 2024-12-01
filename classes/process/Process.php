@@ -151,7 +151,7 @@ abstract class Processor
             $currentStep = $steps[$step];
             return $this->describeStep($currentStep, $storage);
         }
-        return $this->l("Done");
+        return $this->l('Done');
     }
 
     /**
