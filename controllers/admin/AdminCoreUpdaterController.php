@@ -318,13 +318,13 @@ class AdminCoreUpdaterController extends ModuleAdminController
                     .'</p>'
                     .'<ul>'
                     .'<li><b>'.$this->l('Stable releases').'</b>&nbsp;&mdash;&nbsp;'
-                    .$this->l("Your store will be updated to stable official releases only. This is recommended settings for production stores")
+                    .$this->l('Your store will be updated to stable official releases only. This is recommended settings for production stores')
                     .'</li>'
                     .'<li><b>'.$this->l('Bleeding edge').'</b>&nbsp;&mdash;&nbsp;'
-                    .$this->l("Your store will be updated to latest build. This will allow you to test new features early. This is recommended settings for testing sites.")
+                    .$this->l('Your store will be updated to latest build. This will allow you to test new features early. This is recommended settings for testing sites.')
                     .'</li>'
                     .'<li><b>'.$this->l('Custom target').'</b>&nbsp;&mdash;&nbsp;'
-                    .$this->l("You will be able to update to any official release version, or even development branch.")
+                    .$this->l('You will be able to update to any official release version, or even development branch.')
                     .'</li>'
                     .'</ul>'
                 ),
@@ -447,7 +447,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
                 'title'       => $this->l('Cache'),
                 'icon'        => 'icon-refresh',
                 'description' => (
-                    sprintf($this->l("Clear cached information retrieved from api server '%s'"), Settings::getApiServer())
+                    sprintf($this->l('Clear cached information retrieved from api server '%s''), Settings::getApiServer())
                 ),
                 'submit'      => [
                     'title'     => $this->l('Clear cache'),

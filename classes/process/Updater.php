@@ -346,29 +346,29 @@ class Updater extends Processor
         $action = $this->getParameter('action', $step);
         switch ($action) {
             case static::ACTION_DOWNLOAD:
-                return sprintf($this->l("Downloading files, chunk %s out of %s"), $step['chunk'], $step['total']);
+                return sprintf($this->l('Downloading files, chunk %s out of %s'), $step['chunk'], $step['total']);
             case static::ACTION_EXTRACT:
-                return sprintf($this->l("Extracting files, chunk %s out of %s"), $step['chunk'], $step['total']);
+                return sprintf($this->l('Extracting files, chunk %s out of %s'), $step['chunk'], $step['total']);
             case static::ACTION_VERIFY:
-                return sprintf($this->l("Verifying downloaded files, chunk %s out of %s"), $step['chunk'], $step['total']);
+                return sprintf($this->l('Verifying downloaded files, chunk %s out of %s'), $step['chunk'], $step['total']);
             case static::ACTION_RENAME_DIR:
-                return sprintf($this->l("Renaming directory %s to %s"), $step['from'], $step['to']);
+                return sprintf($this->l('Renaming directory %s to %s'), $step['from'], $step['to']);
             case static::ACTION_BACKUP:
-                return $this->l("Backuping files");
+                return $this->l('Backuping files');
             case static::ACTION_CREATE_UPDATE_SCRIPT:
-                return $this->l("Generating update script");
+                return $this->l('Generating update script');
             case static::ACTION_UPDATE:
-                return $this->l("Executing update script");
+                return $this->l('Executing update script');
             case static::ACTION_POST_PROCESS_AFTER_UPDATE:
-                return $this->l("Update post processing");
+                return $this->l('Update post processing');
             case static::ACTION_MIGRATE_DB:
-                return $this->l("Migrating database");
+                return $this->l('Migrating database');
             case static::ACTION_INITIALIZE_CODEBASE:
-                return $this->l("Initializing codebase");
+                return $this->l('Initializing codebase');
             case static::ACTION_POST_PROCESS_AFTER_INITIALIZATION:
-                return $this->l("Final post processing");
+                return $this->l('Final post processing');
             case static::ACTION_CLEANUP:
-                return $this->l("Cleaning up");
+                return $this->l('Cleaning up');
             case static::ACTION_PREPARE_RESULT:
                 return $this->l('Finalizing update process...');
             default:
@@ -434,15 +434,15 @@ class Updater extends Processor
         foreach ($fileList as $path => $hash) {
             if (! @file_exists($dir . $path)) {
                 return ProcessingState::failed(
-                    sprintf($this->l("File %s not downloaded"), $path),
-                    sprintf($this->l("File not found in %s"), $dir)
+                    sprintf($this->l('File %s not downloaded'), $path),
+                    sprintf($this->l('File not found in %s'), $dir)
                 );
             }
             $calculatedHash = Utils::getGitHash($dir . $path);
 
             if ($calculatedHash != $hash) {
                 return ProcessingState::failed(
-                    sprintf($this->l("File %s has invalid fingerprint"), $path),
+                    sprintf($this->l('File %s has invalid fingerprint'), $path),
                     (
                         "Calculated hash = $calculatedHash\n" .
                         "Expected hash = $hash"
@@ -627,7 +627,7 @@ class Updater extends Processor
 
         return $success
             ? ProcessingState::done($scriptUrl)
-            : ProcessingState::failed($this->l("Failed to create update file"), "Update file: $scriptFile\n\n\n$script");
+            : ProcessingState::failed($this->l('Failed to create update file'), "Update file: $scriptFile\n\n\n$script");
     }
 
     /**
@@ -709,7 +709,7 @@ class Updater extends Processor
         // Apply retro-compatibility database upgrades.
         $errors = Retrocompatibility::doAllDatabaseUpgrades();
         if ($errors) {
-            return ProcessingState::failed($this->l("Retrocompatibility DB update failed"), implode("\n", $errors));
+            return ProcessingState::failed($this->l('Retrocompatibility DB update failed'), implode("\n", $errors));
         }
 
         // database migration

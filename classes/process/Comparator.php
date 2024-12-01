@@ -351,20 +351,20 @@ class Comparator extends Processor
         $action = $this->getParameter('action', $step);
         switch ($action) {
             case static::ACTION_CHECK_INCOMPATIBLE_MODULES:
-                return $this->l("Checking modules compatibility");
+                return $this->l('Checking modules compatibility');
             case static::ACTION_DOWNLOAD_FILE_LIST:
-                return sprintf($this->l("Retrieving list of files for version %s"), $this->getParameter('revision', $step));
+                return sprintf($this->l('Retrieving list of files for version %s'), $this->getParameter('revision', $step));
             case static::ACTION_RESOLVE_TOP_DIRS:
-                return $this->l("Resolving top level directories");
+                return $this->l('Resolving top level directories');
             case static::ACTION_SEARCH_INSTALLATION:
                 $all = $storage->get('topLevel');
                 $index = $storage->hasKey('topLevelIndex') ? $storage->get('topLevelIndex') : 0;
                 $directory = array_key_exists($index, $all) ? $all[$index] : '.';
-                return sprintf($this->l("Indexing files in directory '%s'"), $directory);
+                return sprintf($this->l('Indexing files in directory '%s''), $directory);
             case static::ACTION_INCLUDE_DIST_FILESET:
-                return $this->l("Indexing extra distribution files");
+                return $this->l('Indexing extra distribution files');
             case static::ACTION_CALCULATE_CHANGES:
-                return $this->l("Calculating changes");
+                return $this->l('Calculating changes');
             default:
                 throw new PrestaShopException("Unknown action: $action");
         }
