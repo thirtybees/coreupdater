@@ -51,16 +51,16 @@ class ProcessingState
 
     /**
      * @param float $progress
-     * @param string $ajax
+     * @param string|null $ajax
      * @return ProcessingState
      */
-    public static function inProgress($progress, $ajax=null)
+    public static function inProgress($progress, $ajax = null)
     {
         return new ProcessingState(static::IN_PROGRESS, static::getProgressExtra($progress, $ajax));
     }
 
     /**
-     * @param null $ajax
+     * @param string|null $ajax
      * @return ProcessingState
      */
     public static function done($ajax = null)
@@ -68,6 +68,11 @@ class ProcessingState
         return new ProcessingState(static::DONE, static::getProgressExtra(1.0, $ajax));
     }
 
+    /**
+     * @param float $progress
+     * @param string|null $ajax
+     * @return array
+     */
     protected static function getProgressExtra($progress, $ajax)
     {
         $data = [
@@ -92,6 +97,9 @@ class ProcessingState
         ]);
     }
 
+    /**
+     * @return bool
+     */
     public function hasFinished()
     {
         return in_array($this->state, [static::FAILED, static::DONE]);
@@ -121,6 +129,9 @@ class ProcessingState
         return json_encode($this->toArray());
     }
 
+    /**
+     * @return array|string[]
+     */
     public function toArray()
     {
         return array_merge($this->extra, [

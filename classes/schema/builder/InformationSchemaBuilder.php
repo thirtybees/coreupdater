@@ -57,11 +57,11 @@ class InformationSchemaBuilder
     /**
      * InformationSchemaBuilder constructor.
      *
-     * @param null $connection
-     * @param null $databaseName Optional name of database to load schema for.
+     * @param Db|null $connection
+     * @param string|null $databaseName Optional name of database to load schema for.
      *                             If not provided, information about current
      *                             database will be returned.
-     * @param null $tables Optional table names. If present, builder will
+     * @param string[]|null $tables Optional table names. If present, builder will
      *                             load information for these tables only
      *
      * @throws PrestaShopException

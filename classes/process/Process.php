@@ -212,6 +212,9 @@ abstract class Processor
         return Translate::getModuleTranslation('coreupdater', $string, 'Process');
     }
 
+    /**
+     * @return string
+     */
     protected abstract function getProcessName();
 
     /**

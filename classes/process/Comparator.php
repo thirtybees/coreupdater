@@ -143,6 +143,9 @@ class Comparator extends Processor
         $this->api = $api;
     }
 
+    /**
+     * @return string
+     */
     protected function getProcessName()
     {
         return 'Compare';

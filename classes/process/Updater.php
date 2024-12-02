@@ -116,6 +116,9 @@ class Updater extends Processor
         $this->baseUrl = $baseUrl;
     }
 
+    /**
+     * @return string
+     */
     protected function getProcessName()
     {
         return 'Update';
@@ -804,6 +807,13 @@ class Updater extends Processor
         return ProcessingState::done();
     }
 
+    /**
+     * @param string $versionType
+     * @param string $versionName
+     * @param Storage $storage
+     *
+     * @return ProcessingState
+     */
     public function prepareResult($versionType, $versionName, Storage $storage)
     {
         $storage->put('result', [
