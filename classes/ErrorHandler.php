@@ -56,7 +56,7 @@ class ErrorHandler
 
         // initialize error reporting
         @ini_set('display_errors', 'off');
-        @error_reporting(E_ALL | E_STRICT);
+        @error_reporting(E_ALL);
     }
 
     /**
