@@ -345,8 +345,12 @@ class Retrocompatibility
                     if (isset($installedModules[$moduleName])) {
 
                         if (is_array($options)) {
-                            $minVersion = $options['minVersion'] ?? static::ANY_VERSION;
-                            $autoUninstall = $options['autoUninstall'] ?? true;
+                            $minVersion = isset($options['minVersion'])
+                                ? (string)$options['minVersion']
+                                : static::ANY_VERSION;
+                            $autoUninstall = isset($options['autoUninstall'])
+                                ? (bool)$options['autoUninstall']
+                                : true;
                         } else {
                             $minVersion = $options;
                             $autoUninstall = true;
