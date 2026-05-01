@@ -44,6 +44,7 @@ class Updater extends Processor
     const ACTION_VERIFY = 'VERIFY_FILES';
     const ACTION_RENAME_DIR = 'RENAME_DIRECTORY';
     const ACTION_BACKUP = 'BACKUP';
+    const ACTION_APPLY_MERGED_FILES = 'APPLY_MERGED_FILES';
     const ACTION_CREATE_UPDATE_SCRIPT = 'CREATE_UPDATE_SCRIPT';
     const ACTION_UPDATE = 'UPDATE';
     const ACTION_POST_PROCESS_AFTER_UPDATE = 'POST_PROCESS_AFTER_UPDATE';
@@ -139,6 +140,7 @@ class Updater extends Processor
         $versionName = $settings['versionName'];
         $changeSet = $settings['changeSet'];
         $targetFileList = $settings['targetFileList'];
+        $mergedFiles = isset($settings['mergedFiles']) ? $settings['mergedFiles'] : [];
         $stagingDirectory = $this->stagingDir;
         $scriptPath = $this->rootDir . 'coreupdater.php';
         $scriptUrl = $this->baseUrl . '/coreupdater.php?' . time();
@@ -149,6 +151,7 @@ class Updater extends Processor
 
         $toDownload = $this->getFilesToDownload($changeSet, $targetFileList);
         $sources = [];
+        $stagingTargets = [];
 
         $chunks = array_chunk(array_keys($toDownload), $this->chunkSize);
         $steps = [];
@@ -167,6 +170,7 @@ class Updater extends Processor
                     $admin = true;
                 }
                 $sources[$dir . $targetFile] = $this->rootDir.$targetFile;
+                $stagingTargets[$targetFile] = $dir . $targetFile;
             }
 
             $steps[] = [
@@ -211,6 +215,20 @@ class Updater extends Processor
                     'to' => $this->backupDir
                 ];
             }
+        }
+
+        if ($mergedFiles) {
+            $resolvedMergedFiles = [];
+            foreach ($mergedFiles as $path => $content) {
+                if (!isset($stagingTargets[$path])) {
+                    throw new PrestaShopException("Unable to prepare merged file $path");
+                }
+                $resolvedMergedFiles[$stagingTargets[$path]] = $content;
+            }
+            $steps[] = [
+                'action' => static::ACTION_APPLY_MERGED_FILES,
+                'files' => $resolvedMergedFiles,
+            ];
         }
 
         $toRemove = $this->getFilesToDelete($changeSet);
@@ -300,6 +318,10 @@ class Updater extends Processor
                     $step['files'],
                     $step['to']
                 );
+            case static::ACTION_APPLY_MERGED_FILES:
+                return $this->applyMergedFiles(
+                    $step['files']
+                );
             case static::ACTION_CREATE_UPDATE_SCRIPT:
                 return $this->createUpdateScript(
                     $processId,
@@ -358,6 +380,8 @@ class Updater extends Processor
                 return sprintf($this->l('Renaming directory %s to %s'), $step['from'], $step['to']);
             case static::ACTION_BACKUP:
                 return $this->l('Backuping files');
+            case static::ACTION_APPLY_MERGED_FILES:
+                return $this->l('Preparing merged files');
             case static::ACTION_CREATE_UPDATE_SCRIPT:
                 return $this->l('Generating update script');
             case static::ACTION_UPDATE:
@@ -504,6 +528,28 @@ class Updater extends Processor
                     @mkdir($dir, 0777, true);
                 }
                 @copy($source, $target);
+            }
+        }
+        return ProcessingState::done();
+    }
+
+    /**
+     * Writes merged file contents into staging directory.
+     *
+     * @param array $files
+     * @return ProcessingState
+     * @throws PrestaShopException
+     */
+    protected function applyMergedFiles($files)
+    {
+        foreach ($files as $target => $content) {
+            $decoded = base64_decode($content, true);
+            if ($decoded === false) {
+                throw new PrestaShopException("Invalid merged file content for $target");
+            }
+            $this->ensureDirectoryExists(dirname($target));
+            if (file_put_contents($target, $decoded) === false) {
+                throw new PrestaShopException("Failed to write merged file $target");
             }
         }
         return ProcessingState::done();

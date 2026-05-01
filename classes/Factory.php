@@ -38,6 +38,7 @@ require_once __DIR__.'/storage/Storage.php';
 require_once __DIR__.'/storage/StorageFactory.php';
 require_once __DIR__.'/storage/StorageDb.php';
 require_once __DIR__.'/storage/StorageFilesystem.php';
+require_once __DIR__.'/MergeService.php';
 require_once __DIR__.'/Utils.php';
 require_once __DIR__.'/Settings.php';
 require_once __DIR__.'/Retrocompatibility.php';

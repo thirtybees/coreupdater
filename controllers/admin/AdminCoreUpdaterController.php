@@ -22,6 +22,7 @@ use CoreUpdater\Api\ThirtybeesApiException;
 use CoreUpdater\DatabaseSchemaComparator;
 use CoreUpdater\Factory;
 use CoreUpdater\InformationSchemaBuilder;
+use CoreUpdater\MergeService;
 use CoreUpdater\ObjectModelSchemaBuilder;
 use CoreUpdater\Process\ProcessingState;
 use CoreUpdater\Process\Processor;
@@ -49,6 +50,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
     const ACTION_GET_DATABASE_DIFFERENCES = "GET_DATABASE_DIFFERENCES";
     const ACTION_APPLY_DATABASE_FIX = 'APPLY_DATABASE_FIX';
     const ACTION_RUN_POST_UPDATE_PROCESSES = 'RUN_POST_UPDATE_PROCESSES';
+    const ACTION_PREVIEW_FILE = 'PREVIEW_FILE';
 
     const SELECTED_PROCESS_MIGRATE_DB = 'SELECTED_PROCESS_MIGRATE_DB';
     const SELECTED_PROCESS_INITIALIZATION_CALLBACK = 'SELECTED_PROCESS_INITIALIZATION_CALLBACK';
@@ -744,7 +746,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
                 'success' => true,
                 'data' => $this->processAction($action)
             ]));
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             $logger->error('Failed to process action ' . $action . ': ' . $e->getMessage() . ': ' . $e->getTraceAsString());
             die(json_encode([
                 'success' => false,
@@ -777,6 +779,8 @@ class AdminCoreUpdaterController extends ModuleAdminController
                 return $this->getDatabaseDifferences();
             case static::ACTION_APPLY_DATABASE_FIX:
                 return $this->applyDatabaseFix(Tools::getValue('ids'));
+            case static::ACTION_PREVIEW_FILE:
+                return $this->previewFile();
             default:
                 throw new PrestaShopException("Invalid action: $action");
         }
@@ -911,6 +915,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
     public function createCompareResult($compareProcessId, $result, $installedRevision)
     {
         $changeSet = $result['changeSet'];
+        $previewableFiles = $this->buildPreviewableFilesMap($changeSet);
         $targetRevision = $result['targetRevision'];
         $sameRevision = $targetRevision == $installedRevision;
         $changes = 0;
@@ -935,7 +940,9 @@ class AdminCoreUpdaterController extends ModuleAdminController
             'versionType' => $versionType,
             'installedRevision' => $installedRevision,
             'targetRevision' => $targetRevision,
-            'changeSet' => $changeSet
+            'changeSet' => $changeSet,
+            'previewableFiles' => $previewableFiles,
+            'developerMode' => Settings::isDeveloperMode(),
         ]);
 
         return [
@@ -955,6 +962,23 @@ class AdminCoreUpdaterController extends ModuleAdminController
         if (! $result) {
             throw new PrestaShopException("Comparision result not found. Please reload the page and try again");
         }
+        $ignored = null;
+        if (Settings::isDeveloperMode()) {
+            $ignored = Tools::getValue('ignoreFiles');
+            if ($ignored && !is_array($ignored)) {
+                $ignored = [$ignored];
+            }
+            if ($ignored) {
+                foreach ($ignored as $path) {
+                    foreach (['change','add','remove'] as $type) {
+                        if (isset($result['changeSet'][$type][$path])) {
+                            unset($result['changeSet'][$type][$path]);
+                        }
+                    }
+                }
+            }
+        }
+        $mergedFiles = $this->parseMergedFiles(Tools::getValue('mergedFiles'), $result['changeSet']);
         $targetFileList = $comparator->getFileList(
             $compareProcessId,
             $result['targetRevision'],
@@ -969,7 +993,8 @@ class AdminCoreUpdaterController extends ModuleAdminController
             'versionType' => $result['versionType'],
             'versionName' => $result['versionName'],
             'changeSet' => $result['changeSet'],
-            'targetFileList' => $targetFileList
+            'targetFileList' => $targetFileList,
+            'mergedFiles' => $mergedFiles,
         ]);
         return [
             'id' => $processId,
@@ -977,6 +1002,218 @@ class AdminCoreUpdaterController extends ModuleAdminController
             'progress' => 0.0,
             'step' => $updater->describeCurrentStep($processId),
         ];
+    }
+
+    /**
+     * Returns preview of given file
+     *
+     * @return array
+     *
+     * @throws PrestaShopException
+     */
+    protected function previewFile()
+    {
+        $compareProcessId = Tools::getValue('compareProcessId');
+        $file = Tools::getValue('file');
+        if (!$file) {
+            throw new PrestaShopException('File not specified');
+        }
+        $comparator = $this->factory->getComparator();
+        $result = $comparator->getResult($compareProcessId);
+        if (!$result) {
+            throw new PrestaShopException('Comparision result not found. Please reload the page and try again');
+        }
+        $changeSet = $result['changeSet'];
+        $changeType = $this->resolveChangeType($changeSet, $file);
+        if (!$changeType) {
+            throw new PrestaShopException('File does not belong to current compare result');
+        }
+        if (!$this->isPreviewableFile($file, $changeType)) {
+            throw new PrestaShopException('Preview is not available for this file');
+        }
+
+        $mergeable = $changeType === 'change' && !empty($changeSet['change'][$file]);
+        if (!$mergeable && !Settings::isDeveloperMode()) {
+            throw new PrestaShopException('Developer mode is not enabled');
+        }
+
+        $apiPath = preg_replace('#^' . preg_quote(basename(_PS_ADMIN_DIR_) . '/') . '#', 'admin/', $file);
+        $localPath = _PS_ROOT_DIR_ . '/' . $this->fixAdminDirectory($file);
+        $localContent = file_exists($localPath) ? file_get_contents($localPath) : '';
+
+        $incomingContent = '';
+        if ($changeType !== 'remove') {
+            $incomingContent = $this->downloadRevisionFile(
+                $result['targetPHPVersion'],
+                $result['targetRevision'],
+                $apiPath
+            );
+        }
+
+        if ($mergeable) {
+            try {
+                $comparator = $this->factory->getComparator();
+                $baseContent = $this->downloadRevisionFile(
+                    $comparator->getOriginPHPVersion(),
+                    $comparator->getInstalledRevision(),
+                    $apiPath
+                );
+                $preview = MergeService::buildMergePreview($baseContent, $localContent, $incomingContent);
+            } catch (\Throwable $e) {
+                $this->factory->getLogger()->error('Falling back to whole-file merge preview for ' . $file . ': ' . $e->getMessage());
+                $preview = MergeService::buildWholeFilePreview('', $localContent, $incomingContent);
+            }
+            $preview['mode'] = 'merge';
+            return $preview;
+        }
+
+        return [
+            'mode' => 'diff',
+            'diff' => base64_encode(MergeService::buildDiff($localContent, $incomingContent)),
+        ];
+    }
+
+    /**
+     * @param string|null $payload
+     * @param array $changeSet
+     *
+     * @return array
+     * @throws PrestaShopException
+     */
+    protected function parseMergedFiles($payload, $changeSet)
+    {
+        if (!$payload) {
+            return [];
+        }
+
+        $data = json_decode($payload, true);
+        if (!is_array($data)) {
+            throw new PrestaShopException('Invalid merged files payload');
+        }
+
+        $mergedFiles = [];
+        foreach ($data as $file => $content) {
+            if (!isset($changeSet['change'][$file]) || !$changeSet['change'][$file]) {
+                throw new PrestaShopException("Merged content is not allowed for file $file");
+            }
+            if (!is_string($content) || base64_decode($content, true) === false) {
+                throw new PrestaShopException("Invalid merged content for file $file");
+            }
+            $mergedFiles[$file] = $content;
+        }
+
+        return $mergedFiles;
+    }
+
+    /**
+     * @param array $changeSet
+     * @param string $file
+     *
+     * @return string|null
+     */
+    protected function resolveChangeType($changeSet, $file)
+    {
+        foreach (['change', 'add', 'remove'] as $type) {
+            if (isset($changeSet[$type][$file])) {
+                return $type;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param array $changeSet
+     *
+     * @return array
+     */
+    protected function buildPreviewableFilesMap($changeSet)
+    {
+        $previewableFiles = [];
+        foreach (['change', 'add', 'remove'] as $type) {
+            if (empty($changeSet[$type]) || !is_array($changeSet[$type])) {
+                continue;
+            }
+            foreach ($changeSet[$type] as $file => $modified) {
+                $previewableFiles[$file] = $this->isPreviewableFile($file, $type);
+            }
+        }
+
+        return $previewableFiles;
+    }
+
+    /**
+     * @param string $file
+     * @param string|null $changeType
+     *
+     * @return bool
+     */
+    protected function isPreviewableFile($file, $changeType = null)
+    {
+        $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        $binaryExtensions = [
+            '7z', 'avi', 'bin', 'bmp', 'class', 'cur', 'dll', 'eot', 'exe',
+            'flac', 'gif', 'gz', 'ico', 'jar', 'jpeg', 'jpg', 'mp3', 'mp4',
+            'mov', 'ogg', 'otf', 'pdf', 'phar', 'png', 'psd', 'rar', 'so',
+            'svgz', 'tar', 'tgz', 'ttf', 'wav', 'webm', 'webp', 'woff',
+            'woff2', 'zip',
+        ];
+
+        if ($extension && in_array($extension, $binaryExtensions, true)) {
+            return false;
+        }
+
+        if ($changeType !== 'add') {
+            $localPath = _PS_ROOT_DIR_ . '/' . $this->fixAdminDirectory($file);
+            if (is_file($localPath)) {
+                $sample = file_get_contents($localPath, false, null, 0, 4096);
+                if ($sample !== false && strpos($sample, "\0") !== false) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param string $phpVersion
+     * @param string $revision
+     * @param string $path
+     *
+     * @return string
+     * @throws PrestaShopException
+     */
+    protected function downloadRevisionFile($phpVersion, $revision, $path)
+    {
+        $tmp = tempnam(_PS_CACHE_DIR_, 'cu');
+        try {
+            $this->factory->getApi()->downloadFiles(
+                $phpVersion,
+                $revision,
+                [$path],
+                $tmp
+            );
+            $tar = new Archive_Tar($tmp, 'gz');
+            $content = $tar->extractInString($path);
+            if ($content === false) {
+                throw new PrestaShopException("Failed to extract file $path from revision $revision");
+            }
+            return $content;
+        } finally {
+            @unlink($tmp);
+        }
+    }
+
+    /**
+     * Replace admin directory placeholder with real directory name
+     *
+     * @param string $file
+     * @return string
+     */
+    protected function fixAdminDirectory($file)
+    {
+        $adminDir = basename(_PS_ADMIN_DIR_);
+        return preg_replace('#^admin/#', $adminDir . '/', $file);
     }
 
     /**
