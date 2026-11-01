@@ -705,31 +705,43 @@ class AdminCoreUpdaterController extends ModuleAdminController
         }
 
         if (Tools::isSubmit(static::ACTION_SAVE_SETTINGS)) {
-            Settings::setUpdateMode(Tools::getValue(Settings::SETTINGS_UPDATE_MODE));
-            Settings::setSyncThemes(!!Tools::getValue(Settings::SETTINGS_SYNC_THEMES));
-            Settings::setServerPerformance(Tools::getValue(Settings::SETTINGS_SERVER_PERFORMANCE));
-            Settings::setApiToken(Tools::getValue(Settings::SETTINGS_API_TOKEN));
-            Settings::setDeveloperMode(Tools::getValue(Settings::SETTINGS_DEVELOPER_MODE));
-            Settings::setCacheSystem(Tools::getValue(Settings::SETTINGS_CACHE_SYSTEM));
-            Settings::setVerifySsl(Tools::getValue(Settings::SETTINGS_VERIFY_SSL));
-            Settings::setTargetPHP(Tools::getValue(Settings::SETTINGS_TARGET_PHP_VERSION));
-            $this->factory->getStorageFactory()->flush();
-            $this->confirmations[] = $this->l('Settings saved');
-            $this->setRedirectAfter(static::tabLink(static::TAB_SETTINGS));
-            $this->redirect();
+            if ($this->hasTabAccess('edit')) {
+                Settings::setUpdateMode(Tools::getValue(Settings::SETTINGS_UPDATE_MODE));
+                Settings::setSyncThemes(!!Tools::getValue(Settings::SETTINGS_SYNC_THEMES));
+                Settings::setServerPerformance(Tools::getValue(Settings::SETTINGS_SERVER_PERFORMANCE));
+                Settings::setApiToken(Tools::getValue(Settings::SETTINGS_API_TOKEN));
+                Settings::setDeveloperMode(Tools::getValue(Settings::SETTINGS_DEVELOPER_MODE));
+                Settings::setCacheSystem(Tools::getValue(Settings::SETTINGS_CACHE_SYSTEM));
+                Settings::setVerifySsl(Tools::getValue(Settings::SETTINGS_VERIFY_SSL));
+                Settings::setTargetPHP(Tools::getValue(Settings::SETTINGS_TARGET_PHP_VERSION));
+                $this->factory->getStorageFactory()->flush();
+                $this->confirmations[] = $this->l('Settings saved');
+                $this->setRedirectAfter(static::tabLink(static::TAB_SETTINGS));
+                $this->redirect();
+            } else {
+                $this->errors[] = $this->l('You do not have permission to edit this.');
+            }
         }
 
         if (Tools::isSubmit(static::ACTION_CLEAR_CACHE)) {
-            $this->factory->getStorageFactory()->flush();
-            $this->confirmations[] = $this->l('Cache cleared');
-            $this->setRedirectAfter(static::tabLink(static::TAB_SETTINGS));
-            $this->redirect();
+            if ($this->hasTabAccess('edit')) {
+                $this->factory->getStorageFactory()->flush();
+                $this->confirmations[] = $this->l('Cache cleared');
+                $this->setRedirectAfter(static::tabLink(static::TAB_SETTINGS));
+                $this->redirect();
+            } else {
+                $this->errors[] = $this->l('You do not have permission to edit this.');
+            }
         }
 
         if (Tools::isSubmit(static::ACTION_RUN_POST_UPDATE_PROCESSES)) {
-            $this->runPostUpdateProcesses();
-            $this->setRedirectAfter(static::tabLink(static::TAB_DEVELOPER));
-            $this->redirect();
+            if ($this->isSuperAdmin()) {
+                $this->runPostUpdateProcesses();
+                $this->setRedirectAfter(static::tabLink(static::TAB_DEVELOPER));
+                $this->redirect();
+            } else {
+                $this->errors[] = $this->l('Only super administrator can perform this action.');
+            }
         }
     }
 
@@ -766,6 +778,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
      */
     protected function processAction($action)
     {
+        $this->checkActionAccess($action);
         switch ($action) {
             case static::ACTION_COMPARE_PROCESS:
                 return $this->compareProcess(Tools::getValue('processId'));
@@ -780,6 +793,58 @@ class AdminCoreUpdaterController extends ModuleAdminController
             default:
                 throw new PrestaShopException("Invalid action: $action");
         }
+    }
+
+    /**
+     * Verifies that current employee is allowed to perform ajax action
+     *
+     * @param string $action action to process
+     *
+     * @throws PrestaShopException
+     */
+    protected function checkActionAccess($action)
+    {
+        switch ($action) {
+            case static::ACTION_COMPARE_PROCESS:
+            case static::ACTION_GET_DATABASE_DIFFERENCES:
+                // read-only actions
+                $allowed = $this->hasTabAccess('view');
+                break;
+            case static::ACTION_INIT_UPDATE:
+            case static::ACTION_UPDATE_PROCESS:
+            case static::ACTION_APPLY_DATABASE_FIX:
+                $allowed = $this->hasTabAccess('edit') && $this->isSuperAdmin();
+                break;
+            default:
+                $allowed = $this->hasTabAccess('edit');
+                break;
+        }
+        if (! $allowed) {
+            throw new PrestaShopException($this->l('You do not have permission to perform this action.'));
+        }
+    }
+
+    /**
+     * Returns true, if current employee has permission on this tab
+     *
+     * @param string $permission view, add, edit or delete
+     *
+     * @return bool
+     */
+    protected function hasTabAccess($permission)
+    {
+        return is_array($this->tabAccess) && !empty($this->tabAccess[$permission]);
+    }
+
+    /**
+     * Returns true, if current employee is super administrator
+     *
+     * @return bool
+     */
+    protected function isSuperAdmin()
+    {
+        $employee = $this->context->employee;
+        return Validate::isLoadedObject($employee) && $employee->isSuperAdmin();
     }
 
     /**
