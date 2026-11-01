@@ -163,6 +163,10 @@ class StorageFilesystem implements Storage
     {
         $files = scandir($directory);
         foreach ($files as $item) {
+            // keep files that deny web access to this directory
+            if ($item === '.htaccess' || $item === 'index.php') {
+                continue;
+            }
             if ($item !== '.' && $item !== '..' && is_file($directory . $item)) {
                 unlink($directory . $item);
             }

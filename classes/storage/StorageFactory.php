@@ -21,6 +21,7 @@ namespace CoreUpdater\Storage;
 
 
 use CoreUpdater\Settings;
+use CoreUpdater\Utils;
 use PrestaShopException;
 class StorageFactory
 {
@@ -40,6 +41,8 @@ class StorageFactory
         if (! file_exists($directory)) {
             mkdir($directory);
         }
+        // storage files must not be accessible from the web
+        Utils::protectDirectory($directory);
     }
 
 

@@ -22,6 +22,7 @@ namespace CoreUpdater\Api;
 use Configuration;
 use CoreUpdater\Log\Logger;
 use CoreUpdater\Storage\StorageFactory;
+use CoreUpdater\Utils;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -129,13 +130,23 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
      */
     public function downloadFileList($php, $revision)
     {
+        if (! Utils::isValidVersion($revision)) {
+            throw new ThirtybeesApiException("Invalid revision", ['revision' => $revision]);
+        }
         $cacheTtl = $this->isStableRelease($revision)
             ? static::MONTH
             : static::HOUR;
         $storage = $this->storageFactory->getStorage($this->getCacheFile('files-' . $revision, $php), $cacheTtl);
         if ($storage->isEmpty()) {
             $list = $this->callApi($php, static::ACTION_LIST_REVISION, ['revision' => $revision]);
+            if (! is_array($list)) {
+                throw new ThirtybeesApiException("Invalid file list", ['revision' => $revision]);
+            }
             foreach ($list as $path => $hash) {
+                $path = (string)$path;
+                if (! Utils::isSafeRelativePath($path) || ! is_string($hash) || ! preg_match('/^[0-9a-f]{40}$/', $hash)) {
+                    throw new ThirtybeesApiException("Invalid file list entry: " . json_encode($path), ['revision' => $revision]);
+                }
                 $path = preg_replace('#^admin/#', $this->adminDir . '/', $path);
                 $storage->put($path, $hash);
             }
@@ -210,6 +221,14 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
      */
     public function downloadFiles($php, $revision, $files, $targetFile)
     {
+        if (! Utils::isValidVersion($revision)) {
+            throw new ThirtybeesApiException("Invalid revision", ['revision' => $revision]);
+        }
+        foreach ($files as $file) {
+            if (! Utils::isSafeRelativePath($file)) {
+                throw new ThirtybeesApiException("Invalid file path: " . json_encode($file), ['revision' => $revision]);
+            }
+        }
         $request = [
             'action' => 'download-archive',
             'php' => $php,

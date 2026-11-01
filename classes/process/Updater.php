@@ -143,11 +143,21 @@ class Updater extends Processor
         $scriptPath = $this->rootDir . 'coreupdater.php';
         $scriptUrl = $this->baseUrl . '/coreupdater.php?' . time();
 
+        if (! Utils::isValidVersion($targetRevision) || ! Utils::isValidVersion($targetVersion)) {
+            throw new PrestaShopException("Invalid target version");
+        }
+
         Tools::deleteDirectory($stagingDirectory);
         mkdir($stagingDirectory, 0777, true);
+        Utils::protectDirectory($stagingDirectory);
         Tools::deleteDirectory($this->backupDir);
 
         $toDownload = $this->getFilesToDownload($changeSet, $targetFileList);
+        foreach (array_keys($toDownload) as $file) {
+            if (! Utils::isSafeRelativePath($file)) {
+                throw new PrestaShopException("Invalid file path: " . json_encode($file));
+            }
+        }
         $sources = [];
 
         $chunks = array_chunk(array_keys($toDownload), $this->chunkSize);
@@ -214,6 +224,12 @@ class Updater extends Processor
         }
 
         $toRemove = $this->getFilesToDelete($changeSet);
+        foreach ($toRemove as $file) {
+            // files to remove are found on local filesystem, so character set is not restricted
+            if (! Utils::isSafeRelativePath($file, false)) {
+                throw new PrestaShopException("Invalid file path: " . json_encode($file));
+            }
+        }
         $steps[] = [
             'action' => static::ACTION_CREATE_UPDATE_SCRIPT,
             'move' => $sources,
@@ -523,10 +539,11 @@ class Updater extends Processor
      */
     protected function createUpdateScript($processId, $secretHash, $move, $remove, $scriptFile, $scriptUrl)
     {
-        $renameFormat = '@rename(\'%s\', \'%s\');'."\n";
-        $removeFormat = '@unlink(\'%s\');'."\n";
-        $createDirFormat = '@mkdir(\'%s\', 0777, true);'."\n";
-        $removeDirFormat = '@rmdir(\'%s\');'."\n";
+        // all paths are inserted into generated script using var_export
+        $renameFormat = '@rename(%s, %s);'."\n";
+        $removeFormat = '@unlink(%s);'."\n";
+        $createDirFormat = '@mkdir(%s, 0777, true);'."\n";
+        $removeDirFormat = '@rmdir(%s);'."\n";
 
         $script = "<?php\n\n";
 
@@ -569,7 +586,7 @@ class Updater extends Processor
             sort($createDirs);
             $script .= "// Create directories\n";
             foreach ($createDirs as $dir) {
-                $script .= sprintf($createDirFormat, $dir);
+                $script .= sprintf($createDirFormat, var_export($dir, true));
             }
             $script .= "\n\n";
         }
@@ -578,7 +595,7 @@ class Updater extends Processor
             $script .= "// Move downloaded files from staging directory\n";
             // move downloaded files
             foreach ($move as $source => $target) {
-                $script .= sprintf($renameFormat, $source, $target);
+                $script .= sprintf($renameFormat, var_export($source, true), var_export($target, true));
             }
             $script .= "\n\n";
         }
@@ -588,7 +605,7 @@ class Updater extends Processor
             // delete obsolete files
             $script .= "// Remove obsolete files\n";
             foreach ($remove as $path) {
-                $script .= sprintf($removeFormat, $this->rootDir . $path);
+                $script .= sprintf($removeFormat, var_export($this->rootDir . $path, true));
                 for ($i = 0; $i < 10; $i++) {
                     $path = dirname($path);
                     if ($path === '.') {
@@ -605,14 +622,14 @@ class Updater extends Processor
             rsort($removeDirs);
             $script .= "// Remove directories, if not empty\n";
             foreach ($removeDirs as $removeDir) {
-                $script .= sprintf($removeDirFormat, $removeDir);
+                $script .= sprintf($removeDirFormat, var_export($removeDir, true));
             }
             $script .= "\n\n";
         }
 
         // delete index file
         $script .= "// Delete autoloader file\n";
-        $script .= sprintf($removeFormat, $this->rootDir . PrestaShopAutoload::INDEX_FILE);
+        $script .= sprintf($removeFormat, var_export($this->rootDir . PrestaShopAutoload::INDEX_FILE, true));
 
         // reset cache
         $script .= "\n\n// Reset opcache\n";
@@ -623,7 +640,7 @@ class Updater extends Processor
         // Let the script file remove its self to indicate the execution and
         // avoid multiple execution.
         $script .= "\n\n// Cleanup - remove update file\n";
-        $script .= sprintf($removeFormat, $scriptFile);
+        $script .= sprintf($removeFormat, var_export($scriptFile, true));
 
         // Die with a minimum response.
         $script .= "\n\n// Generate response\n";
@@ -650,6 +667,11 @@ class Updater extends Processor
      */
     public function afterUpdate($targetVersion, $targetRevision, $targetPHPVersion)
     {
+        // values are written into settings.inc.php, accept only strict version strings
+        if (! Utils::isValidVersion($targetVersion) || ! Utils::isValidVersion($targetRevision)) {
+            return ProcessingState::failed($this->l('Invalid target version'), 'version = ' . json_encode($targetVersion) . ', revision = ' . json_encode($targetRevision));
+        }
+
         // update _TB_VERSION_, _TB_REVISION_ and _TB_BUILD_PHP shop settings
         $settingsPath = _PS_CONFIG_DIR_.'settings.inc.php';
         $settings = @file_get_contents($settingsPath);
@@ -1011,5 +1033,8 @@ class Updater extends Processor
         if (!file_exists($dir)) {
             mkdir($dir, 0777, true);
         }
+        // deny web access to all backups. Protection files are placed into parent directory,
+        // backup directory itself contains copies of original .htaccess and index.php files
+        Utils::protectDirectory(dirname($dir));
     }
 }

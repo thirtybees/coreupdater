@@ -358,6 +358,9 @@ class Settings
      */
     public static function setTargetPHP($phpVersion)
     {
+        if (! is_string($phpVersion) || ! preg_match('/^[0-9]+\.[0-9]+$/', $phpVersion)) {
+            $phpVersion = static::CURRENT_PHP_VERSION;
+        }
         Configuration::updateGlobalValue(static::SETTINGS_TARGET_PHP_VERSION, $phpVersion);
         return $phpVersion;
     }

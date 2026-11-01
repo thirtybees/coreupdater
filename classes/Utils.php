@@ -144,6 +144,84 @@ class Utils
     }
 
     /**
+     * Returns true, if $path is safe relative file path: not absolute, without '..' segments
+     * and NUL bytes. In strict mode only limited set of characters is allowed
+     *
+     * @param string $path
+     * @param bool $strict
+     * @return bool
+     */
+    public static function isSafeRelativePath($path, $strict = true)
+    {
+        if (! is_string($path) || $path === '' || strpos($path, "\0") !== false) {
+            return false;
+        }
+        if ($path[0] === '/' || $path[0] === '\\' || preg_match('#^[a-zA-Z]:#', $path)) {
+            return false;
+        }
+        foreach (preg_split('#[/\\\\]#', $path) as $segment) {
+            if ($segment === '..') {
+                return false;
+            }
+        }
+        if ($strict && ! preg_match('#^[A-Za-z0-9._/@+ -]+$#', $path)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Returns true, if $version is valid version or revision string
+     *
+     * @param string $version
+     * @return bool
+     */
+    public static function isValidVersion($version)
+    {
+        return is_string($version) && (bool)preg_match('#^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$#', $version);
+    }
+
+    /**
+     * Denies web access to directory by creating .htaccess and index.php files in it
+     *
+     * @param string $dir directory
+     */
+    public static function protectDirectory($dir)
+    {
+        $dir = static::normalizeDirectory($dir);
+        if (! @is_dir($dir)) {
+            return;
+        }
+        if (! @file_exists($dir . '.htaccess')) {
+            @file_put_contents($dir . '.htaccess', implode("\n", [
+                '# Apache 2.4',
+                '<IfModule mod_authz_core.c>',
+                '    Require all denied',
+                '</IfModule>',
+                '# Apache 2.2',
+                '<IfModule !mod_authz_core.c>',
+                '    Order deny,allow',
+                '    Deny from all',
+                '</IfModule>',
+                ''
+            ]));
+        }
+        if (! @file_exists($dir . 'index.php')) {
+            @file_put_contents($dir . 'index.php', implode("\n", [
+                '<?php',
+                "header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');",
+                "header('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT');",
+                "header('Cache-Control: no-store, no-cache, must-revalidate');",
+                "header('Cache-Control: post-check=0, pre-check=0', false);",
+                "header('Pragma: no-cache');",
+                "header('Location: ../');",
+                'exit;',
+                ''
+            ]));
+        }
+    }
+
+    /**
      * Returns cryptographically secure random secret, hex encoded
      *
      * @return string
