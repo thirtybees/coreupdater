@@ -28,7 +28,7 @@
     </p>
   </div>
   <p>
-    <a class="btn btn-primary" href="https://github.com/thirtybees/coreupdater/releases/download/{$latestVersion}/coreupdater-v{$latestVersion}.zip">
+    <a class="btn btn-primary" href="https://github.com/thirtybees/coreupdater/releases/download/{$latestVersion|escape:'html':'UTF-8'}/coreupdater-v{$latestVersion|escape:'html':'UTF-8'}.zip">
       {l s='Download new version' mod='coreupdater'}
     </a>
   </p>

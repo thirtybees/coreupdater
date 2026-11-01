@@ -20,10 +20,10 @@
     {l s='Oh snap! We have encountered an error' mod='coreupdater'}
   </div>
   <div class="alert alert-danger">
-    <h4 id="error-message">{if isset($errorMessage)}{$errorMessage}{/if}</h4>
+    <h4 id="error-message">{if isset($errorMessage)}{$errorMessage|escape:'html':'UTF-8'}{/if}</h4>
     <div>
       {l s='Details' mod='coreupdater'}
     </div>
-    <pre id="error-details">{if isset($errorDetails)}{$errorDetails}{/if}</pre>
+    <pre id="error-details">{if isset($errorDetails)}{$errorDetails|escape:'html':'UTF-8'}{/if}</pre>
   </div>
 </div>

@@ -35,7 +35,7 @@
                         <div class="col-lg-9">
                             <select name="release" class="form-control fixed-width-xxl">
                                 {foreach $targets.releases as $item}
-                                    <option value="{$item.revision}">{$item.name}</option>
+                                    <option value="{$item.revision|escape:'html':'UTF-8'}">{$item.name|escape:'html':'UTF-8'}</option>
                                 {/foreach}
                             </select>
                         </div>
@@ -45,7 +45,7 @@
                         <div class="col-lg-9">
                             <select name="branch" class="form-control fixed-width-xxl">
                                 {foreach $targets.branches as $item}
-                                    <option value="{$item.revision}">{$item.name}</option>
+                                    <option value="{$item.revision|escape:'html':'UTF-8'}">{$item.name|escape:'html':'UTF-8'}</option>
                                 {/foreach}
                             </select>
                         </div>

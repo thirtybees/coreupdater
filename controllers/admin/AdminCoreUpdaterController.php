@@ -751,6 +751,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
     protected function ajaxProcess($action)
     {
         $logger = $this->factory->getLogger();
+        header('Content-Type: application/json');
         try {
             die(json_encode([
                 'success' => true,
