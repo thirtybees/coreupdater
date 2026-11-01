@@ -331,7 +331,11 @@ class ThirtybeesApiGuzzle implements ThirtybeesApi
             $request['token'] = $this->token;
         }
 
-        $this->logger->log("API request: " . json_encode($request));
+        $debugRequest = $request;
+        if (isset($debugRequest['token'])) {
+            $debugRequest['token'] = '***';
+        }
+        $this->logger->log("API request: " . json_encode($debugRequest));
 
         $response = $this->performPost($request);
         return $this->unwrapResponse($request, $response);
