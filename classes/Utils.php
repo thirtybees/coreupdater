@@ -19,6 +19,8 @@
 
 namespace CoreUpdater;
 
+use PrestaShopException;
+
 class Utils
 {
     /**
@@ -139,5 +141,32 @@ class Utils
             $ret = md5(time() . rand());
         }
         return substr($ret, 0, $length);
+    }
+
+    /**
+     * Returns cryptographically secure random secret, hex encoded
+     *
+     * @return string
+     * @throws PrestaShopException
+     */
+    public static function generateSecret()
+    {
+        $bytes = null;
+        if (function_exists('random_bytes')) {
+            try {
+                $bytes = random_bytes(32);
+            } catch (\Exception $ignored) {}
+        }
+        if (! $bytes && function_exists('openssl_random_pseudo_bytes')) {
+            $strong = false;
+            $bytes = openssl_random_pseudo_bytes(32, $strong);
+            if (! $strong) {
+                $bytes = null;
+            }
+        }
+        if (! $bytes) {
+            throw new PrestaShopException("Failed to generate secure random secret");
+        }
+        return bin2hex($bytes);
     }
 }

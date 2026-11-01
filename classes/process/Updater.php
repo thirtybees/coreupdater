@@ -303,6 +303,7 @@ class Updater extends Processor
             case static::ACTION_CREATE_UPDATE_SCRIPT:
                 return $this->createUpdateScript(
                     $processId,
+                    $storage->get('secretHash'),
                     $step['move'],
                     $step['remove'],
                     $step['scriptFile'],
@@ -513,13 +514,14 @@ class Updater extends Processor
      * Creates update script
      *
      * @param string $processId
+     * @param string $secretHash
      * @param string[] $move
      * @param string[] $remove
      * @param string $scriptFile
      * @param string $scriptUrl
      * @return ProcessingState
      */
-    protected function createUpdateScript($processId, $move, $remove, $scriptFile, $scriptUrl)
+    protected function createUpdateScript($processId, $secretHash, $move, $remove, $scriptFile, $scriptUrl)
     {
         $renameFormat = '@rename(\'%s\', \'%s\');'."\n";
         $removeFormat = '@unlink(\'%s\');'."\n";
@@ -548,8 +550,13 @@ class Updater extends Processor
         $script .= "}\n\n";
 
         // check parameter processId
-        $script .= "if (\$_POST['processId'] !== '$processId') {\n";
+        $script .= "if (! isset(\$_POST['processId']) || \$_POST['processId'] !== " . var_export((string)$processId, true) . ") {\n";
         $script .= '  result(false, "Invalid process ID", "Invalid process ID");'."\n";
+        $script .= "}\n\n";
+
+        // check parameter processSecret
+        $script .= "if (! isset(\$_POST['processSecret']) || ! is_string(\$_POST['processSecret']) || ! hash_equals(" . var_export($secretHash, true) . ", hash('sha256', \$_POST['processSecret']))) {\n";
+        $script .= '  result(false, "Invalid process secret", "Invalid process secret");'."\n";
         $script .= "}\n\n";
 
         // create directories
@@ -835,6 +842,58 @@ class Updater extends Processor
             return $storage->get('result');
         }
         return [];
+    }
+
+    /**
+     * Generates secret for update process. Only hash of the secret is stored, the secret
+     * itself is returned to the browser and authorizes employee auto-login during update
+     *
+     * @param string $processId
+     * @return string
+     * @throws PrestaShopException
+     */
+    public function createProcessSecret($processId)
+    {
+        $storage = $this->getStorage($processId);
+        if ($storage->get('processType') !== $this->getProcessName()) {
+            throw new PrestaShopException("Process not found: '$processId'");
+        }
+        $secret = Utils::generateSecret();
+        $storage->put('secretHash', hash('sha256', $secret));
+        $storage->save();
+        return $secret;
+    }
+
+    /**
+     * Returns id of employee that started update process. Returns 0 if process is not
+     * a running update process or if secret does not match
+     *
+     * @param string $processId
+     * @param string $secret
+     * @return int
+     */
+    public function getAutoLoginEmployeeId($processId, $secret)
+    {
+        if (! is_string($secret) || $secret === '') {
+            return 0;
+        }
+        try {
+            $storage = $this->getStorage($processId);
+        } catch (PrestaShopException $e) {
+            return 0;
+        }
+        if ($storage->get('processType') !== $this->getProcessName()) {
+            return 0;
+        }
+        $secretHash = $storage->get('secretHash');
+        if (! is_string($secretHash) || ! hash_equals($secretHash, hash('sha256', $secret))) {
+            return 0;
+        }
+        $steps = $storage->get('steps');
+        if (! is_array($steps) || (int)$storage->get('currentStep') >= count($steps)) {
+            return 0;
+        }
+        return (int)$storage->get('employeeId');
     }
 
     /**

@@ -971,8 +971,10 @@ class AdminCoreUpdaterController extends ModuleAdminController
             'changeSet' => $result['changeSet'],
             'targetFileList' => $targetFileList
         ]);
+        $secret = $updater->createProcessSecret($processId);
         return [
             'id' => $processId,
+            'secret' => $secret,
             'status' => ProcessingState::IN_PROGRESS,
             'progress' => 0.0,
             'step' => $updater->describeCurrentStep($processId),
@@ -1232,9 +1234,13 @@ class AdminCoreUpdaterController extends ModuleAdminController
     {
         // auto-login functionality
         // if employee is not logged in but update process is running, we will auto-login employee
+        // Employee can be logged out in the middle of update, for example when cookie encryption
+        // method changes. Auto-login requires the process secret that was returned to the browser
+        // when the update process was started
         if (! $this->isEmployeeLoggedIn()) {
             $employee = $this->getCurrentUpdateProcessEmployee();
             if ($employee) {
+                $this->factory->getLogger()->log('Auto-login employee ' . (int)$employee->id . ' during update process');
                 // Update cookie
                 $this->context->employee = $employee;
                 $cookie = $this->context->cookie;
@@ -1246,6 +1252,7 @@ class AdminCoreUpdaterController extends ModuleAdminController
                 $cookie->last_activity = time();
                 $cookie->write();
                 $this->token = Tools::getAdminToken($this->controller_name.(int) $this->id.(int) $employee->id);
+                $this->tabAccess = Profile::getProfileAccess($employee->id_profile, $this->id);
                 Cache::clean('*');
             }
         }
@@ -1289,10 +1296,19 @@ class AdminCoreUpdaterController extends ModuleAdminController
             return false;
         }
 
-        // resolve update process employee
+        $processSecret = (string)Tools::getValue('processSecret');
+        if (! $processSecret) {
+            return false;
+        }
+
+        // resolve update process employee, only for running update process with matching secret
         $updater = $this->factory->getUpdater();
-        $employee = new Employee($updater->getEmployeeId($processId));
-        if (Validate::isLoadedObject($employee)) {
+        $employeeId = $updater->getAutoLoginEmployeeId($processId, $processSecret);
+        if (! $employeeId) {
+            return false;
+        }
+        $employee = new Employee($employeeId);
+        if (Validate::isLoadedObject($employee) && $employee->active) {
             return $employee;
         }
         return false;

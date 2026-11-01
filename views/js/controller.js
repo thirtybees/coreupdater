@@ -117,12 +117,23 @@ window.initializeCoreUpdater = function(translations) {
     $('#progress-bar-text').text(text);
   };
 
+  // secret of running update process, required for employee auto-login
+  var processSecret = null;
+
+  var getProcessParams = function(process) {
+    var params = { processId: process.id };
+    if (processSecret) {
+      params.processSecret = processSecret;
+    }
+    return params;
+  };
+
   var incrementProcess = function(action, process, onSuccess) {
     setProgressBar(process.progress, process.step);
-    executeAction(action, { processId: process.id })
+    executeAction(action, getProcessParams(process))
       .then(function(newProcess) {
           if (newProcess.ajax) {
-              return executeAjax(newProcess.ajax, { processId: process.id })
+              return executeAjax(newProcess.ajax, getProcessParams(process))
                   .then(_ => newProcess);
           } else {
               return newProcess;
@@ -166,11 +177,13 @@ window.initializeCoreUpdater = function(translations) {
   };
 
   var compare = function(process) {
+    processSecret = null;
     initProgress(translations.CHECKING_YOUR_INSTALLATION, translations.CHECKING_DESCRIPTION);
     incrementProcess('COMPARE', process, endProgress);
   };
 
   var runUpdate = function(process) {
+    processSecret = process.secret || null;
     incrementProcess('UPDATE', process, endProgress);
   };
 
