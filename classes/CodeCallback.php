@@ -53,12 +53,18 @@ class CodeCallback
             return;
         }
         $dirs = ['classes', 'controllers', 'Core', 'Adapter'];
+        $installClassesPath = _PS_ROOT_DIR_ . DIRECTORY_SEPARATOR
+            . 'classes' . DIRECTORY_SEPARATOR . 'install' . DIRECTORY_SEPARATOR;
         $iterator = new AppendIterator();
         foreach ($dirs as $dir) {
             $iterator->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator(_PS_ROOT_DIR_ . '/' . $dir)));
         }
         $list = [];
         foreach ($iterator as $path) {
+            $path = (string) $path;
+            if (strpos($path, $installClassesPath) === 0) {
+                continue;
+            }
             $list[] = "$path";
         }
         sort($list);

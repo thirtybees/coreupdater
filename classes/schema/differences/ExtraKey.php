@@ -106,7 +106,7 @@ class ExtraKey implements SchemaDifference
                 return self::SEVERITY_CRITICAL;
             case ObjectModel::UNIQUE_KEY:
                 return self::SEVERITY_CRITICAL;
-            case ObjectModel::FOREIGN_KEY;
+            case ObjectModel::FOREIGN_KEY:
                 return self::SEVERITY_NORMAL;
             default:
                 return self::SEVERITY_NOTICE;

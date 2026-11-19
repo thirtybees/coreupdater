@@ -157,7 +157,7 @@ class TableKey
                 return Translate::getModuleTranslation('coreupdater', 'primary key', 'coreupdater');
             case ObjectModel::UNIQUE_KEY:
                 return sprintf(Translate::getModuleTranslation('coreupdater', 'unique key `%1$s`', 'coreupdater'), $this->name);
-            case ObjectModel::FOREIGN_KEY;
+            case ObjectModel::FOREIGN_KEY:
                 return sprintf(Translate::getModuleTranslation('coreupdater', 'foreign key `%1$s`', 'coreupdater'), $this->name);
             default:
                 return sprintf(Translate::getModuleTranslation('coreupdater', 'key `%1$s`', 'coreupdater'), $this->name);

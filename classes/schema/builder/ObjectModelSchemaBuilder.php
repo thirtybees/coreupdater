@@ -102,6 +102,8 @@ class ObjectModelSchemaBuilder
      */
     protected function processObjectModels()
     {
+        $classesPath = _PS_ROOT_DIR_ . DIRECTORY_SEPARATOR . 'classes';
+        $installClassesPath = $classesPath . DIRECTORY_SEPARATOR . 'install' . DIRECTORY_SEPARATOR;
         $directory = new RecursiveDirectoryIterator(_PS_ROOT_DIR_ . DIRECTORY_SEPARATOR . 'classes');
         $iterator = new RecursiveIteratorIterator($directory);
 
@@ -112,6 +114,12 @@ class ObjectModelSchemaBuilder
         sort($list);
 
         foreach ($list as $path) {
+            // Installer classes can already be loaded from /install/classes.
+            // Do not load the duplicate copy under /classes/install again.
+            if (strpos($path, $installClassesPath) === 0) {
+                continue;
+            }
+
             $file = basename($path);
             if (preg_match("/^.+\.php$/i", $file)) {
                 $className = str_replace(".php", "", $file);
